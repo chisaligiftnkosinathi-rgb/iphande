@@ -17,6 +17,7 @@ const items: MoreItem[] = [
   { title: 'Generated Content', description: 'Review, approve, and share posts', icon: 'checkmark-done-outline', target: 'GeneratedContent' },
   { title: 'Quote Requests', description: 'Manage all quote requests', icon: 'mail-outline', target: 'QuoteRequestsDashboard' },
   { title: 'Stewardship', description: 'Cash, profit, and obligations', icon: 'wallet-outline', target: 'StewardshipLedger' },
+  { title: 'Payment Review', description: 'Review evidence before receipts', icon: 'receipt-outline', target: 'PaymentReview' },
   { title: 'Giving / Support', description: 'Voluntary giving and support', icon: 'heart-outline', target: 'GivingSupport' },
   { title: 'Media Library', description: 'Images, videos and documents', icon: 'images-outline', target: 'Media' },
   { title: 'Reflections', description: 'Lessons and activity notes', icon: 'journal-outline', target: 'Reflections' },

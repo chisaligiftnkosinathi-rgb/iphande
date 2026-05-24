@@ -18,6 +18,7 @@ import MediaScreen from './screens/MediaScreen';
 import MessageTemplatesScreen from './screens/MessageTemplatesScreen';
 import MoreScreen from './screens/MoreScreen';
 import OpportunitiesScreen from './screens/OpportunitiesScreen';
+import PaymentReviewScreen from './screens/PaymentReviewScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import QuoteRequestsDashboardScreen from './screens/QuoteRequestsDashboardScreen';
 import ReflectionsScreen from './screens/ReflectionsScreen';
@@ -58,6 +59,7 @@ const getTabIcon = (
     QuoteRequests: 'mail-outline',
     GivingSupport: 'heart-outline',
     StewardshipLedger: 'wallet-outline',
+    PaymentReview: 'receipt-outline',
   };
   return <Ionicons name={icons[routeName]} size={size} color={color} />;
 };
@@ -118,6 +120,7 @@ export default function App() {
         <Tab.Screen name="QuoteRequests" component={QuoteRequestsScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
         <Tab.Screen name="GivingSupport" component={GivingSupportScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
         <Tab.Screen name="StewardshipLedger" component={StewardshipLedgerScreen} options={{ title: 'Stewardship', tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
+        <Tab.Screen name="PaymentReview" component={PaymentReviewScreen} options={{ title: 'Payment Review', tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
         <Tab.Screen name="ReplayEventDetail" component={ReplayEventDetailScreen} options={{ title: 'Event Inspection', tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
         <Tab.Screen name="EntityReplay" component={EntityReplayScreen} options={{ title: 'Entity Replay', tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
         <Tab.Screen name="GraphReplay" component={GraphReplayScreen} options={{ title: 'Causal Graph', tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />

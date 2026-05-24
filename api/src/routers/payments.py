@@ -19,6 +19,7 @@ from src.models.quote import Quote
 from src.schemas.quote_to_cash_schema import (
     PaymentIntentCreate,
     PaymentIntentOut,
+    PaymentIntentReviewOut,
     ProofOfPaymentCreate,
     ProofOfPaymentOut,
 )
@@ -59,6 +60,47 @@ def evaluate_evidence(payment: PaymentIntent, proof: ProofOfPayment) -> tuple[Pr
         else ProofOfPaymentStatus.evidence_check_passed,
         failures,
     )
+
+
+@router.get("/intents/business/{business_owner_id}", response_model=list[PaymentIntentReviewOut])
+def list_payment_intents_for_business(business_owner_id: str, db: Session = Depends(get_db)):
+    payments = (
+        db.query(PaymentIntent)
+        .filter(PaymentIntent.business_owner_id == business_owner_id)
+        .order_by(PaymentIntent.created_at.desc())
+        .all()
+    )
+
+    results = []
+    for payment in payments:
+        quote = db.query(Quote).filter(Quote.id == payment.quote_id).first()
+        latest_proof = (
+            db.query(ProofOfPayment)
+            .filter(ProofOfPayment.payment_intent_id == payment.id)
+            .order_by(ProofOfPayment.created_at.desc())
+            .first()
+        )
+        results.append(
+            PaymentIntentReviewOut(
+                payment_intent_id=payment.id,
+                quote_id=payment.quote_id,
+                quote_request_id=quote.customer_request_id if quote else None,
+                business_owner_id=payment.business_owner_id,
+                customer_name=quote.customer_name if quote else None,
+                amount=payment.amount,
+                currency=payment.currency,
+                status=payment.status,
+                payment_reference=payment.payment_reference,
+                receipt_number=payment.receipt_number,
+                latest_proof_file_name=latest_proof.file_name if latest_proof else None,
+                evidence_status=latest_proof.evidence_status if latest_proof else None,
+                evidence_notes=latest_proof.notes if latest_proof else None,
+                extracted_reference=latest_proof.extracted_reference if latest_proof else None,
+                created_at=payment.created_at,
+                updated_at=payment.confirmed_at,
+            )
+        )
+    return results
 
 
 @router.post("/intents", response_model=PaymentIntentOut)

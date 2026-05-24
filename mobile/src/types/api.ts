@@ -158,3 +158,37 @@ export interface Quote {
     sent_at?: string | null;
     accepted_at?: string | null;
 }
+
+export type PaymentReviewStatus =
+    | "evidence_awaiting"
+    | "evidence_submitted"
+    | "under_review"
+    | "verified"
+    | "rejected"
+    | "pending"
+    | "confirmed"
+    | "failed";
+
+export type EvidenceStatus =
+    | "submitted"
+    | "evidence_check_passed"
+    | "evidence_check_failed";
+
+export interface PaymentIntentReview {
+    payment_intent_id: string;
+    quote_id: string;
+    quote_request_id?: string | null;
+    business_owner_id: string;
+    customer_name?: string | null;
+    amount: string;
+    currency: string;
+    status: PaymentReviewStatus;
+    payment_reference: string;
+    receipt_number?: string | null;
+    latest_proof_file_name?: string | null;
+    evidence_status?: EvidenceStatus | null;
+    evidence_notes?: string | null;
+    extracted_reference?: string | null;
+    created_at: string;
+    updated_at?: string | null;
+}

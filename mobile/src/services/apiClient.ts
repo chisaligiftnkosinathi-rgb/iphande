@@ -11,6 +11,7 @@ import type {
     QuoteRequestCreate,
     QuoteRequestStatus,
     Quote,
+    PaymentIntentReview,
 } from '../types/api';
 import type {
     ContinuityEvent,
@@ -200,6 +201,24 @@ export async function draftQuoteFromRequest(
     }
 ): Promise<Quote> {
     return apiPost<typeof payload, Quote>(`/api/v1/quote-requests/${quoteRequestId}/quotes`, payload);
+}
+
+export async function listPaymentIntentsForBusiness(
+    businessOwnerId: string
+): Promise<PaymentIntentReview[]> {
+    return apiGet<PaymentIntentReview[]>(`/api/v1/payments/intents/business/${businessOwnerId}`);
+}
+
+export async function verifyPaymentIntent(intentId: string): Promise<PaymentIntentReview> {
+    return apiPost<{}, PaymentIntentReview>(`/api/v1/payments/intents/${intentId}/verify`, {});
+}
+
+export async function rejectPaymentIntent(intentId: string): Promise<PaymentIntentReview> {
+    return apiPost<{}, PaymentIntentReview>(`/api/v1/payments/intents/${intentId}/reject`, {});
+}
+
+export async function issueReceipt(intentId: string): Promise<PaymentIntentReview> {
+    return apiPost<{}, PaymentIntentReview>(`/api/v1/payments/intents/${intentId}/receipt`, {});
 }
 
 // Replay API

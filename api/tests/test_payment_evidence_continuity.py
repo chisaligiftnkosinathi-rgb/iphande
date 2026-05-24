@@ -175,3 +175,34 @@ def test_evidence_check_failure_still_only_moves_payment_under_review():
         assert proof_events[1].payload_json["truth_boundary"] == "Evidence check is not payment verification."
     finally:
         db.close()
+
+
+def test_payment_review_endpoint_separates_evidence_status_from_payment_status():
+    quote = create_sent_quote()
+    intent = client.post(f"/api/v1/quotes/{quote['id']}/payment-intents", json={}).json()
+    proof_response = client.post(
+        f"/api/v1/payments/intents/{intent['id']}/proofs",
+        json={
+            "file_name": "proof.pdf",
+            "file_type": "application/pdf",
+            "uploaded_by": "customer",
+            "extracted_amount": "520.00",
+            "extracted_reference": intent["payment_reference"],
+            "payer_name": "Thandi",
+            "account_info_present": True,
+            "notes": "Awaiting steward review.",
+        },
+    )
+    assert proof_response.status_code == 200
+
+    response = client.get("/api/v1/payments/intents/business/BO004")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body) == 1
+    assert body[0]["payment_intent_id"] == intent["id"]
+    assert body[0]["status"] == "under_review"
+    assert body[0]["evidence_status"] == "evidence_check_passed"
+    assert body[0]["latest_proof_file_name"] == "proof.pdf"
+    assert body[0]["extracted_reference"] == intent["payment_reference"]
+    assert body[0]["receipt_number"] is None

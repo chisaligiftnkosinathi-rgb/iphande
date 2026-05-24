@@ -29,6 +29,7 @@ export type RootTabParamList = {
   QuoteRequests: undefined;
   GivingSupport: undefined;
   StewardshipLedger: undefined;
+  PaymentReview: undefined;
 };
 
 export const navigationRef = createNavigationContainerRef<RootTabParamList>();

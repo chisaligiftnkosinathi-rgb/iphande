@@ -123,3 +123,22 @@ class ProofOfPaymentOut(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class PaymentIntentReviewOut(BaseModel):
+    payment_intent_id: UUID
+    quote_id: UUID
+    quote_request_id: str | None = None
+    business_owner_id: str
+    customer_name: str | None = None
+    amount: Decimal
+    currency: str
+    status: PaymentIntentStatus
+    payment_reference: str
+    receipt_number: str | None = None
+    latest_proof_file_name: str | None = None
+    evidence_status: ProofOfPaymentStatus | None = None
+    evidence_notes: str | None = None
+    extracted_reference: str | None = None
+    created_at: datetime
+    updated_at: datetime | None = None
