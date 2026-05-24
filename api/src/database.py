@@ -56,6 +56,7 @@ def create_tables():
     Base.metadata.create_all(bind=engine)
     ensure_sqlite_replay_schema()
     ensure_sqlite_content_posts_schema()
+    ensure_sqlite_quotes_schema()
 
 
 def ensure_sqlite_content_posts_schema():
@@ -70,6 +71,22 @@ def ensure_sqlite_content_posts_schema():
     with engine.begin() as connection:
         if "template_key" not in columns:
             connection.execute(text("ALTER TABLE content_posts ADD COLUMN template_key VARCHAR"))
+
+
+def ensure_sqlite_quotes_schema():
+    if engine.dialect.name != "sqlite":
+        return
+
+    inspector = inspect(engine)
+    if "quotes" not in inspector.get_table_names():
+        return
+
+    columns = {column["name"] for column in inspector.get_columns("quotes")}
+    with engine.begin() as connection:
+        if "terms" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN terms VARCHAR"))
+        if "sent_at" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN sent_at DATETIME"))
 
 
 def ensure_sqlite_replay_schema():

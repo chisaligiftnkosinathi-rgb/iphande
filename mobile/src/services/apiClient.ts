@@ -10,6 +10,7 @@ import type {
     QuoteRequest,
     QuoteRequestCreate,
     QuoteRequestStatus,
+    Quote,
 } from '../types/api';
 import type {
     ContinuityEvent,
@@ -187,6 +188,18 @@ export async function convertQuoteRequest(quoteRequestId: string): Promise<Quote
 
 export async function closeQuoteRequest(quoteRequestId: string): Promise<QuoteRequest> {
     return apiPost<{}, QuoteRequest>(`/api/v1/quote-requests/${quoteRequestId}/close`, {});
+}
+
+export async function draftQuoteFromRequest(
+    quoteRequestId: string,
+    payload: {
+        amount: string;
+        currency?: string;
+        service_description?: string;
+        terms?: string;
+    }
+): Promise<Quote> {
+    return apiPost<typeof payload, Quote>(`/api/v1/quote-requests/${quoteRequestId}/quotes`, payload);
 }
 
 // Replay API

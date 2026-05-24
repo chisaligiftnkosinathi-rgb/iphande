@@ -128,3 +128,33 @@ export interface QuoteRequest extends QuoteRequestCreate {
     created_at: string;
     updated_at?: string | null;
 }
+
+export type QuoteStatus =
+    | "quote_drafted"
+    | "quote_reviewed"
+    | "quote_sent"
+    | "quote_accepted"
+    | "quote_declined"
+    | "quote_expired"
+    | "quote_converted"
+    | "issued"
+    | "accepted"
+    | "declined";
+
+export interface Quote {
+    id: string;
+    business_owner_id: string;
+    customer_request_id?: string | null;
+    customer_name: string;
+    customer_phone?: string | null;
+    description: string;
+    amount: string;
+    currency: string;
+    terms?: string | null;
+    status: QuoteStatus;
+    continuity_event_id: string;
+    accepted_continuity_event_id?: string | null;
+    created_at: string;
+    sent_at?: string | null;
+    accepted_at?: string | null;
+}

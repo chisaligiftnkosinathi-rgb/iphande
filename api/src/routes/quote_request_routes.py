@@ -1,11 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from uuid import UUID
+import uuid
 
 from src.database import get_db, replay_transaction
 from src.models.continuity_event_model import ContinuityEvent
+from src.models.quote import Quote, QuoteStatus
 from src.models.quote_request_model import QuoteRequest, QuoteRequestStatus
 from src.replay.constants import ActorType, ContinuityEventType, EntityType
+from src.schemas.quote_to_cash_schema import QuoteDraftFromRequestCreate, QuoteOut
 from src.schemas.quote_request_schema import (
     QuoteRequestCreate,
     QuoteRequestOut,
@@ -193,3 +196,79 @@ def close_quote_request(quote_request_id: str, db: Session = Depends(get_db)):
         next_status=QuoteRequestStatus.quote_closed,
         db=db,
     )
+
+
+@router.post("/api/v1/quote-requests/{quote_request_id}/quotes", response_model=QuoteOut)
+def draft_quote_from_request(
+    quote_request_id: str,
+    payload: QuoteDraftFromRequestCreate,
+    db: Session = Depends(get_db),
+):
+    quote_request = (
+        db.query(QuoteRequest)
+        .filter(QuoteRequest.id == parse_quote_request_id(quote_request_id))
+        .first()
+    )
+    if not quote_request:
+        raise HTTPException(status_code=404, detail="Quote request not found")
+
+    existing_quote = (
+        db.query(Quote)
+        .filter(Quote.customer_request_id == str(quote_request.id))
+        .first()
+    )
+    if existing_quote:
+        raise HTTPException(status_code=409, detail="Quote already drafted for this request")
+
+    service_description = (
+        payload.service_description
+        or quote_request.service_needed
+        or quote_request.message
+        or quote_request.business_line
+    )
+    quote_id = uuid.uuid4()
+    quote = Quote(
+        id=quote_id,
+        business_owner_id=quote_request.business_owner_id,
+        customer_request_id=str(quote_request.id),
+        customer_name=quote_request.customer_name,
+        customer_phone=quote_request.customer_phone,
+        description=service_description,
+        amount=payload.amount,
+        currency=payload.currency,
+        terms=payload.terms,
+        status=QuoteStatus.quote_drafted,
+    )
+
+    with replay_transaction(db):
+        parent_event = get_latest_quote_request_event(db, str(quote_request.id))
+        event = emit_continuity_event(
+            db,
+            business_owner_id=quote.business_owner_id,
+            business_category_key=quote_request.business_category_key,
+            business_line=quote_request.business_line,
+            event_type="quote_drafted",
+            actor_type=ActorType.BUSINESS_OWNER,
+            actor_id=quote.business_owner_id,
+            related_entity_type="quote",
+            related_entity_id=str(quote_id),
+            parent_event_id=parent_event.id if parent_event else None,
+            payload={
+                "quote_request_id": str(quote_request.id),
+                "quote_id": str(quote_id),
+                "previous_status": None,
+                "next_status": QuoteStatus.quote_drafted.value,
+                "amount": str(quote.amount),
+                "currency": quote.currency,
+                "service_description": quote.description,
+                "terms": quote.terms,
+                "customer_name": quote.customer_name,
+            },
+            auto_commit=False,
+        )
+        quote.continuity_event_id = event.id
+        db.add(quote)
+        db.flush()
+        db.refresh(quote)
+
+    return quote

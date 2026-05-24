@@ -17,6 +17,14 @@ class QuoteCreate(BaseModel):
     description: str
     amount: Decimal = Field(gt=0)
     currency: str = "ZAR"
+    terms: str | None = None
+
+
+class QuoteDraftFromRequestCreate(BaseModel):
+    amount: Decimal = Field(gt=0)
+    currency: str = "ZAR"
+    service_description: str | None = None
+    terms: str | None = None
 
 
 class QuoteOut(BaseModel):
@@ -28,10 +36,12 @@ class QuoteOut(BaseModel):
     description: str
     amount: Decimal
     currency: str
+    terms: str | None = None
     status: QuoteStatus
     continuity_event_id: UUID
     accepted_continuity_event_id: UUID | None = None
     created_at: datetime
+    sent_at: datetime | None = None
     accepted_at: datetime | None = None
 
     model_config = {"from_attributes": True}

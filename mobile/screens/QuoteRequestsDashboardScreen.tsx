@@ -7,6 +7,7 @@ import {
     ScrollView,
     StyleSheet,
     Text,
+    TextInput,
     View,
 } from 'react-native';
 
@@ -16,6 +17,7 @@ import {
     closeQuoteRequest,
     contactQuoteRequest,
     convertQuoteRequest,
+    draftQuoteFromRequest,
     listQuoteRequests,
     reviewQuoteRequest,
 } from '../src/services/apiClient';
@@ -48,6 +50,8 @@ const QuoteRequestsDashboardScreen: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [busyRequestId, setBusyRequestId] = useState<string | null>(null);
+    const [quoteAmounts, setQuoteAmounts] = useState<Record<string, string>>({});
+    const [quoteTerms, setQuoteTerms] = useState<Record<string, string>>({});
     const [error, setError] = useState<string | null>(null);
 
     const fetchRequests = useCallback(async () => {
@@ -102,6 +106,31 @@ const QuoteRequestsDashboardScreen: React.FC = () => {
         const canContact = status === 'quote_reviewed' || status === 'quoted';
         const canConvert = status === 'quote_contacted' || status === 'contacted';
         const canClose = status !== 'quote_closed' && status !== 'closed';
+        const quoteAmount = quoteAmounts[item.id] || '';
+        const quoteTermsValue = quoteTerms[item.id] || '';
+
+        const handleDraftQuote = async () => {
+            if (!quoteAmount.trim()) {
+                setError('Add an amount before drafting a quote.');
+                return;
+            }
+
+            try {
+                setBusyRequestId(item.id);
+                setError(null);
+                await draftQuoteFromRequest(item.id, {
+                    amount: quoteAmount.trim(),
+                    currency: 'ZAR',
+                    service_description: item.service_needed || item.business_line,
+                    terms: quoteTermsValue.trim() || undefined,
+                });
+                await fetchRequests();
+            } catch (err: any) {
+                setError(err.message || 'Quote draft failed');
+            } finally {
+                setBusyRequestId(null);
+            }
+        };
 
         return (
             <View key={item.id} style={styles.card}>
@@ -119,6 +148,36 @@ const QuoteRequestsDashboardScreen: React.FC = () => {
                 {item.message ? <Text style={styles.message}>{item.message}</Text> : null}
                 <Text style={styles.meta}>Line: {item.business_line}</Text>
                 <Text style={styles.meta}>Requested: {new Date(item.created_at).toLocaleString()}</Text>
+
+                <View style={styles.quoteBox}>
+                    <Text style={styles.quoteTitle}>Draft quote</Text>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Amount, e.g. 450.00"
+                        placeholderTextColor="#9CA3AF"
+                        keyboardType="numeric"
+                        value={quoteAmount}
+                        onChangeText={(value) =>
+                            setQuoteAmounts((current) => ({ ...current, [item.id]: value }))
+                        }
+                    />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Terms, e.g. Valid for 7 days"
+                        placeholderTextColor="#9CA3AF"
+                        value={quoteTermsValue}
+                        onChangeText={(value) =>
+                            setQuoteTerms((current) => ({ ...current, [item.id]: value }))
+                        }
+                    />
+                    <Pressable
+                        style={[styles.draftButton, busy && styles.disabledButton]}
+                        disabled={busy}
+                        onPress={handleDraftQuote}
+                    >
+                        <Text style={styles.actionText}>Draft Quote</Text>
+                    </Pressable>
+                </View>
 
                 <View style={styles.actionRow}>
                     <Pressable
@@ -226,6 +285,20 @@ const styles = StyleSheet.create({
     service: { fontSize: 14, lineHeight: 22, color: '#374151', marginBottom: 8 },
     meta: { fontSize: 12, color: '#64748B', marginBottom: 4 },
     message: { fontSize: 13, lineHeight: 20, color: '#4B5563', backgroundColor: '#F9FAFB', padding: 10, borderRadius: 8, marginBottom: 8 },
+    quoteBox: { backgroundColor: '#F9FAFB', borderRadius: 8, padding: 12, marginTop: 10 },
+    quoteTitle: { fontSize: 12, color: '#374151', fontWeight: '900', textTransform: 'uppercase', marginBottom: 8 },
+    input: {
+        backgroundColor: '#FFFFFF',
+        borderWidth: 1,
+        borderColor: '#D1D5DB',
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        fontSize: 13,
+        color: '#111827',
+        marginBottom: 8,
+    },
+    draftButton: { backgroundColor: '#0F766E', minHeight: 42, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
     actionRow: { flexDirection: 'row', gap: 8, marginTop: 10 },
     actionButton: { flex: 1, backgroundColor: '#1E3A2F', minHeight: 42, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
     convertButton: { backgroundColor: '#111827' },
