@@ -16,6 +16,7 @@ from src.routers.financial_events import router as financial_events_router
 from src.routers.quotes import router as quotes_router
 from src.routers.invoices import router as invoices_router
 from src.routers.payments import router as payments_router
+from src.routers.inventory import router as inventory_router
 
 from src.models.quote_request_model import QuoteRequest
 from src.database import create_tables
@@ -49,6 +50,7 @@ app.include_router(financial_events_router)
 app.include_router(quotes_router)
 app.include_router(invoices_router)
 app.include_router(payments_router)
+app.include_router(inventory_router)
 app.include_router(profile_routes.router, prefix="/api/v1")
 app.include_router(opportunity_routes.router, prefix="/api/v1")
 app.include_router(timeline_routes.router, prefix="/api/v1")

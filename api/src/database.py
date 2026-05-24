@@ -50,6 +50,7 @@ def register_models():
     from src.models.quote import Quote  # noqa: F401
     from src.models.invoice import Invoice  # noqa: F401
     from src.models.payment_intent import PaymentIntent, ProofOfPayment  # noqa: F401
+    from src.models.inventory import InventoryItem, InventoryMovement  # noqa: F401
 
 def create_tables():
     register_models()
