@@ -3,6 +3,9 @@ from src.data.content_templates.funeral_cover_templates import FUNERAL_COVER_TEM
 from src.data.content_templates.real_estate_templates import REAL_ESTATE_TEMPLATES
 from src.data.content_templates.retail_templates import RETAIL_TEMPLATES
 from src.data.content_templates.services_templates import SERVICES_TEMPLATES
+from src.data.content_templates.practical_local_business_templates import (
+    PRACTICAL_LOCAL_BUSINESS_TEMPLATES,
+)
 from src.data.content_templates.commission_based_sales import (
     COMMISSION_BASED_SALES_TEMPLATE,
 )
@@ -70,6 +73,7 @@ BLUEPRINTS = [
     *FUNERAL_COVER_TEMPLATES,
     *REAL_ESTATE_TEMPLATES,
     *RETAIL_TEMPLATES,
+    *PRACTICAL_LOCAL_BUSINESS_TEMPLATES,
     *SERVICES_TEMPLATES,
     *CHURCH_TEMPLATES,
 ]
