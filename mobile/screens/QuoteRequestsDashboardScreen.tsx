@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import * as DocumentPicker from 'expo-document-picker';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
@@ -15,11 +16,14 @@ import { RootTabParamList } from '../navigation';
 import { DEMO_BUSINESS_OWNER_ID } from '../src/config/demoIdentity';
 import {
     closeQuoteRequest,
+    confirmSaleForRequest,
     contactQuoteRequest,
     convertQuoteRequest,
     draftQuoteFromRequest,
     listQuoteRequests,
     reviewQuoteRequest,
+    submitApplicationForRequest,
+    uploadSaleEvidenceForRequest,
 } from '../src/services/apiClient';
 import type { QuoteRequest } from '../src/types/api';
 
@@ -42,7 +46,17 @@ const statusLabels: Record<string, string> = {
     accepted: 'Converted',
     declined: 'Closed',
     closed: 'Closed',
+    application_submitted: 'App Submitted',
+    evidence_review_pending: 'Review Pending',
+    sale_confirmed: 'Sale Confirmed',
 };
+
+const EVIDENCE_TYPES = [
+    'policy_schedule',
+    'welcome_letter',
+    'provider_activation_notice',
+    'commission_statement',
+];
 
 const QuoteRequestsDashboardScreen: React.FC = () => {
     const navigation = useNavigation<InboxNavigation>();
@@ -52,6 +66,8 @@ const QuoteRequestsDashboardScreen: React.FC = () => {
     const [busyRequestId, setBusyRequestId] = useState<string | null>(null);
     const [quoteAmounts, setQuoteAmounts] = useState<Record<string, string>>({});
     const [quoteTerms, setQuoteTerms] = useState<Record<string, string>>({});
+    const [providerRefs, setProviderRefs] = useState<Record<string, string>>({});
+    const [evidenceTypes, setEvidenceTypes] = useState<Record<string, string>>({});
     const [error, setError] = useState<string | null>(null);
 
     const fetchRequests = useCallback(async () => {
@@ -99,12 +115,49 @@ const QuoteRequestsDashboardScreen: React.FC = () => {
         }
     };
 
+    const handleUploadEvidence = async (requestId: string) => {
+        const ref = providerRefs[requestId] || '';
+        const type = evidenceTypes[requestId] || 'policy_schedule';
+        if (!ref.trim()) {
+            setError('Add a provider reference before uploading evidence.');
+            return;
+        }
+
+        try {
+            const file = await DocumentPicker.getDocumentAsync({
+                type: ['application/pdf', 'image/*'],
+                copyToCacheDirectory: true,
+            });
+
+            if (file.type === 'cancel') return;
+
+            setBusyRequestId(requestId);
+            setError(null);
+            const updated = await uploadSaleEvidenceForRequest(
+                requestId,
+                ref.trim(),
+                type,
+                file.uri,
+                file.name,
+                file.mimeType || 'application/octet-stream'
+            );
+            updateRequest(updated);
+        } catch (err: any) {
+            setError(err.message || 'Provider evidence upload failed');
+        } finally {
+            setBusyRequestId(null);
+        }
+    };
+
     const renderRequest = (item: QuoteRequest) => {
         const busy = busyRequestId === item.id;
         const status = item.status;
         const canReview = status === 'quote_requested' || status === 'new';
         const canContact = status === 'quote_reviewed' || status === 'quoted';
         const canConvert = status === 'quote_contacted' || status === 'contacted';
+        const canSubmitApp = status === 'quoted' || status === 'quote_reviewed' || status === 'contacted';
+        const canUploadEvidence = status === 'application_submitted';
+        const canConfirmSale = status === 'evidence_review_pending';
         const canClose = status !== 'quote_closed' && status !== 'closed';
         const quoteAmount = quoteAmounts[item.id] || '';
         const quoteTermsValue = quoteTerms[item.id] || '';
@@ -205,6 +258,13 @@ const QuoteRequestsDashboardScreen: React.FC = () => {
                         <Text style={styles.actionText}>Convert</Text>
                     </Pressable>
                     <Pressable
+                        style={[styles.actionButton, { backgroundColor: '#0284C7' }, !canSubmitApp && styles.disabledButton]}
+                        disabled={!canSubmitApp || busy}
+                        onPress={() => runAction(item.id, submitApplicationForRequest)}
+                    >
+                        <Text style={styles.actionText}>Submit App</Text>
+                    </Pressable>
+                    <Pressable
                         style={[styles.actionButton, styles.closeButton, !canClose && styles.disabledButton]}
                         disabled={!canClose || busy}
                         onPress={() => runAction(item.id, closeQuoteRequest)}
@@ -212,6 +272,56 @@ const QuoteRequestsDashboardScreen: React.FC = () => {
                         <Text style={styles.actionText}>Close</Text>
                     </Pressable>
                 </View>
+
+                {canUploadEvidence && (
+                    <View style={styles.quoteBox}>
+                        <Text style={styles.quoteTitle}>Upload Provider Evidence</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Provider Reference Number"
+                            placeholderTextColor="#9CA3AF"
+                            value={providerRefs[item.id] || ''}
+                            onChangeText={(value) =>
+                                setProviderRefs((current) => ({ ...current, [item.id]: value }))
+                            }
+                        />
+                        <View style={styles.pillContainer}>
+                            {EVIDENCE_TYPES.map(type => {
+                                const isSelected = (evidenceTypes[item.id] || 'policy_schedule') === type;
+                                return (
+                                    <Pressable
+                                        key={type}
+                                        style={[styles.pill, isSelected && styles.pillSelected]}
+                                        onPress={() => setEvidenceTypes(current => ({ ...current, [item.id]: type }))}
+                                    >
+                                        <Text style={[styles.pillText, isSelected && styles.pillTextSelected]}>
+                                            {type.replace(/_/g, ' ').toUpperCase()}
+                                        </Text>
+                                    </Pressable>
+                                );
+                            })}
+                        </View>
+                        <Pressable
+                            style={[styles.actionButton, { backgroundColor: '#4F46E5', marginTop: 10 }]}
+                            disabled={busy}
+                            onPress={() => handleUploadEvidence(item.id)}
+                        >
+                            <Text style={styles.actionText}>Select File & Upload Proof</Text>
+                        </Pressable>
+                    </View>
+                )}
+
+                {canConfirmSale && (
+                    <View style={styles.actionRow}>
+                        <Pressable
+                            style={[styles.actionButton, { backgroundColor: '#16A34A' }]}
+                            disabled={busy}
+                            onPress={() => runAction(item.id, confirmSaleForRequest)}
+                        >
+                            <Text style={styles.actionText}>Review & Confirm Sale</Text>
+                        </Pressable>
+                    </View>
+                )}
 
                 <Pressable
                     style={styles.replayButton}
@@ -250,7 +360,15 @@ const QuoteRequestsDashboardScreen: React.FC = () => {
             ) : requests.length === 0 ? (
                 <Text style={styles.empty}>No incoming requests found.</Text>
             ) : (
-                requests.map(renderRequest)
+                <>
+                    {requests.map(renderRequest)}
+                    <View style={styles.boundaryCard}>
+                        <Text style={styles.boundaryTitle}>Truth Boundary</Text>
+                        <Text style={styles.boundaryText}>
+                            Quote created is not policy approval. Uploading evidence is not confirming evidence. A sale is confirmed only after human steward review.
+                        </Text>
+                    </View>
+                </>
             )}
         </ScrollView>
     );
@@ -309,6 +427,14 @@ const styles = StyleSheet.create({
     replayText: { color: '#111827', fontSize: 12, fontWeight: '900' },
     error: { color: '#B91C1C', fontWeight: '700', textAlign: 'center', marginTop: 30 },
     empty: { color: '#64748B', textAlign: 'center', marginTop: 30, fontWeight: '700' },
+    boundaryCard: { backgroundColor: '#FEF2F2', borderRadius: 8, padding: 16, borderWidth: 1, borderColor: '#FCA5A5', marginTop: 10, marginBottom: 20 },
+    boundaryTitle: { fontSize: 13, fontWeight: '900', color: '#991B1B', textTransform: 'uppercase', marginBottom: 6 },
+    boundaryText: { fontSize: 12, lineHeight: 18, color: '#B91C1C', fontWeight: '800' },
+    pillContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
+    pill: { backgroundColor: '#F3F4F6', borderRadius: 16, paddingVertical: 6, paddingHorizontal: 12, borderWidth: 1, borderColor: '#E5E7EB' },
+    pillSelected: { backgroundColor: '#1E3A2F', borderColor: '#1E3A2F' },
+    pillText: { fontSize: 11, fontWeight: '700', color: '#4B5563' },
+    pillTextSelected: { color: '#FFFFFF' },
 });
 
 export default QuoteRequestsDashboardScreen;

@@ -107,7 +107,10 @@ export type QuoteRequestStatus =
     | "quoted"
     | "accepted"
     | "declined"
-    | "closed";
+    | "closed"
+    | "application_submitted"
+    | "evidence_review_pending"
+    | "sale_confirmed";
 
 export interface QuoteRequestCreate {
     business_owner_id: string;
@@ -191,4 +194,44 @@ export interface PaymentIntentReview {
     extracted_reference?: string | null;
     created_at: string;
     updated_at?: string | null;
+}
+
+export interface InventoryBalance {
+    item_id: string;
+    item_name: string;
+    sku: string;
+    unit: string;
+    current_balance: number;
+    latest_movement_date?: string;
+    latest_movement_reason?: string;
+}
+
+export interface InventoryMovementRow {
+    movement_id: string;
+    item_id: string;
+    change: number;
+    reason: string;
+    created_at: string;
+    lineage_sequence: number;
+    replay_event_id?: string;
+}
+
+export interface CommissionLedgerPipeline {
+    activeLeads: number;
+    quotesDrafted: number;
+    applicationsPending: number;
+    expectedCommission: string;
+}
+
+export interface CommissionLedgerCashReality {
+    commissionApproved: string;
+    commissionPaid: string;
+    commissionClawedBack: string;
+    availableCash: string;
+}
+
+export interface CommissionLedgerResponse {
+    pipeline: CommissionLedgerPipeline;
+    cashReality: CommissionLedgerCashReality;
+    truthBoundary: string;
 }

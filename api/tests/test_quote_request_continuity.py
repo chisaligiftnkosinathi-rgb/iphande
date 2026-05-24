@@ -139,3 +139,45 @@ def test_legacy_status_patch_aliases_to_continuity_statuses():
 
     assert response.status_code == 200
     assert response.json()["status"] == "quote_contacted"
+
+
+def test_provider_evidence_upload_moves_request_to_review_pending_with_file_metadata():
+    quote_request = create_quote_request()
+    quote_request_id = quote_request["id"]
+
+    submit_response = client.post(f"/api/v1/quote-requests/{quote_request_id}/submit-application")
+    assert submit_response.status_code == 200
+    assert submit_response.json()["status"] == "application_submitted"
+
+    upload_response = client.post(
+        f"/api/v1/quote-requests/{quote_request_id}/upload-sale-evidence",
+        data={
+            "provider_reference_number": "POL-BO004-001",
+            "evidence_type": "policy_schedule",
+        },
+        files={
+            "evidence_file": (
+                "policy-schedule.pdf",
+                b"%PDF-1.4 provider evidence",
+                "application/pdf",
+            )
+        },
+    )
+
+    assert upload_response.status_code == 200
+    assert upload_response.json()["status"] == "evidence_review_pending"
+
+    events = get_events(quote_request_id)
+    assert [event.event_type for event in events] == [
+        "quote_request_received",
+        "quote_request_status_updated",
+        "provider_evidence_uploaded",
+    ]
+    evidence_event = events[-1]
+    assert evidence_event.parent_event_id == events[-2].id
+    assert evidence_event.payload_json["provider_reference_number"] == "POL-BO004-001"
+    assert evidence_event.payload_json["evidence_type"] == "policy_schedule"
+    assert evidence_event.payload_json["file_name"] == "policy-schedule.pdf"
+    assert evidence_event.payload_json["content_type"] == "application/pdf"
+    assert evidence_event.payload_json["file_size_bytes"] > 0
+    assert evidence_event.payload_json["next_status"] == "evidence_review_pending"

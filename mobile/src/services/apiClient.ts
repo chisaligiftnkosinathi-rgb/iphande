@@ -2,16 +2,19 @@
 import { API_BASE_URL } from '../config/api';
 import type {
     BusinessCategory,
+    CommissionLedgerResponse,
     ContentGenerationResult,
     ContentPost,
     ContentReviewStatus,
+    InventoryBalance,
+    InventoryMovementRow,
     Opportunity,
+    PaymentIntentReview,
     Profile,
+    Quote,
     QuoteRequest,
     QuoteRequestCreate,
     QuoteRequestStatus,
-    Quote,
-    PaymentIntentReview,
 } from '../types/api';
 import type {
     ContinuityEvent,
@@ -191,6 +194,41 @@ export async function closeQuoteRequest(quoteRequestId: string): Promise<QuoteRe
     return apiPost<{}, QuoteRequest>(`/api/v1/quote-requests/${quoteRequestId}/close`, {});
 }
 
+export async function submitApplicationForRequest(quoteRequestId: string): Promise<QuoteRequest> {
+    return apiPost<{}, QuoteRequest>(`/api/v1/quote-requests/${quoteRequestId}/submit-application`, {});
+}
+
+export async function confirmSaleForRequest(quoteRequestId: string): Promise<QuoteRequest> {
+    return apiPost<{}, QuoteRequest>(`/api/v1/quote-requests/${quoteRequestId}/confirm-sale`, {});
+}
+
+export async function uploadSaleEvidenceForRequest(
+    quoteRequestId: string,
+    providerReferenceNumber: string,
+    evidenceType: string,
+    fileUri: string,
+    fileName: string,
+    mimeType: string
+): Promise<QuoteRequest> {
+    const formData = new FormData();
+    formData.append('provider_reference_number', providerReferenceNumber);
+    formData.append('evidence_type', evidenceType);
+
+    formData.append('evidence_file', {
+        uri: fileUri,
+        name: fileName,
+        type: mimeType,
+    } as any);
+
+    const url = buildApiUrl(`/api/v1/quote-requests/${quoteRequestId}/upload-sale-evidence`);
+    const response = await fetch(url, {
+        method: 'POST',
+        body: formData,
+    });
+    if (!response.ok) throw new Error(`POST /quote-requests/${quoteRequestId}/upload-sale-evidence failed`);
+    return response.json();
+}
+
 export async function draftQuoteFromRequest(
     quoteRequestId: string,
     payload: {
@@ -209,6 +247,16 @@ export async function listPaymentIntentsForBusiness(
     return apiGet<PaymentIntentReview[]>(`/api/v1/payments/intents/business/${businessOwnerId}`);
 }
 
+export async function createPaymentIntentFromQuote(
+    quoteId: string,
+    payload: { provider_name: string; payer_reference?: string }
+): Promise<PaymentIntentReview> {
+    return apiPost<any, PaymentIntentReview>(`/api/v1/payments/intents`, {
+        quote_id: quoteId,
+        ...payload
+    });
+}
+
 export async function verifyPaymentIntent(intentId: string): Promise<PaymentIntentReview> {
     return apiPost<{}, PaymentIntentReview>(`/api/v1/payments/intents/${intentId}/verify`, {});
 }
@@ -219,6 +267,29 @@ export async function rejectPaymentIntent(intentId: string): Promise<PaymentInte
 
 export async function issueReceipt(intentId: string): Promise<PaymentIntentReview> {
     return apiPost<{}, PaymentIntentReview>(`/api/v1/payments/intents/${intentId}/receipt`, {});
+}
+
+export async function uploadPaymentReceipt(
+    intentId: string,
+    fileUri: string,
+    fileName: string,
+    mimeType: string
+): Promise<PaymentIntentReview> {
+    const formData = new FormData();
+    formData.append('receipt_file', {
+        uri: fileUri,
+        name: fileName,
+        type: mimeType,
+    } as any);
+
+    const url = buildApiUrl(`/api/v1/payments/intents/${intentId}/receipt-upload`);
+    const response = await fetch(url, {
+        method: 'POST',
+        body: formData,
+        // Note: Do NOT set 'Content-Type' header here. Fetch will automatically set it to 'multipart/form-data' with the correct boundary.
+    });
+    if (!response.ok) throw new Error(`POST /payments/intents/${intentId}/receipt-upload failed`);
+    return response.json();
 }
 
 // Replay API
@@ -248,4 +319,52 @@ export async function getContinuityEventGraph(
 
 export async function listContinuityEventsForEntity(entityId: string): Promise<ContinuityEvent[]> {
     return apiGet<ContinuityEvent[]>(`/api/v1/continuity-events/entity/${entityId}`);
+}
+
+// Inventory Ledger API
+export async function listInventoryBalancesForBusiness(businessOwnerId: string): Promise<InventoryBalance[]> {
+    return apiGet<InventoryBalance[]>(`/api/v1/inventory/business/${businessOwnerId}/balances`);
+}
+
+export async function addInventoryStock(itemId: string, quantity: number, notes?: string): Promise<void> {
+    return apiPost<{ quantity: number; notes?: string }, void>(
+        `/api/v1/inventory/items/${itemId}/add-stock`,
+        { quantity, notes }
+    );
+}
+
+export async function consumeInventoryStock(itemId: string, quantity: number, notes?: string): Promise<void> {
+    return apiPost<{ quantity: number; notes?: string }, void>(
+        `/api/v1/inventory/items/${itemId}/consume-stock`,
+        { quantity, notes }
+    );
+}
+
+export async function listInventoryReplay(itemId: string): Promise<InventoryMovementRow[]> {
+    return apiGet<InventoryMovementRow[]>(`/api/v1/inventory/items/${itemId}/replay`);
+}
+
+// --- Lineage Registry API ---
+export type LineageDefinition = {
+    lineage_key: string;
+    name: string;
+    description?: string;
+    capabilities: string[];
+    workflow_order: string[];
+    commission_pipeline_stages?: string[];
+    evidence_types: string[];
+    events: string[];
+};
+
+export async function getLineageDefinition(businessCategoryKey: string): Promise<LineageDefinition> {
+    const response = await fetch(buildApiUrl(`/api/v1/lineages/${businessCategoryKey}`));
+    if (!response.ok) {
+        throw new Error(`GET /lineages/${businessCategoryKey} failed`);
+    }
+    const data = await response.json();
+    return data.lineage;
+}
+
+export async function getCommissionLedger(businessOwnerId: string): Promise<CommissionLedgerResponse> {
+    return apiGet<CommissionLedgerResponse>(`/api/v1/commissions/business/${businessOwnerId}/ledger`);
 }

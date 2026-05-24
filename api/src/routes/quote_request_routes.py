@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from sqlalchemy.orm import Session
 from uuid import UUID
 import uuid
@@ -194,6 +194,73 @@ def close_quote_request(quote_request_id: str, db: Session = Depends(get_db)):
     return transition_quote_request_status(
         quote_request_id=quote_request_id,
         next_status=QuoteRequestStatus.quote_closed,
+        db=db,
+    )
+
+
+@router.post("/api/v1/quote-requests/{quote_request_id}/submit-application", response_model=QuoteRequestOut)
+def submit_quote_request_application(quote_request_id: str, db: Session = Depends(get_db)):
+    return transition_quote_request_status(
+        quote_request_id=quote_request_id,
+        next_status=QuoteRequestStatus.application_submitted,
+        db=db,
+    )
+
+
+@router.post("/api/v1/quote-requests/{quote_request_id}/upload-sale-evidence", response_model=QuoteRequestOut)
+async def upload_sale_evidence_for_quote_request(
+    quote_request_id: str,
+    provider_reference_number: str = Form(...),
+    evidence_type: str = Form(...),
+    evidence_file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
+    quote_id = parse_quote_request_id(quote_request_id)
+    quote = db.query(QuoteRequest).filter(QuoteRequest.id == quote_id).first()
+    if not quote:
+        raise HTTPException(status_code=404, detail="Quote request not found")
+
+    previous_status = normalize_quote_status(quote.status)
+    file_bytes = await evidence_file.read()
+
+    with replay_transaction(db):
+        parent_event = get_latest_quote_request_event(db, quote_request_id)
+        quote.status = QuoteRequestStatus.evidence_review_pending
+        emit_continuity_event(
+            db,
+            business_owner_id=quote.business_owner_id,
+            business_category_key=quote.business_category_key,
+            business_line=quote.business_line,
+            event_type="provider_evidence_uploaded",
+            actor_type=ActorType.BUSINESS_OWNER,
+            actor_id=quote.business_owner_id,
+            related_entity_type=EntityType.QUOTE_REQUEST,
+            related_entity_id=str(quote.id),
+            parent_event_id=parent_event.id if parent_event else None,
+            payload={
+                "quote_request_id": str(quote.id),
+                "previous_status": previous_status.value,
+                "next_status": QuoteRequestStatus.evidence_review_pending.value,
+                "provider_reference_number": provider_reference_number,
+                "evidence_type": evidence_type,
+                "file_name": evidence_file.filename,
+                "content_type": evidence_file.content_type,
+                "file_size_bytes": len(file_bytes),
+                "customer_name": quote.customer_name,
+                "service_needed": quote.service_needed,
+            },
+            auto_commit=False,
+        )
+        db.refresh(quote)
+
+    return quote
+
+
+@router.post("/api/v1/quote-requests/{quote_request_id}/confirm-sale", response_model=QuoteRequestOut)
+def confirm_quote_request_sale(quote_request_id: str, db: Session = Depends(get_db)):
+    return transition_quote_request_status(
+        quote_request_id=quote_request_id,
+        next_status=QuoteRequestStatus.sale_confirmed,
         db=db,
     )
 

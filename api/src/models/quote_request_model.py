@@ -18,6 +18,9 @@ class QuoteRequestStatus(str, enum.Enum):
     accepted = "accepted"
     declined = "declined"
     closed = "closed"
+    application_submitted = "application_submitted"
+    evidence_review_pending = "evidence_review_pending"
+    sale_confirmed = "sale_confirmed"
 
 class QuoteRequest(Base):
     __tablename__ = "quote_requests"
