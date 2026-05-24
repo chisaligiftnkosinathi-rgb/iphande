@@ -25,6 +25,7 @@ export type RootTabParamList = {
   };
   QuoteRequestsDashboard: undefined;
   ContentGenerator: undefined;
+  GeneratedContent: undefined;
   QuoteRequests: undefined;
   GivingSupport: undefined;
   StewardshipLedger: undefined;

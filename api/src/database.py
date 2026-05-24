@@ -55,6 +55,21 @@ def create_tables():
     register_models()
     Base.metadata.create_all(bind=engine)
     ensure_sqlite_replay_schema()
+    ensure_sqlite_content_posts_schema()
+
+
+def ensure_sqlite_content_posts_schema():
+    if engine.dialect.name != "sqlite":
+        return
+
+    inspector = inspect(engine)
+    if "content_posts" not in inspector.get_table_names():
+        return
+
+    columns = {column["name"] for column in inspector.get_columns("content_posts")}
+    with engine.begin() as connection:
+        if "template_key" not in columns:
+            connection.execute(text("ALTER TABLE content_posts ADD COLUMN template_key VARCHAR"))
 
 
 def ensure_sqlite_replay_schema():

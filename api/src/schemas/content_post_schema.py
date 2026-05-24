@@ -44,6 +44,7 @@ class ContentPostCreate(BaseModel):
     business_line: str
     channel: str
     post_type: str
+    template_key: Optional[str] = None
     title: str
     body: str
     call_to_action: str
@@ -54,6 +55,7 @@ class ContentPostUpdate(BaseModel):
     business_line: Optional[str]
     channel: Optional[str]
     post_type: Optional[str]
+    template_key: Optional[str]
     title: Optional[str]
     body: Optional[str]
     call_to_action: Optional[str]
@@ -69,6 +71,7 @@ class ContentPostOut(BaseModel):
     business_line: str
     channel: str
     post_type: str
+    template_key: Optional[str] = None
     title: str
     body: str
     call_to_action: str

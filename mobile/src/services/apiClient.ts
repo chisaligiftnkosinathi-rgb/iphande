@@ -3,6 +3,8 @@ import { API_BASE_URL } from '../config/api';
 import type {
     BusinessCategory,
     ContentGenerationResult,
+    ContentPost,
+    ContentReviewStatus,
     Opportunity,
     Profile,
     QuoteRequest,
@@ -115,6 +117,29 @@ export async function generateContentPost(payload: {
     tone?: string;
 }): Promise<ContentGenerationResult> {
     return apiPost<typeof payload, ContentGenerationResult>('content-posts/generate', payload);
+}
+
+export async function listGeneratedContentPosts(params?: {
+    ownerProfileId?: string;
+    status?: ContentReviewStatus;
+}): Promise<ContentPost[]> {
+    const query = new URLSearchParams();
+    if (params?.ownerProfileId) query.set('owner_profile_id', params.ownerProfileId);
+    if (params?.status) query.set('status', params.status);
+    const suffix = query.toString();
+    return apiGet<ContentPost[]>(`content-posts${suffix ? `?${suffix}` : ''}`);
+}
+
+export async function approveContentPost(contentPostId: string): Promise<ContentPost> {
+    return apiPost<{}, ContentPost>(`content-posts/${contentPostId}/approve`, {});
+}
+
+export async function rejectContentPost(contentPostId: string): Promise<ContentPost> {
+    return apiPost<{}, ContentPost>(`content-posts/${contentPostId}/reject`, {});
+}
+
+export async function shareContentPost(contentPostId: string, channel = 'facebook'): Promise<ContentPost> {
+    return apiPost<string, ContentPost>(`content-posts/${contentPostId}/mark-shared`, channel);
 }
 
 // Quote Request API

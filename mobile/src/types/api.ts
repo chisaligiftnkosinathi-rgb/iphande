@@ -37,6 +37,7 @@ export interface ContentGenerationResult {
     business_category_key: string;
     business_line: string;
     goal_key?: string;
+    template_key?: string;
     rules_used: string;
     default_cta: string;
     suggested_tags: string[];
@@ -52,6 +53,27 @@ export interface ContentGenerationResult {
     guardrail_violations: string[];
     events: any[];
     event_count: number;
+}
+
+export type ContentReviewStatus = "draft" | "approved" | "rejected" | "shared" | "deleted";
+
+export interface ContentPost {
+    id: string;
+    owner_profile_id: string;
+    business_line: string;
+    channel: string;
+    post_type: string;
+    template_key?: string | null;
+    title: string;
+    body: string;
+    call_to_action: string;
+    whatsapp_share_url?: string | null;
+    facebook_share_url?: string | null;
+    linked_media_id?: string | null;
+    linked_campaign_id?: string | null;
+    status: ContentReviewStatus;
+    created_at: string;
+    updated_at: string;
 }
 
 export interface Opportunity {

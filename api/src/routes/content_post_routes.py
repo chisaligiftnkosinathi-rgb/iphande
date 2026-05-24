@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException, Depends, Body
+from fastapi import APIRouter, HTTPException, Depends, Body, Query
 from sqlalchemy.orm import Session
 from datetime import datetime
 from src.database import SessionLocal, replay_transaction
 from src.models.content_post import ContentPost
+from src.models.continuity_event_model import ContinuityEvent
 from src.schemas.content_post_schema import ContentPostCreate, ContentPostUpdate, ContentPostOut, GeneratedContentPostOut
 from src.schemas.content_timeline_schema import ContentTimelineOut
 from src.services.content_post_service import generate_content_post
@@ -47,9 +48,75 @@ def create_content_post(post: ContentPostCreate, db: Session = Depends(get_db)):
         raise
     return db_post
 
+def get_latest_content_post_event(db: Session, content_post_id: str):
+    return (
+        db.query(ContinuityEvent)
+        .filter(
+            ContinuityEvent.related_entity_type == EntityType.CONTENT_POST,
+            ContinuityEvent.related_entity_id == content_post_id,
+        )
+        .order_by(ContinuityEvent.lineage_sequence.desc())
+        .first()
+    )
+
+
+def transition_content_post_status(
+    *,
+    content_post_id: str,
+    next_status: str,
+    event_type: str,
+    payload: dict,
+    db: Session,
+):
+    post = db.query(ContentPost).filter(ContentPost.id == content_post_id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail="Content post not found")
+
+    previous_status = post.status
+    if previous_status == next_status:
+        return post
+
+    with replay_transaction(db):
+        parent_event = get_latest_content_post_event(db, content_post_id)
+        post.status = next_status
+        post.updated_at = datetime.utcnow()
+
+        emit_continuity_event(
+            db,
+            business_owner_id=post.owner_profile_id,
+            business_category_key=None,
+            business_line=post.business_line,
+            event_type=event_type,
+            actor_type=ActorType.BUSINESS_OWNER,
+            actor_id=post.owner_profile_id,
+            related_entity_type=EntityType.CONTENT_POST,
+            related_entity_id=content_post_id,
+            parent_event_id=parent_event.id if parent_event else None,
+            payload={
+                "previous_status": previous_status,
+                "next_status": next_status,
+                "template_key": post.template_key,
+                "goal_key": post.post_type,
+                **payload,
+            },
+            auto_commit=False,
+        )
+        db.refresh(post)
+    return post
+
+
 @router.get("/content-posts", response_model=list[ContentPostOut])
-def list_content_posts(db: Session = Depends(get_db)):
-    return db.query(ContentPost).all()
+def list_content_posts(
+    owner_profile_id: str | None = Query(default=None),
+    status: str | None = Query(default=None),
+    db: Session = Depends(get_db),
+):
+    query = db.query(ContentPost)
+    if owner_profile_id:
+        query = query.filter(ContentPost.owner_profile_id == owner_profile_id)
+    if status:
+        query = query.filter(ContentPost.status == status)
+    return query.order_by(ContentPost.created_at.desc()).all()
 
 
 @router.get("/content-posts/{content_post_id}", response_model=ContentPostOut)
@@ -139,6 +206,7 @@ def generate_post(data: dict = Body(...), db: Session = Depends(get_db)):
             business_line=business_line or "unknown",
             channel=result.get("platform", "unknown"),
             post_type=result.get("goal_key", "unknown"),
+            template_key=result.get("template_key"),
             title=result.get("hook", "Generated Post") if result.get("hook") else "Generated Post",
             body=result.get("caption", ""),
             call_to_action=result.get("call_to_action", ""),
@@ -204,33 +272,45 @@ def generate_post(data: dict = Body(...), db: Session = Depends(get_db)):
 
     return result
 
+
+@router.post("/content-posts/{content_post_id}/approve", response_model=ContentPostOut)
+def approve_content_post(content_post_id: str, db: Session = Depends(get_db)):
+    return transition_content_post_status(
+        content_post_id=content_post_id,
+        next_status="approved",
+        event_type="content_approved",
+        payload={"review_decision": "approved"},
+        db=db,
+    )
+
+
+@router.post("/content-posts/{content_post_id}/reject", response_model=ContentPostOut)
+def reject_content_post(content_post_id: str, db: Session = Depends(get_db)):
+    return transition_content_post_status(
+        content_post_id=content_post_id,
+        next_status="rejected",
+        event_type="content_rejected",
+        payload={"review_decision": "rejected"},
+        db=db,
+    )
+
 @router.post("/content-posts/{content_post_id}/mark-shared", response_model=ContentPostOut)
 def mark_content_post_shared(content_post_id: str, channel: str = Body(None), db: Session = Depends(get_db)):
     post = db.query(ContentPost).filter(ContentPost.id == content_post_id).first()
     if not post:
         raise HTTPException(status_code=404, detail="Content post not found")
 
-    with replay_transaction(db):
-        post.status = "shared"
-        if channel:
-            post.channel = channel
-        post.updated_at = datetime.utcnow()
+    if channel:
+        post.channel = channel
+        db.flush()
 
-        emit_continuity_event(
-            db,
-            business_owner_id=post.owner_profile_id,
-            business_category_key=None,
-            business_line=post.business_line,
-            event_type=ContinuityEventType.CONTENT_SHARED,
-            actor_type=ActorType.BUSINESS_OWNER,
-            actor_id=post.owner_profile_id,
-            related_entity_type=EntityType.CONTENT_POST,
-            related_entity_id=content_post_id,
-            payload={"channel": post.channel},
-            auto_commit=False
-        )
-        db.refresh(post)
-    return post
+    return transition_content_post_status(
+        content_post_id=content_post_id,
+        next_status="shared",
+        event_type=ContinuityEventType.CONTENT_SHARED,
+        payload={"channel": channel or post.channel},
+        db=db,
+    )
 
 @router.get("/content-posts/{content_post_id}/timeline", response_model=ContentTimelineOut)
 def get_content_post_timeline(content_post_id: str, db: Session = Depends(get_db)):

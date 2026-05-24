@@ -1,4 +1,5 @@
 import ContentGeneratorScreen from './screens/ContentGeneratorScreen';
+import GeneratedContentScreen from './screens/GeneratedContentScreen';
 import GivingSupportScreen from './screens/GivingSupportScreen';
 import QuoteRequestFormScreen from './screens/QuoteRequestFormScreen';
 import QuoteRequestsScreen from './screens/QuoteRequestsScreen';
@@ -53,6 +54,7 @@ const getTabIcon = (
     QuoteRequestForm: 'mail',
     QuoteRequestsDashboard: 'list',
     ContentGenerator: 'flash-outline',
+    GeneratedContent: 'checkmark-done-outline',
     QuoteRequests: 'mail-outline',
     GivingSupport: 'heart-outline',
     StewardshipLedger: 'wallet-outline',
@@ -112,6 +114,7 @@ export default function App() {
         <Tab.Screen name="QuoteRequestForm" component={QuoteRequestFormScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
         <Tab.Screen name="QuoteRequestsDashboard" component={QuoteRequestsDashboardScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
         <Tab.Screen name="ContentGenerator" component={ContentGeneratorScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
+        <Tab.Screen name="GeneratedContent" component={GeneratedContentScreen} options={{ title: 'Generated Content', tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
         <Tab.Screen name="QuoteRequests" component={QuoteRequestsScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
         <Tab.Screen name="GivingSupport" component={GivingSupportScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
         <Tab.Screen name="StewardshipLedger" component={StewardshipLedgerScreen} options={{ title: 'Stewardship', tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />

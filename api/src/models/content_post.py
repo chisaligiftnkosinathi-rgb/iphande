@@ -10,6 +10,7 @@ class ContentPost(Base):
     business_line = Column(String, nullable=False)
     channel = Column(String, nullable=False)
     post_type = Column(String, nullable=False)
+    template_key = Column(String, nullable=True)
     title = Column(String, nullable=False)
     body = Column(String, nullable=False)
     call_to_action = Column(String, nullable=False)

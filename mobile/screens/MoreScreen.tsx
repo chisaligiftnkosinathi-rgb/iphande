@@ -14,6 +14,7 @@ type MoreItem = {
 const items: MoreItem[] = [
   { title: 'My Profile', description: 'Identity and account presence', icon: 'person-outline', target: 'Profile' },
   { title: 'Campaigns', description: 'Outreach and growth work', icon: 'megaphone-outline', target: 'Campaigns' },
+  { title: 'Generated Content', description: 'Review, approve, and share posts', icon: 'checkmark-done-outline', target: 'GeneratedContent' },
   { title: 'Quote Requests', description: 'Manage all quote requests', icon: 'mail-outline', target: 'QuoteRequestsDashboard' },
   { title: 'Stewardship', description: 'Cash, profit, and obligations', icon: 'wallet-outline', target: 'StewardshipLedger' },
   { title: 'Giving / Support', description: 'Voluntary giving and support', icon: 'heart-outline', target: 'GivingSupport' },
