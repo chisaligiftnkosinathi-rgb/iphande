@@ -9,6 +9,11 @@ from src.database import Base
 
 
 class PaymentIntentStatus(str, enum.Enum):
+    evidence_awaiting = "evidence_awaiting"
+    evidence_submitted = "evidence_submitted"
+    under_review = "under_review"
+    verified = "verified"
+    rejected = "rejected"
     pending = "pending"
     confirmed = "confirmed"
     failed = "failed"
@@ -19,7 +24,7 @@ class PaymentIntent(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
     business_owner_id = Column(String, nullable=False, index=True)
-    invoice_id = Column(UUID(as_uuid=True), ForeignKey("invoices.id"), nullable=False)
+    invoice_id = Column(UUID(as_uuid=True), ForeignKey("invoices.id"), nullable=True)
     quote_id = Column(UUID(as_uuid=True), ForeignKey("quotes.id"), nullable=False)
     provider_name = Column(String, nullable=False, default="demo")
     payment_reference = Column(String, nullable=False, unique=True)
@@ -30,5 +35,31 @@ class PaymentIntent(Base):
     continuity_event_id = Column(UUID(as_uuid=True), nullable=False)
     confirmed_continuity_event_id = Column(UUID(as_uuid=True), nullable=True)
     financial_event_id = Column(UUID(as_uuid=True), nullable=True)
+    receipt_number = Column(String, nullable=True)
+    receipt_continuity_event_id = Column(UUID(as_uuid=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     confirmed_at = Column(DateTime(timezone=True), nullable=True)
+
+
+class ProofOfPaymentStatus(str, enum.Enum):
+    submitted = "submitted"
+    evidence_check_passed = "evidence_check_passed"
+    evidence_check_failed = "evidence_check_failed"
+
+
+class ProofOfPayment(Base):
+    __tablename__ = "proofs_of_payment"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
+    payment_intent_id = Column(UUID(as_uuid=True), ForeignKey("payment_intents.id"), nullable=False)
+    file_name = Column(String, nullable=False)
+    file_type = Column(String, nullable=False)
+    uploaded_by = Column(String, nullable=False)
+    evidence_status = Column(Enum(ProofOfPaymentStatus), nullable=False, default=ProofOfPaymentStatus.submitted)
+    extracted_amount = Column(Numeric(12, 2), nullable=True)
+    extracted_reference = Column(String, nullable=True)
+    payer_name = Column(String, nullable=True)
+    account_info_present = Column(String, nullable=True)
+    notes = Column(String, nullable=True)
+    continuity_event_id = Column(UUID(as_uuid=True), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)

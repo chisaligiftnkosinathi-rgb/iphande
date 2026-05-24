@@ -49,7 +49,7 @@ def register_models():
     from src.models.financial_event import FinancialEvent  # noqa: F401
     from src.models.quote import Quote  # noqa: F401
     from src.models.invoice import Invoice  # noqa: F401
-    from src.models.payment_intent import PaymentIntent  # noqa: F401
+    from src.models.payment_intent import PaymentIntent, ProofOfPayment  # noqa: F401
 
 def create_tables():
     register_models()
@@ -57,6 +57,7 @@ def create_tables():
     ensure_sqlite_replay_schema()
     ensure_sqlite_content_posts_schema()
     ensure_sqlite_quotes_schema()
+    ensure_sqlite_payment_evidence_schema()
 
 
 def ensure_sqlite_content_posts_schema():
@@ -87,6 +88,24 @@ def ensure_sqlite_quotes_schema():
             connection.execute(text("ALTER TABLE quotes ADD COLUMN terms VARCHAR"))
         if "sent_at" not in columns:
             connection.execute(text("ALTER TABLE quotes ADD COLUMN sent_at DATETIME"))
+        if "sent_continuity_event_id" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN sent_continuity_event_id CHAR(32)"))
+
+
+def ensure_sqlite_payment_evidence_schema():
+    if engine.dialect.name != "sqlite":
+        return
+
+    inspector = inspect(engine)
+    if "payment_intents" not in inspector.get_table_names():
+        return
+
+    columns = {column["name"] for column in inspector.get_columns("payment_intents")}
+    with engine.begin() as connection:
+        if "receipt_number" not in columns:
+            connection.execute(text("ALTER TABLE payment_intents ADD COLUMN receipt_number VARCHAR"))
+        if "receipt_continuity_event_id" not in columns:
+            connection.execute(text("ALTER TABLE payment_intents ADD COLUMN receipt_continuity_event_id CHAR(32)"))
 
 
 def ensure_sqlite_replay_schema():

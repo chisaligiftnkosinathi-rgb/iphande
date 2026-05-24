@@ -7,7 +7,13 @@ from sqlalchemy.orm import Session
 
 from src.database import get_db, replay_transaction
 from src.models.quote import Quote, QuoteStatus
-from src.schemas.quote_to_cash_schema import QuoteCreate, QuoteOut
+from src.models.payment_intent import PaymentIntent, PaymentIntentStatus
+from src.schemas.quote_to_cash_schema import (
+    PaymentIntentOut,
+    QuoteCreate,
+    QuoteOut,
+    QuotePaymentIntentCreate,
+)
 from src.services.continuity_event_service import emit_continuity_event
 from src.services.transition_audit_service import audit_transition
 
@@ -78,6 +84,104 @@ def list_quotes_for_business(business_owner_id: str, db: Session = Depends(get_d
         .order_by(Quote.created_at.asc())
         .all()
     )
+
+
+@router.post("/{quote_id}/send", response_model=QuoteOut)
+def send_quote(quote_id: UUID, db: Session = Depends(get_db)):
+    quote = db.query(Quote).filter(Quote.id == quote_id).first()
+    if not quote:
+        raise HTTPException(status_code=404, detail="Quote not found")
+
+    allowed_statuses = {QuoteStatus.quote_drafted, QuoteStatus.issued}
+    if quote.status not in allowed_statuses:
+        raise HTTPException(status_code=409, detail="Only drafted quotes can be sent")
+
+    with replay_transaction(db):
+        previous_status = quote.status.value if hasattr(quote.status, "value") else quote.status
+        quote.status = QuoteStatus.quote_sent
+        quote.sent_at = datetime.now(timezone.utc)
+        event = emit_continuity_event(
+            db,
+            business_owner_id=quote.business_owner_id,
+            business_category_key=None,
+            business_line=None,
+            event_type="quote_sent",
+            actor_type="business_owner",
+            actor_id=quote.business_owner_id,
+            related_entity_type="quote",
+            related_entity_id=str(quote.id),
+            parent_event_id=quote.continuity_event_id,
+            payload={
+                "quote_request_id": quote.customer_request_id,
+                "quote_id": str(quote.id),
+                "previous_status": previous_status,
+                "next_status": QuoteStatus.quote_sent.value,
+                "amount": str(quote.amount),
+                "currency": quote.currency,
+                "service_description": quote.description,
+            },
+            auto_commit=False,
+        )
+        quote.sent_continuity_event_id = event.id
+        db.flush()
+        db.refresh(quote)
+    return quote
+
+
+@router.post("/{quote_id}/payment-intents", response_model=PaymentIntentOut)
+def create_payment_intent_from_quote(
+    quote_id: UUID,
+    payload: QuotePaymentIntentCreate,
+    db: Session = Depends(get_db),
+):
+    quote = db.query(Quote).filter(Quote.id == quote_id).first()
+    if not quote:
+        raise HTTPException(status_code=404, detail="Quote not found")
+    if quote.status != QuoteStatus.quote_sent:
+        raise HTTPException(status_code=409, detail="Payment intent requires a sent quote")
+
+    payment_id = uuid.uuid4()
+    payment = PaymentIntent(
+        id=payment_id,
+        business_owner_id=quote.business_owner_id,
+        invoice_id=None,
+        quote_id=quote.id,
+        provider_name=payload.provider_name,
+        payment_reference=f"manual-{uuid.uuid4()}",
+        payer_reference=payload.payer_reference,
+        amount=quote.amount,
+        currency=quote.currency,
+        status=PaymentIntentStatus.evidence_awaiting,
+    )
+
+    with replay_transaction(db):
+        event = emit_continuity_event(
+            db,
+            business_owner_id=payment.business_owner_id,
+            business_category_key=None,
+            business_line=None,
+            event_type="payment_intent_created",
+            actor_type="system",
+            actor_id=payment.provider_name,
+            related_entity_type="payment_intent",
+            related_entity_id=str(payment.id),
+            parent_event_id=quote.sent_continuity_event_id or quote.continuity_event_id,
+            payload={
+                "quote_request_id": quote.customer_request_id,
+                "quote_id": str(quote.id),
+                "payment_intent_id": str(payment.id),
+                "payment_reference": payment.payment_reference,
+                "amount": str(payment.amount),
+                "currency": payment.currency,
+                "next_status": PaymentIntentStatus.evidence_awaiting.value,
+            },
+            auto_commit=False,
+        )
+        payment.continuity_event_id = event.id
+        db.add(payment)
+        db.flush()
+        db.refresh(payment)
+    return payment
 
 
 @router.post("/{quote_id}/accept", response_model=QuoteOut)
