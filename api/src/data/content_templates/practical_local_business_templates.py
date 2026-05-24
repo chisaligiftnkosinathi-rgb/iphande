@@ -9,7 +9,7 @@ PRACTICAL_LOCAL_BUSINESS_TEMPLATES = [
         "cta_style": "booking_request",
         "sample_offer_details": "Hair, nails, lashes, or grooming appointments available this week.",
         "hook_pattern": "{service_name} bookings are open in {location}.",
-        "body_pattern": "Clients can book for {offer_details}. Clear times and prices are shared before the appointment.",
+        "body_pattern": "Clients can book for {offer_details} Clear times and prices are shared before the appointment.",
         "cta_pattern": "Send a message to choose your slot.",
         "stewardship_constraints": [
             "no fake scarcity",
