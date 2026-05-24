@@ -152,8 +152,15 @@ export async function createQuoteRequest(
     );
 }
 
-export async function listQuoteRequests(): Promise<QuoteRequest[]> {
-    return apiGet<QuoteRequest[]>('/api/v1/quote-requests');
+export async function listQuoteRequests(params?: {
+    businessOwnerId?: string;
+    status?: QuoteRequestStatus;
+}): Promise<QuoteRequest[]> {
+    const query = new URLSearchParams();
+    if (params?.businessOwnerId) query.set('business_owner_id', params.businessOwnerId);
+    if (params?.status) query.set('status', params.status);
+    const suffix = query.toString();
+    return apiGet<QuoteRequest[]>(`/api/v1/quote-requests${suffix ? `?${suffix}` : ''}`);
 }
 
 export async function updateQuoteRequestStatus(
@@ -164,6 +171,22 @@ export async function updateQuoteRequestStatus(
         `/api/v1/quote-requests/${quoteRequestId}/status`,
         { status }
     );
+}
+
+export async function reviewQuoteRequest(quoteRequestId: string): Promise<QuoteRequest> {
+    return apiPost<{}, QuoteRequest>(`/api/v1/quote-requests/${quoteRequestId}/review`, {});
+}
+
+export async function contactQuoteRequest(quoteRequestId: string): Promise<QuoteRequest> {
+    return apiPost<{}, QuoteRequest>(`/api/v1/quote-requests/${quoteRequestId}/contact`, {});
+}
+
+export async function convertQuoteRequest(quoteRequestId: string): Promise<QuoteRequest> {
+    return apiPost<{}, QuoteRequest>(`/api/v1/quote-requests/${quoteRequestId}/convert`, {});
+}
+
+export async function closeQuoteRequest(quoteRequestId: string): Promise<QuoteRequest> {
+    return apiPost<{}, QuoteRequest>(`/api/v1/quote-requests/${quoteRequestId}/close`, {});
 }
 
 // Replay API

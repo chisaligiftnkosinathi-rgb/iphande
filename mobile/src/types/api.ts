@@ -97,6 +97,11 @@ export interface TimelineEvent {
 
 // --- Quote Request Types ---
 export type QuoteRequestStatus =
+    | "quote_requested"
+    | "quote_reviewed"
+    | "quote_contacted"
+    | "quote_converted"
+    | "quote_closed"
     | "new"
     | "contacted"
     | "quoted"

@@ -7,6 +7,11 @@ import enum
 import uuid
 
 class QuoteRequestStatus(str, enum.Enum):
+    quote_requested = "quote_requested"
+    quote_reviewed = "quote_reviewed"
+    quote_contacted = "quote_contacted"
+    quote_converted = "quote_converted"
+    quote_closed = "quote_closed"
     new = "new"
     contacted = "contacted"
     quoted = "quoted"
@@ -27,6 +32,6 @@ class QuoteRequest(Base):
     service_needed = Column(String, nullable=True)
     preferred_date = Column(String, nullable=True)
     message = Column(String, nullable=True)
-    status = Column(Enum(QuoteRequestStatus), default=QuoteRequestStatus.new, nullable=False)
+    status = Column(Enum(QuoteRequestStatus), default=QuoteRequestStatus.quote_requested, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
