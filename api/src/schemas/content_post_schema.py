@@ -28,6 +28,7 @@ class GeneratedContentPostOut(BaseModel):
     business_category_key: str
     business_line: str
     goal_key: str | None = None
+    template_key: str | None = None
     rules_used: str
     deterministic: bool
 

@@ -196,6 +196,7 @@ def generate_post(data: dict = Body(...), db: Session = Depends(get_db)):
                 "platform": result.get("platform"),
                 "goal_key": result.get("goal_key"),
                 "business_line": result.get("business_line"),
+                "template_key": result.get("template_key"),
                 "caption_preview": result.get("caption_preview"),
             },
             auto_commit=False
