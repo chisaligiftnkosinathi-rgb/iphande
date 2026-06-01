@@ -151,3 +151,25 @@ npx tsc --noEmit
 
 ### Boundary Constraints
 Patch 003C remained mobile-only ownership wiring. No backend contract semantics were changed in this step. Existing profile save and generation flow behavior was preserved outside ownership field propagation and owner-based profile lookup.
+
+## Identity V1 Stewardship Gate: PASSED
+
+**Date:** 2026-06-01
+
+### Gate Evidence
+- Ownership contract tests green (`tests/test_profile_ownership.py`).
+- Mobile ownership wiring compiled green (`npx tsc --noEmit`).
+- Supabase transaction pooler runtime connectivity verified.
+- Live create/read/idempotency smoke flow verified on running API:
+	- POST #1 -> Profile A
+	- GET by owner -> Profile A
+	- POST #2 -> Profile A
+	- `same_post1_get=True`
+	- `same_post1_post2=True`
+
+### Result
+A steward now resolves to a single persistent identity across Firebase Authentication, mobile client ownership wiring, API ownership contract, and Supabase persistence.
+
+### References
+- `docs/protocols/identity_manual_v1_supabase_pooler_smoke_evidence_2026-06-01.md`
+- `docs/protocols/identity_manual_v1_walkthrough_intent_2026-06-01.md`
