@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-    Image,
     Pressable,
     ScrollView,
     StyleSheet,
@@ -8,10 +7,16 @@ import {
     TextInput,
     View
 } from 'react-native';
-import { createProfile, fetchBusinessCategories, fetchProfile, generateContentPost } from '../src/services/apiClient';
+import { BusinessArchetypeSelector } from '../components/profile/BusinessArchetypeSelector';
+import { BusinessIdentityCard } from '../components/profile/BusinessIdentityCard';
+import { ProfileContinuityBoundary } from '../components/profile/ProfileContinuityBoundary';
+import { ProfileEvidenceNotice } from '../components/profile/ProfileEvidenceNotice';
+import { ProviderTypeSelector } from '../components/profile/ProviderTypeSelector';
+import { StewardProfileActions } from '../components/profile/StewardProfileActions';
+import { TruthCard } from '../components/ui/TruthCard';
+import { createProfile, fetchBusinessCategories, fetchProfileByOwner, generateContentPost } from '../src/services/apiClient';
 import type { BusinessCategory, ContentGenerationResult, Profile } from '../src/types/api';
-
-const PROFILE_ID = 'demo'; // TODO: Replace with real profile ID from auth/session
+import theme from '../theme';
 
 const PROVIDER_TYPES = [
     'Individual',
@@ -21,8 +26,11 @@ const PROVIDER_TYPES = [
 ];
 
 
+import { useAuth } from '../src/auth/AuthContext';
+
 const ProfileScreen: React.FC = () => {
 
+    const { user, stewardId } = useAuth() as any;
     const [profile, setProfile] = useState<Profile | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -54,10 +62,18 @@ const ProfileScreen: React.FC = () => {
 
     // Load profile from backend
     const loadProfile = useCallback(async () => {
+        if (!stewardId) {
+            setLoading(false);
+            setError(null);
+            setProfile(null);
+            setStatus('API connection pending');
+            return;
+        }
+
         setLoading(true);
         setError(null);
         try {
-            const data = await fetchProfile(PROFILE_ID);
+            const data = await fetchProfileByOwner(stewardId);
             setProfile(data);
             setDisplayName(data.name || '');
             setProviderType(data['providerType'] || '');
@@ -72,7 +88,7 @@ const ProfileScreen: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [stewardId]);
 
     useEffect(() => {
         loadProfile();
@@ -83,17 +99,17 @@ const ProfileScreen: React.FC = () => {
     const onSave = async () => {
         setStatus('Saving...');
         try {
-            // Save profile with deterministic keys
             await createProfile({
                 name: displayName,
+                email: user?.email || '',
                 providerType,
                 businessType: business_line,
                 location,
                 bio,
                 business_category_key,
                 business_line,
+                owner_id: stewardId,
             });
-            // Fetch deterministic rule metadata for this identity
             if (business_category_key && business_line) {
                 const result: ContentGenerationResult = await generateContentPost({
                     business_category_key,
@@ -106,41 +122,20 @@ const ProfileScreen: React.FC = () => {
             }
             setStatus('Profile saved • API synced');
         } catch (err: any) {
-            setStatus('Save failed • stored locally');
+            setStatus('Save failed • changes were not synced');
         }
     };
+
+    const isSaving = status === 'Saving...';
 
     // UI
     return (
         <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-            <View style={styles.profileCard}>
-                <View style={styles.avatarContainer}>
-                    <Image
-                        source={{
-                            uri:
-                                profile?.avatarUrl ||
-                                `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName || 'User')}&background=1E3A2F&color=FFFFFF`,
-                        }}
-                        style={styles.avatar}
-                    />
-                </View>
+            <BusinessIdentityCard displayName={displayName} avatarUrl={profile?.avatarUrl} />
 
-                <Text style={styles.name} numberOfLines={2} adjustsFontSizeToFit>{displayName || 'Your Name'}</Text>
+            <StewardProfileActions onSave={onSave} isSaving={isSaving} />
 
-                <Text style={styles.role}>Community Growth • Opportunity Stewardship</Text>
-
-                <Text style={styles.bio}>
-                    Build meaningful opportunities, preserve reflections, and support community-centered business growth.
-                </Text>
-
-                <View style={styles.buttonRow}>
-                    <Pressable style={styles.primaryButton} onPress={onSave}>
-                        <Text style={styles.primaryButtonText}>Save Profile</Text>
-                    </Pressable>
-                </View>
-            </View>
-
-            <View style={styles.section}>
+            <TruthCard>
                 <Text style={styles.sectionTitle}>Profile Setup</Text>
 
                 {/* Display name */}
@@ -150,40 +145,26 @@ const ProfileScreen: React.FC = () => {
                     value={displayName}
                     onChangeText={setDisplayName}
                     placeholder="Enter your name"
-                    placeholderTextColor="#9CA3AF"
+                    placeholderTextColor={theme.colors.structural.slateMuted}
                 />
 
                 {/* Provider type chips */}
                 <Text style={styles.inputLabel}>Provider Type</Text>
-                <View style={styles.chipRow}>
-                    {PROVIDER_TYPES.map((type) => (
-                        <Pressable
-                            key={type}
-                            style={[styles.chip, providerType === type && styles.selectedChip]}
-                            onPress={() => setProviderType(type)}
-                        >
-                            <Text style={[styles.chipText, providerType === type && styles.selectedChipText]}>{type}</Text>
-                        </Pressable>
-                    ))}
-                </View>
+                <ProviderTypeSelector
+                    selectedProviderType={providerType}
+                    onSelectProviderType={setProviderType}
+                />
 
 
-                {/* Sector (category) chips */}
-                <Text style={styles.inputLabel}>Business Sector</Text>
-                <View style={styles.chipRow}>
-                    {Object.entries(categories).map(([key, cat]) => (
-                        <Pressable
-                            key={key}
-                            style={[styles.chip, business_category_key === key && styles.selectedChip]}
-                            onPress={() => {
-                                setBusinessCategoryKey(key);
-                                setBusinessLine('');
-                            }}
-                        >
-                            <Text style={[styles.chipText, business_category_key === key && styles.selectedChipText]}>{cat.name}</Text>
-                        </Pressable>
-                    ))}
-                </View>
+                {/* Business archetype selector */}
+                <Text style={styles.inputLabel}>Business Archetype</Text>
+                <BusinessArchetypeSelector
+                    selectedArchetypeKey={business_category_key}
+                    onSelectArchetype={(key) => {
+                        setBusinessCategoryKey(key);
+                        setBusinessLine('');
+                    }}
+                />
 
                 {/* Business line chips (shown after sector selection) */}
                 {business_category_key && categories[business_category_key] && (
@@ -210,7 +191,7 @@ const ProfileScreen: React.FC = () => {
                     value={location}
                     onChangeText={setLocation}
                     placeholder="Enter your location"
-                    placeholderTextColor="#9CA3AF"
+                    placeholderTextColor={theme.colors.structural.slateMuted}
                 />
 
                 {/* Short bio */}
@@ -220,47 +201,20 @@ const ProfileScreen: React.FC = () => {
                     value={bio}
                     onChangeText={setBio}
                     placeholder="Tell us about yourself"
-                    placeholderTextColor="#9CA3AF"
+                    placeholderTextColor={theme.colors.structural.slateMuted}
                     multiline
                 />
+            </TruthCard>
 
-                {/* Status */}
-                <View style={styles.statusCard}>
-                    <Text style={styles.statusLabel}>Status</Text>
-                    <Text style={styles.statusValue}>{status}</Text>
-                    {error && (
-                        <Text style={styles.statusError}>{error}</Text>
-                    )}
-                    {/* Deterministic tags and guidance */}
-                    {suggestedTags.length > 0 && (
-                        <View style={{ marginTop: 10 }}>
-                            <Text style={{ fontWeight: '700', color: '#14532D' }}>Suggested Tags:</Text>
-                            <Text>{suggestedTags.join(', ')}</Text>
-                        </View>
-                    )}
-                    {profileGuidance.length > 0 && (
-                        <View style={{ marginTop: 10 }}>
-                            <Text style={{ fontWeight: '700', color: '#14532D' }}>Profile Guidance:</Text>
-                            {profileGuidance.map((g, i) => (
-                                <Text key={i}>• {g}</Text>
-                            ))}
-                        </View>
-                    )}
-                    {lastContent && (
-                        <View style={{ marginTop: 10 }}>
-                            <Text style={{ fontWeight: '700', color: '#14532D' }}>Sample Content:</Text>
-                            <Text>{lastContent}</Text>
-                        </View>
-                    )}
-                </View>
-            </View>
+            <ProfileEvidenceNotice
+                status={status}
+                error={error}
+                suggestedTags={suggestedTags}
+                profileGuidance={profileGuidance}
+                lastContent={lastContent}
+            />
 
-            <View style={styles.boundaryCard}>
-                <Text style={styles.boundaryTitle}>Identity & stewardship</Text>
-                <Text style={styles.boundaryText}>
-                    Profiles should preserve truthful user identity, public visibility controls, and evidence-linked activity history.
-                </Text>
-            </View>
+            <ProfileContinuityBoundary />
         </ScrollView>
     );
 };
@@ -268,199 +222,59 @@ const ProfileScreen: React.FC = () => {
 const styles = StyleSheet.create({
     screen: {
         flex: 1,
-        backgroundColor: '#F8FAF7',
+        backgroundColor: theme.colors.humanSpace.background,
     },
     content: {
-        padding: 20,
-        gap: 16,
-    },
-    avatarContainer: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        overflow: 'hidden',
-        marginBottom: 16,
-        borderWidth: 2,
-        borderColor: '#1E3A2F',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    avatar: {
-        width: 96,
-        height: 96,
-        borderRadius: 48,
-    },
-    profileCard: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 28,
-        padding: 22,
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        shadowColor: '#102A20',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.08,
-        shadowRadius: 12,
-        elevation: 4,
-    },
-    name: {
-        fontSize: 48,
-        fontWeight: '900',
-        color: '#102A20',
-        letterSpacing: -1.5,
-        marginBottom: 4,
-        height: 92,
-    },
-    role: {
-        fontSize: 13,
-        color: '#3E6B57',
-        fontWeight: '800',
-        letterSpacing: 2,
-        textTransform: 'uppercase',
-        marginBottom: 12,
-    },
-    bio: {
-        textAlign: 'center',
-        fontSize: 17,
-        lineHeight: 30,
-        color: '#4B5563',
-        marginBottom: 20,
-        fontWeight: '700',
-    },
-    buttonRow: {
-        flexDirection: 'row',
-        gap: 12,
-    },
-    primaryButton: {
-        backgroundColor: '#1E3A2F',
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-        borderRadius: 16,
-        alignItems: 'center',
-    },
-    primaryButtonText: {
-        color: '#FFFFFF',
-        fontWeight: '700',
-        fontSize: 14,
-    },
-    secondaryButton: {
-        backgroundColor: '#FFFFFF',
-        borderWidth: 1,
-        borderColor: '#D1D5DB',
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-        borderRadius: 16,
-        alignItems: 'center',
-    },
-    secondaryButtonText: {
-        color: '#1E3A2F',
-        fontWeight: '700',
-        fontSize: 14,
-    },
-    section: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 24,
-        padding: 20,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        marginTop: 18,
+        padding: theme.layout.spacing.xl,
     },
     sectionTitle: {
-        fontSize: 18,
-        fontWeight: '800',
-        color: '#111827',
-        marginBottom: 16,
+        ...theme.typography.title,
+        fontSize: 20,
+        color: theme.colors.structural.charcoal,
+        marginBottom: theme.layout.spacing.lg,
     },
     inputLabel: {
-        fontSize: 13,
-        fontWeight: '700',
-        color: '#14532D',
-        marginTop: 12,
-        marginBottom: 6,
+        ...theme.typography.bodyStrong,
+        color: theme.colors.structural.charcoalLight,
+        marginTop: theme.layout.spacing.md,
+        marginBottom: theme.layout.spacing.xs,
     },
     input: {
-        backgroundColor: '#F9FAFB',
-        borderRadius: 12,
+        backgroundColor: theme.colors.humanSpace.background,
+        borderRadius: theme.layout.radii.sm,
         borderWidth: 1,
-        borderColor: '#E5E7EB',
-        paddingHorizontal: 14,
-        paddingVertical: 12,
-        fontSize: 16,
-        color: '#102A20',
-        marginBottom: 4,
+        borderColor: theme.colors.structural.border,
+        paddingHorizontal: theme.layout.spacing.md,
+        paddingVertical: theme.layout.spacing.md,
+        ...theme.typography.body,
+        color: theme.colors.structural.charcoal,
+        marginBottom: theme.layout.spacing.xs,
     },
     chipRow: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 10,
-        marginBottom: 4,
+        gap: theme.layout.spacing.md,
+        marginBottom: theme.layout.spacing.xs,
     },
     chip: {
-        backgroundColor: '#ECFDF5',
-        borderRadius: 999,
+        backgroundColor: theme.colors.stewardship.bg,
+        borderRadius: theme.layout.radii.pill,
         paddingVertical: 10,
-        paddingHorizontal: 16,
+        paddingHorizontal: 14,
         borderWidth: 1,
-        borderColor: '#BBF7D0',
-        marginBottom: 6,
+        borderColor: theme.colors.stewardship.border,
     },
     chipText: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#166534',
+        ...theme.typography.caption,
+        color: theme.colors.stewardship.textDeep,
     },
     selectedChip: {
-        backgroundColor: '#DCFCE7',
-        borderColor: '#22C55E',
+        backgroundColor: theme.colors.stewardship.text,
+        borderColor: theme.colors.stewardship.textDeep,
     },
     selectedChipText: {
-        color: '#15803D',
+        color: theme.colors.humanSpace.surface,
         fontWeight: '900',
-    },
-    statusCard: {
-        backgroundColor: '#F9FAFB',
-        borderRadius: 16,
-        padding: 16,
-        marginTop: 18,
-        borderWidth: 1,
-        borderColor: '#BBF7D0',
-        alignItems: 'flex-start',
-    },
-    statusLabel: {
-        fontSize: 12,
-        fontWeight: '700',
-        color: '#6B7280',
-        marginBottom: 4,
-        textTransform: 'uppercase',
-    },
-    statusValue: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#166534',
-    },
-    statusError: {
-        fontSize: 13,
-        color: '#B91C1C',
-        marginTop: 6,
-    },
-    boundaryCard: {
-        backgroundColor: '#ECFDF5',
-        borderRadius: 20,
-        padding: 18,
-        borderWidth: 1,
-        borderColor: '#BBF7D0',
-        marginTop: 18,
-    },
-    boundaryTitle: {
-        fontSize: 15,
-        fontWeight: '800',
-        color: '#14532D',
-        marginBottom: 8,
-    },
-    boundaryText: {
-        fontSize: 13,
-        lineHeight: 20,
-        color: '#166534',
     },
 });
 

@@ -24,6 +24,7 @@ class ProfileCreate(BaseModel):
     availability: Optional[str] = None
     languages: Optional[str] = None
     trust_posture: Optional[str] = None
+    owner_id: Optional[str] = None
 
 
 class ProfileOut(BaseModel):
@@ -49,6 +50,7 @@ class ProfileOut(BaseModel):
     availability: Optional[str] = None
     languages: Optional[str] = None
     trust_posture: Optional[str] = None
+    owner_id: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

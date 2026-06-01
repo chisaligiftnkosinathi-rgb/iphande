@@ -32,7 +32,9 @@ def replay_transaction(db):
         raise
 
 # Model registration to ensure all models are attached to Base before table creation
+
 def register_models():
+    from src.models.continuity_capture import ContinuityCapture  # noqa: F401
     from src.models.quote_request_model import QuoteRequest  # noqa: F401
     from src.models.giving_model import Giving  # noqa: F401
     from src.models.continuity_event_model import ContinuityEvent  # noqa: F401
@@ -51,6 +53,7 @@ def register_models():
     from src.models.invoice import Invoice  # noqa: F401
     from src.models.payment_intent import PaymentIntent, ProofOfPayment  # noqa: F401
     from src.models.inventory import InventoryItem, InventoryMovement  # noqa: F401
+    from src.models.steward_annotation import StewardAnnotation  # noqa: F401
 
 def create_tables():
     register_models()
@@ -59,6 +62,7 @@ def create_tables():
     ensure_sqlite_content_posts_schema()
     ensure_sqlite_quotes_schema()
     ensure_sqlite_payment_evidence_schema()
+    ensure_sqlite_profiles_schema()
 
 
 def ensure_sqlite_content_posts_schema():
@@ -108,6 +112,19 @@ def ensure_sqlite_payment_evidence_schema():
         if "receipt_continuity_event_id" not in columns:
             connection.execute(text("ALTER TABLE payment_intents ADD COLUMN receipt_continuity_event_id CHAR(32)"))
 
+
+def ensure_sqlite_profiles_schema():
+    if engine.dialect.name != "sqlite":
+        return
+
+    inspector = inspect(engine)
+    if "profiles" not in inspector.get_table_names():
+        return
+
+    columns = {column["name"] for column in inspector.get_columns("profiles")}
+    with engine.begin() as connection:
+        if "owner_id" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN owner_id VARCHAR"))
 
 def ensure_sqlite_replay_schema():
     if engine.dialect.name != "sqlite":

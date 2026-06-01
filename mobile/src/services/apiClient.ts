@@ -61,7 +61,36 @@ async function apiPost<TRequest, TResponse>(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
     });
-    if (!response.ok) throw new Error(`POST ${path} failed`);
+    if (!response.ok) {
+        let errorText = '';
+        try {
+            errorText = await response.text();
+        } catch { }
+        let errorJson;
+        try {
+            errorJson = JSON.parse(errorText);
+        } catch { }
+        // eslint-disable-next-line no-console
+        console.error(`POST ${path} failed`, response.status, errorJson || errorText);
+
+        let message = '';
+        if (Array.isArray(errorJson?.detail)) {
+            // FastAPI validation error array
+            message = errorJson.detail.map((item: any) => {
+                const loc = Array.isArray(item.loc) ? item.loc.join('.') : item.loc;
+                return `${loc}: ${item.msg}`;
+            }).join('\n');
+        } else if (typeof errorJson?.detail === 'string') {
+            message = errorJson.detail;
+        } else if (typeof errorJson?.detail === 'object') {
+            message = JSON.stringify(errorJson.detail);
+        } else if (errorJson?.message) {
+            message = errorJson.message;
+        } else {
+            message = errorText || `POST ${path} failed`;
+        }
+        throw new Error(`POST ${path} failed: ${response.status} ${message}`);
+    }
     return response.json();
 }
 
@@ -93,18 +122,24 @@ export async function fetchProfile(profileId: string): Promise<Profile> {
     return apiGet<Profile>(`profiles/${profileId}`);
 }
 
+export async function fetchProfileByOwner(ownerId: string): Promise<Profile> {
+    return apiGet<Profile>(`profiles/by-owner/${ownerId}`);
+}
+
 export async function fetchOpportunities(): Promise<Opportunity[]> {
     return apiGet<Opportunity[]>('opportunities');
 }
 
 export async function createProfile(payload: {
     name: string;
-    providerType: string;
-    businessType: string;
-    location: string;
-    bio: string;
+    email: string;
+    providerType?: string;
+    businessType?: string;
+    location?: string;
+    bio?: string;
     business_category_key?: string;
     business_line?: string;
+    owner_id?: string;
 }): Promise<Profile> {
     return apiPost<typeof payload, Profile>('profiles', payload);
 }

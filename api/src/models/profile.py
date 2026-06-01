@@ -31,3 +31,6 @@ class Profile(Base):
     availability = Column(String, nullable=True)
     languages = Column(String, nullable=True)
     trust_posture = Column(String, nullable=True)
+
+    continuity_event_id = Column(String, nullable=True)
+    owner_id = Column(String, nullable=True)
