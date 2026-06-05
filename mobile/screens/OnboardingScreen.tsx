@@ -1,13 +1,13 @@
 import { Picker } from '@react-native-picker/picker';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TextInput, View } from 'react-native';
 import { StewardButton } from '../components/ui/StewardButton';
 import { BUSINESS_ARCHETYPES } from '../data/businessArchetypes';
 import { useAuth } from '../src/auth/AuthContext';
 import theme from '../theme';
 
 
-import { createProfile, fetchBusinessCategories } from '../src/services/apiClient';
+import { createProfile, fetchBusinessCategories, fetchProfileByOwner } from '../src/services/apiClient';
 import { makePublicSlug } from '../src/utils/profileSlug';
 
 type ArchetypeOption = {
@@ -44,12 +44,25 @@ const OnboardingScreen: React.FC = () => {
     );
     const [categoriesError, setCategoriesError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [initializing, setInitializing] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         let active = true;
 
-        const loadCategories = async () => {
+        const checkProfileAndLoad = async () => {
+            if (stewardId) {
+                try {
+                    const profile = await fetchProfileByOwner(stewardId);
+                    if (active && profile && profile.id) {
+                        completeOnboarding(profile.id, profile.business_category_key || '', profile.name || '');
+                        return; // Auto-advance if profile exists
+                    }
+                } catch (e) {
+                    // Profile not found, proceed to load form
+                }
+            }
+
             try {
                 const categories = await fetchBusinessCategories();
                 const options = toBackendArchetypeOptions(categories);
@@ -62,14 +75,16 @@ const OnboardingScreen: React.FC = () => {
                 if (!active) return;
                 setCategoriesError(loadError?.message || 'Unable to load business categories from backend.');
                 setArchetypeOptions(FALLBACK_ARCHETYPE_OPTIONS);
+            } finally {
+                if (active) setInitializing(false);
             }
         };
 
-        loadCategories();
+        checkProfileAndLoad();
         return () => {
             active = false;
         };
-    }, []);
+    }, [stewardId]);
 
     const handleComplete = async () => {
         if (!user?.email) {
@@ -87,10 +102,11 @@ const OnboardingScreen: React.FC = () => {
                 name: businessName,
                 slug: makePublicSlug(businessName),
                 email: user.email,
-                providerType: '', // Optionally add provider type field
-                businessType: '', // Optionally add business type field
+                provider_type: '', // Optionally add provider type field
+                business_type: '', // Optionally add business type field
                 location,
                 bio: story,
+                short_bio: story,
                 business_category_key: archetypeKey,
                 business_line: '', // Optionally add business line field
                 owner_id: stewardId,
@@ -102,6 +118,15 @@ const OnboardingScreen: React.FC = () => {
             setLoading(false);
         }
     };
+
+    if (initializing) {
+        return (
+            <View style={styles.container}>
+                <ActivityIndicator size="large" color={theme.colors.stewardship.text} />
+                <Text style={{ marginTop: 12, ...theme.typography.body }}>Recalling business profile...</Text>
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>

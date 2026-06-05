@@ -56,7 +56,15 @@ const ProfileScreen: React.FC = () => {
     // Load taxonomy
     useEffect(() => {
         fetchBusinessCategories()
-            .then(setCategories)
+            .then((data: any[]) => {
+                const record: Record<string, BusinessCategory> = {};
+                data.forEach(item => {
+                    if (item.key) {
+                        record[item.key] = item;
+                    }
+                });
+                setCategories(record);
+            })
             .catch(() => setCategories({}));
     }, []);
 
@@ -75,13 +83,14 @@ const ProfileScreen: React.FC = () => {
         setError(null);
         try {
             const data = await fetchProfileByOwner(stewardId);
+            const safeData = data as any;
             setProfile(data);
-            setDisplayName(data.name || '');
-            setProviderType(data['providerType'] || '');
-            setBusinessCategoryKey(data.business_category_key || '');
-            setBusinessLine(data.business_line || '');
-            setLocation(data.location || '');
-            setBio(data['bio'] || '');
+            setDisplayName(safeData.name || '');
+            setProviderType(safeData.provider_type || safeData.providerType || '');
+            setBusinessCategoryKey(safeData.business_category_key || '');
+            setBusinessLine(safeData.business_line || '');
+            setLocation(safeData.location || '');
+            setBio(safeData.bio || safeData.short_bio || '');
             setStatus('API synced');
         } catch (err: any) {
             setError(err.message || 'Failed to load profile');
@@ -102,12 +111,13 @@ const ProfileScreen: React.FC = () => {
         try {
             const savedProfile = await createProfile({
                 name: displayName,
-                slug: makePublicSlug(displayName),
+                slug: profile?.slug || makePublicSlug(displayName),
                 email: user?.email || '',
-                providerType,
-                businessType: business_line,
+                provider_type: providerType,
+                business_type: business_line,
                 location,
                 bio,
+                short_bio: bio,
                 business_category_key,
                 business_line,
                 owner_id: stewardId,

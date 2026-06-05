@@ -149,10 +149,11 @@ export async function createProfile(payload: {
     name: string;
     slug: string;
     email: string;
-    providerType?: string;
-    businessType?: string;
+    provider_type?: string;
+    business_type?: string;
     location?: string;
     bio?: string;
+    short_bio?: string;
     business_category_key?: string;
     business_line?: string;
     owner_id?: string;
