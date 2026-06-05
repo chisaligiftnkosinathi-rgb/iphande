@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { AppHeader } from '../components/ui/AppHeader';
 import { RootTabParamList } from '../navigation';
 import { DEMO_BUSINESS_OWNER_ID } from '../src/config/demoIdentity';
 import { listContinuityEventsForBusiness } from '../src/services/apiClient';
@@ -95,66 +96,69 @@ export const ReplayTimelineScreen: React.FC<ReplayTimelineScreenProps> = ({ busi
     };
 
     return (
-        <View style={styles.container}>
-            <View style={styles.integrityBanner}>
-                <Text style={styles.bannerText}>Replay reconstructed from immutable continuity events.</Text>
-            </View>
+        <View style={{ flex: 1 }}>
+            <AppHeader title="Timeline Replay" />
+            <View style={styles.container}>
+                <View style={styles.integrityBanner}>
+                    <Text style={styles.bannerText}>Replay reconstructed from immutable continuity events.</Text>
+                </View>
 
-            <View style={styles.filtersWrapper}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
-                    <Text style={styles.filterLabel}>ACTOR:</Text>
-                    {['ALL', 'system', 'business_owner', 'customer'].map(actor => (
-                        <TouchableOpacity
-                            key={actor}
-                            style={[styles.filterChip, filterActor === actor && styles.filterChipActive]}
-                            onPress={() => setFilterActor(actor as any)}
-                        >
-                            <Text style={[styles.filterChipText, filterActor === actor && styles.filterChipTextActive]}>
-                                {actor.replace('_', ' ').toUpperCase()}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView>
-                {entityTypes.length > 0 && (
+                <View style={styles.filtersWrapper}>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
-                        <Text style={styles.filterLabel}>ENTITY:</Text>
-                        <TouchableOpacity style={[styles.filterChip, filterEntity === 'ALL' && styles.filterChipActive]} onPress={() => setFilterEntity('ALL')}>
-                            <Text style={[styles.filterChipText, filterEntity === 'ALL' && styles.filterChipTextActive]}>ALL</Text>
-                        </TouchableOpacity>
-                        {entityTypes.map(entity => (
-                            <TouchableOpacity key={entity} style={[styles.filterChip, filterEntity === entity && styles.filterChipActive]} onPress={() => setFilterEntity(entity)}>
-                                <Text style={[styles.filterChipText, filterEntity === entity && styles.filterChipTextActive]}>{entity.toUpperCase()}</Text>
+                        <Text style={styles.filterLabel}>ACTOR:</Text>
+                        {['ALL', 'system', 'business_owner', 'customer'].map(actor => (
+                            <TouchableOpacity
+                                key={actor}
+                                style={[styles.filterChip, filterActor === actor && styles.filterChipActive]}
+                                onPress={() => setFilterActor(actor as any)}
+                            >
+                                <Text style={[styles.filterChipText, filterActor === actor && styles.filterChipTextActive]}>
+                                    {actor.replace('_', ' ').toUpperCase()}
+                                </Text>
                             </TouchableOpacity>
                         ))}
                     </ScrollView>
+                    {entityTypes.length > 0 && (
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+                            <Text style={styles.filterLabel}>ENTITY:</Text>
+                            <TouchableOpacity style={[styles.filterChip, filterEntity === 'ALL' && styles.filterChipActive]} onPress={() => setFilterEntity('ALL')}>
+                                <Text style={[styles.filterChipText, filterEntity === 'ALL' && styles.filterChipTextActive]}>ALL</Text>
+                            </TouchableOpacity>
+                            {entityTypes.map(entity => (
+                                <TouchableOpacity key={entity} style={[styles.filterChip, filterEntity === entity && styles.filterChipActive]} onPress={() => setFilterEntity(entity)}>
+                                    <Text style={[styles.filterChipText, filterEntity === entity && styles.filterChipTextActive]}>{entity.toUpperCase()}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    )}
+                </View>
+
+                {isLoading ? (
+                    <View style={styles.center}>
+                        <ActivityIndicator size="large" color="#10B981" />
+                    </View>
+                ) : errorMessage ? (
+                    <View style={styles.emptyState}>
+                        <Text style={styles.emptyText}>{errorMessage}</Text>
+                        <TouchableOpacity style={styles.retryButton} onPress={loadReplay}>
+                            <Text style={styles.retryButtonText}>Retry</Text>
+                        </TouchableOpacity>
+                    </View>
+                ) : (
+                    <FlatList
+                        data={filteredEvents}
+                        keyExtractor={(item) => item.id}
+                        renderItem={renderEvent}
+                        contentContainerStyle={styles.listContent}
+                        // Strict deterministic rendering. No client-side sorting.
+                        ListEmptyComponent={
+                            <View style={styles.emptyState}>
+                                <Text style={styles.emptyText}>No replay lineage available.</Text>
+                            </View>
+                        }
+                    />
                 )}
             </View>
-
-            {isLoading ? (
-                <View style={styles.center}>
-                    <ActivityIndicator size="large" color="#10B981" />
-                </View>
-            ) : errorMessage ? (
-                <View style={styles.emptyState}>
-                    <Text style={styles.emptyText}>{errorMessage}</Text>
-                    <TouchableOpacity style={styles.retryButton} onPress={loadReplay}>
-                        <Text style={styles.retryButtonText}>Retry</Text>
-                    </TouchableOpacity>
-                </View>
-            ) : (
-                <FlatList
-                    data={filteredEvents}
-                    keyExtractor={(item) => item.id}
-                    renderItem={renderEvent}
-                    contentContainerStyle={styles.listContent}
-                    // Strict deterministic rendering. No client-side sorting.
-                    ListEmptyComponent={
-                        <View style={styles.emptyState}>
-                            <Text style={styles.emptyText}>No replay lineage available.</Text>
-                        </View>
-                    }
-                />
-            )}
         </View>
     );
 };
@@ -186,10 +190,28 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     filterLabel: { fontSize: 11, fontWeight: '700', color: '#6B7280', marginRight: 8, fontFamily: 'monospace' },
-    filterChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: '#E5E7EB', marginRight: 8 },
-    filterChipActive: { backgroundColor: '#111827' },
-    filterChipText: { fontSize: 11, color: '#4B5563', fontFamily: 'monospace', fontWeight: '600' },
-    filterChipTextActive: { color: '#FFFFFF' },
+    filterChip: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 16,
+        backgroundColor: '#FFFFFF',
+        borderWidth: 1,
+        borderColor: '#374151',
+        marginRight: 8,
+    },
+    filterChipActive: {
+        backgroundColor: '#111827',
+        borderColor: '#111827',
+    },
+    filterChipText: {
+        fontSize: 11,
+        color: '#111827',
+        fontFamily: 'monospace',
+        fontWeight: '600',
+    },
+    filterChipTextActive: {
+        color: '#FFFFFF',
+    },
 
     listContent: { padding: 16 },
 

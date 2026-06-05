@@ -12,8 +12,9 @@ import {
     View,
 } from 'react-native';
 
+import { AppHeader } from '../components/ui/AppHeader';
 import { RootTabParamList } from '../navigation';
-import { DEMO_BUSINESS_OWNER_ID } from '../src/config/demoIdentity';
+import { useAuth } from '../src/auth/AuthContext';
 import {
     closeQuoteRequest,
     confirmSaleForRequest,
@@ -60,6 +61,7 @@ const EVIDENCE_TYPES = [
 
 const QuoteRequestsDashboardScreen: React.FC = () => {
     const navigation = useNavigation<InboxNavigation>();
+    const { stewardId } = useAuth() as any;
     const [requests, setRequests] = useState<QuoteRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -71,10 +73,11 @@ const QuoteRequestsDashboardScreen: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     const fetchRequests = useCallback(async () => {
+        if (!stewardId) return;
         setLoading(true);
         setError(null);
         try {
-            const data = await listQuoteRequests({ businessOwnerId: DEMO_BUSINESS_OWNER_ID });
+            const data = await listQuoteRequests({ businessOwnerId: stewardId });
             setRequests(data);
         } catch (err: any) {
             setError(err.message || 'Failed to load incoming requests');
@@ -339,38 +342,39 @@ const QuoteRequestsDashboardScreen: React.FC = () => {
     };
 
     return (
-        <ScrollView
-            style={styles.container}
-            contentContainerStyle={styles.content}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        >
-            <View style={styles.headerCard}>
-                <Text style={styles.eyebrow}>Steward Inbox</Text>
-                <Text style={styles.header}>Incoming Requests</Text>
-                <Text style={styles.description}>
-                    Review customer requests and preserve every response transition in replay.
-                </Text>
-                <Text style={styles.owner}>Owner: {DEMO_BUSINESS_OWNER_ID}</Text>
-            </View>
+        <View style={{ flex: 1 }}>
+            <AppHeader title="Quote Requests" />
+            <ScrollView
+                style={styles.container}
+                contentContainerStyle={styles.content}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+            >
+                <View style={styles.headerCard}>
+                    <Text style={styles.description}>
+                        Review customer requests and preserve every response transition in replay.
+                    </Text>
+                    <Text style={styles.owner}>Owner: {stewardId}</Text>
+                </View>
 
-            {loading ? (
-                <ActivityIndicator size="large" color="#1E3A2F" style={{ marginTop: 40 }} />
-            ) : error ? (
-                <Text style={styles.error}>{error}</Text>
-            ) : requests.length === 0 ? (
-                <Text style={styles.empty}>No incoming requests found.</Text>
-            ) : (
-                <>
-                    {requests.map(renderRequest)}
-                    <View style={styles.boundaryCard}>
-                        <Text style={styles.boundaryTitle}>Truth Boundary</Text>
-                        <Text style={styles.boundaryText}>
-                            Quote created is not policy approval. Uploading evidence is not confirming evidence. A sale is confirmed only after human steward review.
-                        </Text>
-                    </View>
-                </>
-            )}
-        </ScrollView>
+                {loading ? (
+                    <ActivityIndicator size="large" color="#1E3A2F" style={{ marginTop: 40 }} />
+                ) : error ? (
+                    <Text style={styles.error}>{error}</Text>
+                ) : requests.length === 0 ? (
+                    <Text style={styles.empty}>No incoming requests found.</Text>
+                ) : (
+                    <>
+                        {requests.map(renderRequest)}
+                        <View style={styles.boundaryCard}>
+                            <Text style={styles.boundaryTitle}>Truth Boundary</Text>
+                            <Text style={styles.boundaryText}>
+                                Quote created is not policy approval. Uploading evidence is not confirming evidence. A sale is confirmed only after human steward review.
+                            </Text>
+                        </View>
+                    </>
+                )}
+            </ScrollView>
+        </View>
     );
 };
 
@@ -431,9 +435,16 @@ const styles = StyleSheet.create({
     boundaryTitle: { fontSize: 13, fontWeight: '900', color: '#991B1B', textTransform: 'uppercase', marginBottom: 6 },
     boundaryText: { fontSize: 12, lineHeight: 18, color: '#B91C1C', fontWeight: '800' },
     pillContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
-    pill: { backgroundColor: '#F3F4F6', borderRadius: 16, paddingVertical: 6, paddingHorizontal: 12, borderWidth: 1, borderColor: '#E5E7EB' },
-    pillSelected: { backgroundColor: '#1E3A2F', borderColor: '#1E3A2F' },
-    pillText: { fontSize: 11, fontWeight: '700', color: '#4B5563' },
+    pill: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 16,
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderWidth: 1,
+        borderColor: '#374151',
+    },
+    pillSelected: { backgroundColor: '#111827', borderColor: '#111827' },
+    pillText: { fontSize: 11, fontWeight: '700', color: '#111827' },
     pillTextSelected: { color: '#FFFFFF' },
 });
 
