@@ -25,6 +25,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "apiOrigin": "https://iphande-production.up.railway.app",
+      "apiBaseUrl": "https://iphande-production.up.railway.app/api/v1",
+      "EXPO_PUBLIC_API_URL": "https://iphande-production.up.railway.app/api/v1"
     }
   }
 }

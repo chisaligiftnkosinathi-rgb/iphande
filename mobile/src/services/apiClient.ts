@@ -1,5 +1,5 @@
 // Typed API client for iPhande mobile app
-import { API_BASE_URL } from '../config/api';
+import { buildApiUrl, buildRootApiUrl } from '../config/api';
 import type {
     BusinessCategory,
     CommissionLedgerResponse,
@@ -23,15 +23,6 @@ import type {
 } from '../types/replay';
 
 const REQUEST_TIMEOUT_MS = 12000;
-
-function buildApiUrl(path: string): string {
-    const base = API_BASE_URL.endsWith('/') ? API_BASE_URL : `${API_BASE_URL}/`;
-    const normalizedPath = path.startsWith('/') ? path.slice(1) : path;
-    const apiPath = normalizedPath.startsWith('api/v1/')
-        ? normalizedPath.slice('api/v1/'.length)
-        : normalizedPath;
-    return `${base}${apiPath}`;
-}
 
 export async function apiGet<T>(path: string): Promise<T> {
     const url = buildApiUrl(path);
@@ -112,6 +103,24 @@ export const api = {
         return { data: await apiGet<T>(path) };
     },
 };
+
+export async function checkApiHealth(): Promise<{ ok: boolean; status: number; body?: unknown }> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+    try {
+        const response = await fetch(buildRootApiUrl('/health'), {
+            signal: controller.signal,
+        });
+        let body: unknown;
+        try {
+            body = await response.json();
+        } catch { }
+        return { ok: response.ok, status: response.status, body };
+    } finally {
+        clearTimeout(timeoutId);
+    }
+}
 
 // Business taxonomy
 export async function fetchBusinessCategories(): Promise<Record<string, BusinessCategory>> {
