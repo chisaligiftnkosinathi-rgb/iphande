@@ -4,7 +4,6 @@ import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { StewardButton } from '../components/ui/StewardButton';
 import { BUSINESS_ARCHETYPES } from '../data/businessArchetypes';
 import { useAuth } from '../src/auth/AuthContext';
-import type { BusinessCategory } from '../src/types/api';
 import theme from '../theme';
 
 
@@ -24,11 +23,11 @@ const FALLBACK_ARCHETYPE_OPTIONS: ArchetypeOption[] = BUSINESS_ARCHETYPES.map((e
 }));
 
 function toBackendArchetypeOptions(
-    categories: Record<string, BusinessCategory>
+    categories: any[]
 ): ArchetypeOption[] {
-    return Object.entries(categories).map(([key, category]) => ({
-        key,
-        label: category.name,
+    return categories.map((category) => ({
+        key: category.key,
+        label: category.name || category.label,
         description: category.description,
     }));
 }

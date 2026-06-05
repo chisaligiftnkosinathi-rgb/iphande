@@ -1,7 +1,6 @@
 // Typed API client for iPhande mobile app
 import { buildApiUrl, buildRootApiUrl } from '../config/api';
 import type {
-    BusinessCategory,
     CommissionLedgerResponse,
     ContentGenerationResult,
     ContentPost,
@@ -14,7 +13,7 @@ import type {
     Quote,
     QuoteRequest,
     QuoteRequestCreate,
-    QuoteRequestStatus,
+    QuoteRequestStatus
 } from '../types/api';
 import type {
     ContinuityEvent,
@@ -123,8 +122,15 @@ export async function checkApiHealth(): Promise<{ ok: boolean; status: number; b
 }
 
 // Business taxonomy
-export async function fetchBusinessCategories(): Promise<Record<string, BusinessCategory>> {
-    return apiGet<Record<string, BusinessCategory>>('business-categories');
+export async function fetchBusinessCategories(): Promise<any[]> {
+    const raw = await apiGet<any>('business-categories');
+    const categories = Array.isArray(raw)
+        ? raw
+        : Object.entries(raw).map(([key, value]: any) => ({
+            key,
+            ...value,
+        }));
+    return categories;
 }
 
 export async function fetchProfile(profileId: string): Promise<Profile> {
