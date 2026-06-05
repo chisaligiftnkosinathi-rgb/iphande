@@ -67,10 +67,21 @@ def test_create_profile_accepts_and_persists_owner_id(db_session):
         "name": "Firebase User",
         "slug": "firebase-user",
         "email": "firebase@example.com",
-        "owner_id": "firebase_uid_999"
+        "owner_id": "firebase_uid_999",
+        "provider_type": "Small Business",
+        "business_category_key": "tech_digital_services",
+        "business_line": "App Development",
+        "location": "Emalahleni",
+        "short_bio": "Simplifying digital complexity."
     })
     assert response.status_code == 200
-    assert response.json()["owner_id"] == "firebase_uid_999"
+    data = response.json()
+    assert data["owner_id"] == "firebase_uid_999"
+    assert data["provider_type"] == "Small Business"
+    assert data["business_category_key"] == "tech_digital_services"
+    assert data["business_line"] == "App Development"
+    assert data["location"] == "Emalahleni"
+    assert data["short_bio"] == "Simplifying digital complexity."
 
     saved_profile = db_session.query(Profile).filter_by(owner_id="firebase_uid_999").first()
     assert saved_profile is not None

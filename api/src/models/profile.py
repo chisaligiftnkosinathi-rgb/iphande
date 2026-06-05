@@ -22,6 +22,9 @@ class Profile(Base):
     service_area_notes = Column(String, nullable=True)
 
     # Business Truthfulness Layer
+    provider_type = Column(String, nullable=True)
+    location = Column(String, nullable=True)
+    short_bio = Column(String, nullable=True)
     business_category_key = Column(String, nullable=True)
     business_line = Column(String, nullable=True)
     services = Column(String, nullable=True)

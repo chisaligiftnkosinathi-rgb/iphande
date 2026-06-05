@@ -15,6 +15,9 @@ class ProfileCreate(BaseModel):
     location_is_public: Optional[bool] = False
     service_radius_km: Optional[float] = None
     service_area_notes: Optional[str] = None
+    provider_type: Optional[str] = None
+    location: Optional[str] = None
+    short_bio: Optional[str] = None
     business_category_key: Optional[str] = None
     business_line: Optional[str] = None
     services: Optional[str] = None
@@ -41,6 +44,9 @@ class ProfileOut(BaseModel):
     service_area_notes: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+    provider_type: Optional[str] = None
+    location: Optional[str] = None
+    short_bio: Optional[str] = None
     business_category_key: Optional[str] = None
     business_line: Optional[str] = None
     services: Optional[str] = None
