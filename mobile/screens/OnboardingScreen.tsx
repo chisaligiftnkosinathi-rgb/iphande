@@ -7,7 +7,7 @@ import { useAuth } from '../src/auth/AuthContext';
 import theme from '../theme';
 
 
-import { createProfile, fetchBusinessCategories, fetchProfileByOwner } from '../src/services/apiClient';
+import { createProfile, fetchBusinessCategories, fetchProfileByOwner, updateProfileLocation } from '../src/services/apiClient';
 import { makePublicSlug } from '../src/utils/profileSlug';
 
 type ArchetypeOption = {
@@ -34,11 +34,11 @@ function toBackendArchetypeOptions(
 
 const OnboardingScreen: React.FC = () => {
     const { completeOnboarding, user, stewardId } = useAuth() as any;
-    const [stewardName, setStewardName] = useState('');
-    const [businessName, setBusinessName] = useState('');
-    const [archetypeKey, setArchetypeKey] = useState('');
-    const [location, setLocation] = useState('');
-    const [story, setStory] = useState('');
+    const [stewardName, setStewardName] = useState('Gift Chisali');
+    const [businessName, setBusinessName] = useState('Global IT and Business Solutions (Pty) Ltd');
+    const [archetypeKey, setArchetypeKey] = useState('tech_digital_services');
+    const [location, setLocation] = useState('Emalahleni, Mpumalanga, South Africa');
+    const [story, setStory] = useState('Global IT and Business Solutions (Pty) Ltd helps communities, small businesses, churches, and professionals simplify digital complexity. We provide app development, website design, IT support, digital visibility, and business systems that connect people to opportunities, improve service delivery, and preserve valuable knowledge so that what matters is not easily lost.');
     const [archetypeOptions, setArchetypeOptions] = useState<ArchetypeOption[]>(
         FALLBACK_ARCHETYPE_OPTIONS
     );
@@ -98,7 +98,7 @@ const OnboardingScreen: React.FC = () => {
         setLoading(true);
         setError(null);
         try {
-            const profile = await createProfile({
+            let profile = await createProfile({
                 name: businessName,
                 slug: makePublicSlug(businessName),
                 email: user.email,
@@ -111,6 +111,15 @@ const OnboardingScreen: React.FC = () => {
                 business_line: '', // Optionally add business line field
                 owner_id: stewardId,
             });
+
+            if (profile && profile.id && (location || story)) {
+                try {
+                    profile = await updateProfileLocation(profile.id, { location, short_bio: story });
+                } catch (patchErr) {
+                    console.warn('Failed to sync location and bio', patchErr);
+                }
+            }
+
             completeOnboarding(profile.id, archetypeKey, stewardName);
         } catch (e: any) {
             setError(e.message || 'Failed to create profile');
