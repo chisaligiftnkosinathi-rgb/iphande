@@ -215,6 +215,25 @@ BUSINESS_CATEGORIES = {
             "General Dealer"
         ],
         "tags": ["retail", "trading", "vendor", "spaza", "reseller"]
+    },
+    "tech_digital_services": {
+        "name": "Technology & Digital Services Steward",
+        "description": "Simplifying digital complexity, building systems, and keeping communities connected.",
+        "lines": [
+            "App Development",
+            "Website Design",
+            "IT Support",
+            "Business Systems",
+            "Digital Marketing",
+            "Computer Repairs",
+            "Technology Consulting"
+        ],
+        "tags": [
+            "Technology",
+            "Digital Services",
+            "Business Solutions",
+            "Community Tech"
+        ]
     }
 }
 

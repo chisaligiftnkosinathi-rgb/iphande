@@ -1,0 +1,14 @@
+ArchetypeKey,Label,Description,Examples,ContinuityPattern,CoreScreens,Status
+local_retail_steward,Local Retail Steward,Shops and resellers serving local communities.,"spaza shop, local store, clothing seller, tuckshop, reseller","stock, specials, repeat customers, visibility","InventoryLedger, StewardshipLedger, Media",active
+beauty_wellness_steward,Beauty & Wellness Steward,Hair beauty and wellness services.,"hair salon, barber, nail technician, makeup artist, spa","appointments, repeat clients, media visibility","Profile, Media",active
+food_catering_steward,Food & Catering Steward,Food catering and takeaway businesses.,"kota business, catering, bakery, food stand, takeaway","daily offers, availability, ordering","Profile, InventoryLedger, Media",active
+skilled_trades_steward,Skilled Trades Steward,Trades and repair services.,"electrician, plumber, builder, welder, mechanic","jobs, quotes, trust, availability","QuoteRequests, Media",active
+transport_delivery_steward,Transport & Delivery Steward,Transport and delivery services.,"taxi, shuttle, courier, moving services","routes, availability, coordination","Profile, Opportunities",active
+property_housing_steward,Property & Housing Steward,Property rentals and accommodation.,"real estate, rentals, accommodation, agents","listings, inquiries, follow-ups","QuoteRequests, Campaigns, Media",active
+financial_insurance_steward,Financial & Insurance Steward,Financial and insurance services.,"funeral cover, insurance agent, broker, financial services","relationships, quotes, trust, follow-up continuity","CommissionLedger, LeadQuoteCapture, PaymentReview",active
+education_tutoring_steward,Education & Tutoring Steward,Tutoring training and coaching.,"tutor, training, skills coaching","bookings, learners, scheduling","Profile, Media",active
+creative_media_steward,Creative & Media Steward,Creative and media professionals.,"photographer, designer, musician, videographer","portfolio, media continuity, client visibility","Profile, Media, Campaigns",active
+community_ministry_steward,Community & Ministry Steward,Community and ministry organizations.,"churches, NGOs, youth programs, community groups","events, announcements, community memory","Campaigns, GivingSupport",active
+agriculture_farming_steward,Agriculture & Farming Steward,Farming and produce businesses.,"local farms, produce sellers, livestock","seasonality, supply, community trade","InventoryLedger, StewardshipLedger",active
+health_care_steward,Health & Care Steward,"Health, care, and wellness support.","caregivers, clinics, wellness support","trust, availability, care continuity","Profile, Opportunities",active
+tech_digital_services,Technology & Digital Services Steward,"Simplifying digital complexity, building systems, and keeping communities connected.","app development, website design, it support, tech consulting","projects, client relationships, system continuity, support tickets","Profile, Media, QuoteRequests",active
