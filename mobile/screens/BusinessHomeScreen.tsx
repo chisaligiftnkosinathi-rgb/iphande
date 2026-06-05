@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AppFooter } from '../components/common/AppFooter';
 import { API_BASE_URL } from '../src/config/api';
 import { checkApiHealth, fetchProfile } from '../src/services/apiClient';
 import type { Profile } from '../src/types/api';
@@ -97,6 +98,8 @@ const BusinessHomeScreen: React.FC = () => {
                     <Text style={styles.sectionValue}>{profile.location}</Text>
                 </View>
             ) : null}
+
+            <AppFooter />
         </ScrollView>
     );
 };
