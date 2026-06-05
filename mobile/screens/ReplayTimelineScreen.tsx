@@ -6,6 +6,7 @@ import { DEMO_BUSINESS_OWNER_ID } from '../src/config/demoIdentity';
 import { listContinuityEventsForBusiness } from '../src/services/apiClient';
 import { fetchMobileHandshake } from '../src/services/handshakeService';
 import { ActorType, ContinuityEvent, ContinuityEventType } from '../src/types/replay';
+import { formatContinuityEventLabel } from '../src/utils/replayLabels';
 
 interface ReplayTimelineScreenProps {
     businessOwnerId?: string;
@@ -79,7 +80,7 @@ export const ReplayTimelineScreen: React.FC<ReplayTimelineScreenProps> = ({ busi
                 onPress={() => navigation.navigate('ReplayEventDetail', { eventId: item.id })}
             >
                 <View style={styles.eventHeader}>
-                    <Text style={styles.eventType}>{item.event_type.replace(/_/g, ' ').toUpperCase()}</Text>
+                    <Text style={styles.eventType}>{formatContinuityEventLabel(item)}</Text>
                     <Text style={styles.timestamp}>{occurredAt}</Text>
                 </View>
 

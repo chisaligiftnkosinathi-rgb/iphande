@@ -4,6 +4,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View
 import { RootTabParamList } from '../navigation';
 import { getContinuityEvent, getContinuityEventGraph, listContinuityEventChildren } from '../src/services/apiClient';
 import { ContinuityEvent } from '../src/types/replay';
+import { formatContinuityEventLabel } from '../src/utils/replayLabels';
 
 type Props = BottomTabScreenProps<RootTabParamList, 'ReplayEventDetail'>;
 
@@ -76,7 +77,7 @@ export const ReplayEventDetailScreen: React.FC<Props> = ({ route, navigation }) 
     return (
         <ScrollView style={styles.container}>
             <View style={styles.headerBox}>
-                <Text style={styles.eventType}>{event.event_type.replace(/_/g, ' ').toUpperCase()}</Text>
+                <Text style={styles.eventType}>{formatContinuityEventLabel(event)}</Text>
                 <Text style={styles.timestamp}>{occurredAt}</Text>
             </View>
 
@@ -133,7 +134,7 @@ export const ReplayEventDetailScreen: React.FC<Props> = ({ route, navigation }) 
                                 style={styles.childEventCard}
                                 onPress={() => navigation.navigate('ReplayEventDetail', { eventId: child.id })}
                             >
-                                <Text style={styles.childEventType}>{child.event_type.replace(/_/g, ' ').toUpperCase()}</Text>
+                                <Text style={styles.childEventType}>{formatContinuityEventLabel(child)}</Text>
                                 <Text style={styles.childEventActor}>Actor: {child.actor_type.toUpperCase()}</Text>
                             </TouchableOpacity>
                         </View>

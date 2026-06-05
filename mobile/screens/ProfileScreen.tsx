@@ -16,6 +16,7 @@ import { StewardProfileActions } from '../components/profile/StewardProfileActio
 import { TruthCard } from '../components/ui/TruthCard';
 import { createProfile, fetchBusinessCategories, fetchProfileByOwner, generateContentPost } from '../src/services/apiClient';
 import type { BusinessCategory, ContentGenerationResult, Profile } from '../src/types/api';
+import { makePublicSlug } from '../src/utils/profileSlug';
 import theme from '../theme';
 
 const PROVIDER_TYPES = [
@@ -99,8 +100,9 @@ const ProfileScreen: React.FC = () => {
     const onSave = async () => {
         setStatus('Saving...');
         try {
-            await createProfile({
+            const savedProfile = await createProfile({
                 name: displayName,
+                slug: makePublicSlug(displayName),
                 email: user?.email || '',
                 providerType,
                 businessType: business_line,
@@ -110,6 +112,7 @@ const ProfileScreen: React.FC = () => {
                 business_line,
                 owner_id: stewardId,
             });
+            setProfile(savedProfile);
             if (business_category_key && business_line) {
                 const result: ContentGenerationResult = await generateContentPost({
                     business_category_key,

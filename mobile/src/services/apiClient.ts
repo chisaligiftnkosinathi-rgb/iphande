@@ -141,6 +141,7 @@ export async function fetchOpportunities(): Promise<Opportunity[]> {
 
 export async function createProfile(payload: {
     name: string;
+    slug: string;
     email: string;
     providerType?: string;
     businessType?: string;

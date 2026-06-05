@@ -4,6 +4,7 @@ import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View }
 import { RootTabParamList } from '../navigation';
 import { listContinuityEventsForEntity } from '../src/services/apiClient';
 import { ContinuityEvent } from '../src/types/replay';
+import { formatContinuityEventLabel } from '../src/utils/replayLabels';
 
 type Props = BottomTabScreenProps<RootTabParamList, 'EntityReplay'>;
 
@@ -46,7 +47,7 @@ export const EntityReplayScreen: React.FC<Props> = ({ route, navigation }) => {
                     style={styles.eventCard}
                     onPress={() => navigation.navigate('ReplayEventDetail', { eventId: item.id })}
                 >
-                    <Text style={styles.eventType}>{item.event_type.replace(/_/g, ' ').toUpperCase()}</Text>
+                    <Text style={styles.eventType}>{formatContinuityEventLabel(item)}</Text>
                     <Text style={styles.timestamp}>{occurredAt}</Text>
                     <Text style={styles.actorText}>Actor: {item.actor_type}</Text>
                 </TouchableOpacity>

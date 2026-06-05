@@ -51,6 +51,7 @@ class ProfileOut(BaseModel):
     languages: Optional[str] = None
     trust_posture: Optional[str] = None
     owner_id: Optional[str] = None
+    continuity_event_id: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

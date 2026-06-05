@@ -27,6 +27,7 @@ export interface Profile {
     suggested_tags?: string[];
     profile_guidance?: string[];
     deterministic?: boolean;
+    continuity_event_id?: string | null;
 }
 
 // Deterministic content generation result

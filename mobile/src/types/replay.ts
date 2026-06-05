@@ -1,6 +1,8 @@
 export type ActorType = 'system' | 'business_owner' | 'customer';
 
 export type ContinuityEventType =
+    | 'profile_created'
+    | 'profile_amended'
     | 'prompt_context_built'
     | 'content_generated'
     | 'content_created_manually'

@@ -42,6 +42,8 @@ def create_profile(profile: ProfileCreate, db: Session = Depends(get_db)):
             payload={
                 "surface": "profile",
                 "action": "created",
+                "profile_name": db_profile.name,
+                "profile_slug": db_profile.slug,
                 "summary_available": True,
             },
             auto_commit=False,

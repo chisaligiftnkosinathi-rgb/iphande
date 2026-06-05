@@ -4,6 +4,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View
 import { RootTabParamList } from '../navigation';
 import { getContinuityEventGraph } from '../src/services/apiClient';
 import { ContinuityEvent, ContinuityEventGraph } from '../src/types/replay';
+import { formatContinuityEventLabel } from '../src/utils/replayLabels';
 
 type Props = BottomTabScreenProps<RootTabParamList, 'GraphReplay'>;
 
@@ -59,7 +60,7 @@ export const GraphReplayScreen: React.FC<Props> = ({ route, navigation }) => {
                     onPress={() => navigation.navigate('ReplayEventDetail', { eventId: node.id })}
                 >
                     <View style={styles.nodeHeader}>
-                        <Text style={styles.eventType}>{node.event_type.replace(/_/g, ' ').toUpperCase()}</Text>
+                        <Text style={styles.eventType}>{formatContinuityEventLabel(node)}</Text>
                         <Text style={styles.sequenceText}>Seq {node.lineage_sequence ?? 'N/A'}</Text>
                     </View>
                     <Text style={styles.metaText}>Actor: {node.actor_type.toUpperCase()}</Text>
@@ -103,7 +104,7 @@ export const GraphReplayScreen: React.FC<Props> = ({ route, navigation }) => {
 
             <View style={styles.summaryPanel}>
                 <Text style={styles.sectionTitle}>ROOT EVENT</Text>
-                <Text style={styles.rootType}>{graph.root_event.event_type.replace(/_/g, ' ').toUpperCase()}</Text>
+                <Text style={styles.rootType}>{formatContinuityEventLabel(graph.root_event)}</Text>
                 <Text style={styles.metaText}>Direction: {graph.direction.toUpperCase()}</Text>
                 <Text style={styles.metaText}>Max depth: {graph.max_depth}</Text>
                 <Text style={styles.metaText}>Nodes: {graph.nodes.length}</Text>

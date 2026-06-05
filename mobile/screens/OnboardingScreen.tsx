@@ -8,6 +8,7 @@ import theme from '../theme';
 
 
 import { createProfile } from '../src/services/apiClient';
+import { makePublicSlug } from '../src/utils/profileSlug';
 
 const OnboardingScreen: React.FC = () => {
     const { completeOnboarding, user, stewardId } = useAuth() as any;
@@ -33,6 +34,7 @@ const OnboardingScreen: React.FC = () => {
         try {
             const profile = await createProfile({
                 name: businessName,
+                slug: makePublicSlug(businessName),
                 email: user.email,
                 providerType: '', // Optionally add provider type field
                 businessType: '', // Optionally add business type field
