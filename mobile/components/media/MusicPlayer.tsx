@@ -8,16 +8,14 @@ interface Props {
 }
 
 export const MusicPlayer: React.FC<Props> = ({ track }) => {
-    // Note: expo-av is not yet installed.
-    // This state simulates the UI toggle until Audio.Sound is integrated.
     const [isPlaying, setIsPlaying] = useState(false);
 
     const handlePlayPause = () => {
         setIsPlaying(!isPlaying);
         if (!isPlaying) {
-            console.log(`[MusicPlayer] Simulating play for: ${track.uri}`);
+            console.log(`[MusicPlayer] Simulating play for: ${track.title}`);
         } else {
-            console.log(`[MusicPlayer] Simulating pause for: ${track.uri}`);
+            console.log(`[MusicPlayer] Simulating pause for: ${track.title}`);
         }
     };
 
@@ -25,11 +23,21 @@ export const MusicPlayer: React.FC<Props> = ({ track }) => {
         <View style={styles.container}>
             <View style={styles.info}>
                 <Text style={styles.title}>{track.title}</Text>
+                <Text style={styles.caption}>{track.caption}</Text>
                 <Text style={styles.description}>{track.description}</Text>
                 <View style={styles.metaRow}>
+                    {track.album && <Text style={styles.metaBadge}>{track.album.toUpperCase()}</Text>}
                     <Text style={styles.metaBadge}>{track.usage.replace('_', ' ').toUpperCase()}</Text>
                     <Text style={styles.metaBadge}>{track.origin.replace('_', ' ').toUpperCase()}</Text>
+                    {track.duration && <Text style={styles.metaBadge}>{track.duration}</Text>}
                 </View>
+                {track.replayTags && track.replayTags.length > 0 && (
+                    <View style={styles.tagsRow}>
+                        {track.replayTags.map(tag => (
+                            <Text key={tag} style={styles.tagBadge}>#{tag}</Text>
+                        ))}
+                    </View>
+                )}
             </View>
             <Pressable
                 style={[styles.playButton, isPlaying && styles.playingButton]}
@@ -53,11 +61,17 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     info: { flex: 1, marginRight: 16 },
-    title: { fontSize: 16, fontWeight: '800', color: '#111827', marginBottom: 4 },
+    title: { fontSize: 16, fontWeight: '800', color: '#111827', marginBottom: 2 },
+    caption: { fontSize: 12, fontWeight: '700', color: '#2F6B4F', fontStyle: 'italic', marginBottom: 4 },
     description: { fontSize: 13, lineHeight: 20, color: '#4B5563', marginBottom: 8 },
-    metaRow: { flexDirection: 'row', gap: 8 },
+    metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
     metaBadge: {
         fontSize: 10, fontWeight: '700', color: '#374151', backgroundColor: '#E5E7EB',
+        paddingHorizontal: 6, paddingVertical: 3, borderRadius: 4,
+    },
+    tagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+    tagBadge: {
+        fontSize: 10, fontWeight: '700', color: '#10B981', backgroundColor: '#ECFDF5',
         paddingHorizontal: 6, paddingVertical: 3, borderRadius: 4,
     },
     playButton: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#111827', alignItems: 'center', justifyContent: 'center' },
