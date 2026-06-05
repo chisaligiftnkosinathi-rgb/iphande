@@ -1,14 +1,37 @@
 import { Picker } from '@react-native-picker/picker';
-import React, { useState } from 'react';
-import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { StewardButton } from '../components/ui/StewardButton';
 import { BUSINESS_ARCHETYPES } from '../data/businessArchetypes';
 import { useAuth } from '../src/auth/AuthContext';
+import type { BusinessCategory } from '../src/types/api';
 import theme from '../theme';
 
 
-import { createProfile } from '../src/services/apiClient';
+import { createProfile, fetchBusinessCategories } from '../src/services/apiClient';
 import { makePublicSlug } from '../src/utils/profileSlug';
+
+type ArchetypeOption = {
+    key: string;
+    label: string;
+    description?: string;
+};
+
+const FALLBACK_ARCHETYPE_OPTIONS: ArchetypeOption[] = BUSINESS_ARCHETYPES.map((entry) => ({
+    key: entry.key,
+    label: entry.label,
+    description: entry.description,
+}));
+
+function toBackendArchetypeOptions(
+    categories: Record<string, BusinessCategory>
+): ArchetypeOption[] {
+    return Object.entries(categories).map(([key, category]) => ({
+        key,
+        label: category.name,
+        description: category.description,
+    }));
+}
 
 const OnboardingScreen: React.FC = () => {
     const { completeOnboarding, user, stewardId } = useAuth() as any;
@@ -17,8 +40,37 @@ const OnboardingScreen: React.FC = () => {
     const [archetypeKey, setArchetypeKey] = useState('');
     const [location, setLocation] = useState('');
     const [story, setStory] = useState('');
+    const [archetypeOptions, setArchetypeOptions] = useState<ArchetypeOption[]>(
+        FALLBACK_ARCHETYPE_OPTIONS
+    );
+    const [categoriesError, setCategoriesError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let active = true;
+
+        const loadCategories = async () => {
+            try {
+                const categories = await fetchBusinessCategories();
+                const options = toBackendArchetypeOptions(categories);
+                if (!active) return;
+                if (options.length > 0) {
+                    setArchetypeOptions(options);
+                    setCategoriesError(null);
+                }
+            } catch (loadError: any) {
+                if (!active) return;
+                setCategoriesError(loadError?.message || 'Unable to load business categories from backend.');
+                setArchetypeOptions(FALLBACK_ARCHETYPE_OPTIONS);
+            }
+        };
+
+        loadCategories();
+        return () => {
+            active = false;
+        };
+    }, []);
 
     const handleComplete = async () => {
         if (!user?.email) {
@@ -63,28 +115,23 @@ const OnboardingScreen: React.FC = () => {
                 onChangeText={setStewardName}
             />
             <Text style={styles.subtitle}>What best describes your business?</Text>
-            {Platform.OS === 'android' ? (
-                <View style={styles.pickerWrapper}>
-                    <Picker
-                        selectedValue={archetypeKey}
-                        onValueChange={setArchetypeKey}
-                        style={styles.picker}
-                    >
-                        <Picker.Item label="Select archetype..." value="" />
-                        {BUSINESS_ARCHETYPES.map((a) => (
-                            <Picker.Item key={a.key} label={a.label} value={a.key} />
-                        ))}
-                    </Picker>
-                </View>
-            ) : (
-                <TouchableOpacity style={styles.pickerWrapper}>
-                    <Text style={styles.pickerText}>{
-                        archetypeKey
-                            ? BUSINESS_ARCHETYPES.find((a) => a.key === archetypeKey)?.label
-                            : 'Select archetype...'
-                    }</Text>
-                </TouchableOpacity>
-            )}
+            <View style={styles.pickerWrapper}>
+                <Picker
+                    selectedValue={archetypeKey}
+                    onValueChange={setArchetypeKey}
+                    style={styles.picker}
+                >
+                    <Picker.Item label="Select archetype..." value="" />
+                    {archetypeOptions.map((a) => (
+                        <Picker.Item key={a.key} label={a.label} value={a.key} />
+                    ))}
+                </Picker>
+            </View>
+            {categoriesError ? (
+                <Text style={styles.warningText}>
+                    Backend categories unavailable. Using local fallback list.
+                </Text>
+            ) : null}
             <TextInput
                 style={styles.input}
                 placeholder="Business Name"
@@ -153,6 +200,12 @@ const styles = StyleSheet.create({
         ...theme.typography.body,
         color: theme.colors.structural.slate,
         paddingVertical: theme.layout.spacing.md,
+    },
+    warningText: {
+        width: 280,
+        ...theme.typography.body,
+        color: theme.colors.evidence.textDeep,
+        marginBottom: theme.layout.spacing.sm,
     },
     input: {
         width: 280,
