@@ -126,6 +126,27 @@ BUSINESS_CONTENT_RULES = {
             "follow_up_customers": "Remind interested customers to confirm availability before coming.",
             "build_trust": "Share reliable stock, pricing, or service information without exaggeration."
         }
+    },
+    "tech_digital_services": {
+        "name": "Technology & Digital Services",
+        "default_cta": "Send a message to discuss your digital needs.",
+        "default_prompt": "Explain the technical solution you provide, who it helps, and how they can contact you.",
+        "profile_guidance": [
+            "State your core technical services clearly.",
+            "Share examples of past projects or solved problems.",
+            "Explain your process and timelines.",
+            "Use clear language, avoiding unnecessary jargon."
+        ],
+        "suggested_tags": ["TechSupport", "WebDesign", "AppDevelopment", "DigitalServices", "IT"],
+        "goal_prompts": {
+            "promote_today": "Share a specific tech service or digital solution you are offering today.",
+            "get_bookings": "Invite businesses to book a technical consultation or system review.",
+            "share_price_list": "Share the starting prices for your web design, app development, or IT support packages.",
+            "announce_availability": "Tell clients your capacity for new projects or emergency IT support.",
+            "follow_up_customers": "Remind past clients about system maintenance, backups, or software upgrades.",
+            "build_trust": "Share a brief story about a complex technical problem you successfully solved for a client.",
+            "request_quotes": "Invite businesses to request a quote for a custom website, application, or business system."
+        }
     }
 }
 
