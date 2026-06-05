@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from src.database import SessionLocal, replay_transaction
+import uuid
 from src.models.profile import Profile
 from src.schemas.profile_schema import ProfileCreate, ProfileOut
 from src.schemas.public_profile_schema import PublicProfileOut
@@ -18,12 +19,44 @@ def get_db():
 
 @router.post("/profiles", response_model=ProfileOut)
 def create_profile(profile: ProfileCreate, db: Session = Depends(get_db)):
+    existing_profile = None
     if profile.owner_id:
         existing_profile = db.query(Profile).filter(Profile.owner_id == profile.owner_id).first()
-        if existing_profile:
-            return existing_profile
 
     with replay_transaction(db):
+        if existing_profile:
+            update_data = profile.dict(exclude_unset=True)
+            for field, value in update_data.items():
+                setattr(existing_profile, field, value)
+
+            raw_parent_id = getattr(existing_profile, "continuity_event_id", None)
+            parent_uuid = uuid.UUID(raw_parent_id) if isinstance(raw_parent_id, str) else raw_parent_id
+
+            event = emit_continuity_event(
+                db,
+                business_owner_id=str(existing_profile.id),
+                business_category_key=existing_profile.business_category_key,
+                business_line=existing_profile.business_line,
+                event_type="profile_amended",
+                actor_type="business_owner",
+                actor_id=str(existing_profile.id),
+                related_entity_type="profile",
+                related_entity_id=str(existing_profile.id),
+                parent_event_id=parent_uuid,
+                payload={
+                    "surface": "profile",
+                    "action": "amended",
+                    "profile_name": existing_profile.name,
+                    "profile_slug": existing_profile.slug,
+                    "summary_available": True,
+                },
+                auto_commit=False,
+            )
+            existing_profile.continuity_event_id = str(event.id)
+            db.flush()
+            db.refresh(existing_profile)
+            return existing_profile
+
         db_profile = Profile(**profile.dict())
         db.add(db_profile)
         db.flush()
@@ -97,6 +130,9 @@ def update_profile_location(profile_id: str, data: ProfileLocationUpdate, db: Se
         for field, value in update_data.items():
             setattr(profile, field, value)
 
+        raw_parent_id = getattr(profile, "continuity_event_id", None)
+        parent_uuid = uuid.UUID(raw_parent_id) if isinstance(raw_parent_id, str) else raw_parent_id
+
         event = emit_continuity_event(
             db,
             business_owner_id=str(profile.id),
@@ -107,7 +143,7 @@ def update_profile_location(profile_id: str, data: ProfileLocationUpdate, db: Se
             actor_id=str(profile.id),
             related_entity_type="profile",
             related_entity_id=str(profile.id),
-            parent_event_id=getattr(profile, "continuity_event_id", None),
+            parent_event_id=parent_uuid,
             payload={
                 "surface": "profile",
                 "action": "amended",

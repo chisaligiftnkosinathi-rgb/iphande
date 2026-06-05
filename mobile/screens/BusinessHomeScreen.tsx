@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AppFooter } from '../components/common/AppFooter';
+import { useAuth } from '../src/auth/AuthContext';
 import { API_BASE_URL } from '../src/config/api';
-import { checkApiHealth, fetchProfile } from '../src/services/apiClient';
+import { checkApiHealth, fetchProfileByOwner } from '../src/services/apiClient';
 import type { Profile } from '../src/types/api';
 import theme from '../theme';
 
-const PROFILE_ID = 'demo'; // TODO: Replace with real profile ID from auth/session
-
 const BusinessHomeScreen: React.FC = () => {
+    const { stewardId } = useAuth() as any;
     const [profile, setProfile] = useState<Profile | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -25,9 +25,10 @@ const BusinessHomeScreen: React.FC = () => {
         };
 
         const loadProfile = async () => {
+            if (!stewardId) return;
             try {
                 setLoading(true);
-                const data = await fetchProfile(PROFILE_ID);
+                const data = await fetchProfileByOwner(stewardId);
                 setProfile(data);
             } catch (err: any) {
                 setError(err.message || 'Failed to load business profile.');
