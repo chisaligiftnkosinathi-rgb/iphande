@@ -1,4 +1,5 @@
 
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -22,10 +23,18 @@ from src.models.quote_request_model import QuoteRequest
 from src.database import create_tables
 from src.routes.continuity_event_routes import router as continuity_event_router
 
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    create_tables()
+    try:
+        create_tables()
+    except Exception:
+        logger.exception(
+            "Database table initialization failed during startup; "
+            "continuing so /health can report application liveness."
+        )
     yield
 
 

@@ -15,6 +15,16 @@ def test_health_endpoint_returns_readiness_metadata():
     assert body["environment"]
 
 
+def test_db_health_endpoint_reports_database_status():
+    with TestClient(app) as client:
+        response = client.get("/db-health")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] in {"ok", "degraded"}
+    assert "database" in body
+
+
 def test_cors_preflight_allows_mobile_clients():
     with TestClient(app) as client:
         response = client.options(
