@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Pressable,
     ScrollView,
@@ -8,10 +8,12 @@ import {
     TextInput,
     View,
 } from 'react-native';
-import { generateContentPost } from '../src/services/apiClient';
-import { DEMO_BUSINESS_OWNER_ID } from '../src/config/demoIdentity';
-import type { ContentGenerationResult } from '../src/types/api';
 import type { RootTabParamList } from '../navigation';
+import { useAuth } from '../src/auth/AuthContext';
+import { useStewardMedia } from '../src/features/steward-media/StewardMediaContext';
+import { fetchProfileByOwner, generateContentPost } from '../src/services/apiClient';
+import type { ContentGenerationResult, Profile } from '../src/types/api';
+import theme from '../theme';
 
 type ContentGeneratorNavigation = {
     navigate: <Name extends keyof RootTabParamList>(
@@ -44,12 +46,29 @@ const DEMO_QUOTE_PARAMS = {
     business_subtitle: 'Helping families prepare with dignity.',
 };
 
+
 const ContentGeneratorScreen: React.FC = () => {
     const navigation = useNavigation<ContentGeneratorNavigation>();
+    const { draft } = useStewardMedia();
+    const { stewardId } = useAuth() as any;
     const [input, setInput] = useState('');
     const [result, setResult] = useState<ContentGenerationResult | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [profile, setProfile] = useState<Profile | null>(null);
+
+    // Hydrate form state from steward media draft (read-only, only on mount)
+    useEffect(() => {
+        if (draft && draft.offer_details && !input) {
+            setInput(draft.offer_details);
+        }
+    }, [draft]);
+
+    useEffect(() => {
+        if (stewardId) {
+            fetchProfileByOwner(stewardId).then(setProfile).catch(() => { });
+        }
+    }, [stewardId]);
 
     const handleGenerate = async () => {
         setLoading(true);
@@ -57,10 +76,10 @@ const ContentGeneratorScreen: React.FC = () => {
         try {
             // Example payload, adapt as needed for your UI
             const payload = {
-                business_owner_id: DEMO_BUSINESS_OWNER_ID,
-                business_category_key: 'commission_based_sales',
-                business_line: 'Funeral Cover Agent',
-                goal_key: 'request_quotes',
+                business_owner_id: stewardId,
+                business_category_key: profile?.business_category_key || 'general_business',
+                business_line: profile?.business_line || 'Services',
+                goal_key: 'promote_today',
                 platform: 'facebook',
                 offer_details: input.trim(),
             };
@@ -111,10 +130,17 @@ const ContentGeneratorScreen: React.FC = () => {
                 {/* Request Quote Button */}
                 <View style={{ marginTop: 18 }}>
                     <Pressable
-                        style={[styles.primaryButton, { backgroundColor: '#14532D' }]}
+                        style={[styles.primaryButton, { backgroundColor: theme.colors.stewardship.textDeep }]}
                         onPress={() => {
                             // @ts-ignore
-                            navigation.navigate('QuoteRequestForm', DEMO_QUOTE_PARAMS);
+                            navigation.navigate('QuoteRequestForm', {
+                                business_owner_id: stewardId,
+                                business_category_key: profile?.business_category_key || 'general_business',
+                                business_line: profile?.business_line || 'Services',
+                                post_id: result?.content_post_id || 'generated-post',
+                                business_name: profile?.name || 'My Business',
+                                business_subtitle: (profile as any)?.short_bio || profile?.bio || '',
+                            });
                         }}
                     >
                         <Text style={styles.primaryButtonText}>Request Quote</Text>
@@ -128,15 +154,23 @@ const ContentGeneratorScreen: React.FC = () => {
                     <Text style={styles.sampleContent}>{result.caption}</Text>
 
                     {result.content_post_id && (
-                        <Pressable
-                            style={styles.replayButton}
-                            onPress={() => navigation.navigate('EntityReplay', {
-                                entityId: result.content_post_id!,
-                                entityType: 'content_post',
-                            })}
-                        >
-                            <Text style={styles.replayButtonText}>Inspect replay lineage</Text>
-                        </Pressable>
+                        <>
+                            <Pressable
+                                style={[styles.primaryButton, { flex: undefined, marginTop: 16, backgroundColor: theme.colors.stewardship.textDeep }]}
+                                onPress={() => navigation.navigate('LeadQuoteCapture', { postId: result.content_post_id })}
+                            >
+                                <Text style={styles.primaryButtonText}>Capture Lead from this Post</Text>
+                            </Pressable>
+                            <Pressable
+                                style={[styles.replayButton, { marginTop: 12 }]}
+                                onPress={() => navigation.navigate('EntityReplay', {
+                                    entityId: result.content_post_id!,
+                                    entityType: 'content_post',
+                                })}
+                            >
+                                <Text style={styles.replayButtonText}>Inspect replay lineage</Text>
+                            </Pressable>
+                        </>
                     )}
 
                     <Text style={styles.sectionTitle}>CTA</Text>
@@ -186,170 +220,134 @@ const ContentGeneratorScreen: React.FC = () => {
 const styles = StyleSheet.create({
     screen: {
         flex: 1,
-        backgroundColor: '#F8FAF7',
+        backgroundColor: theme.colors.humanSpace.background,
     },
     content: {
-        padding: 20,
-        gap: 16,
+        padding: theme.layout.spacing.xl,
+        gap: theme.layout.spacing.lg,
     },
     heroCard: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 28,
-        padding: 22,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        shadowColor: '#102A20',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.08,
-        shadowRadius: 12,
-        elevation: 4,
+        ...theme.layout.cards.base,
     },
     eyebrow: {
-        fontSize: 13,
-        fontWeight: '700',
-        color: '#3E6B57',
-        textTransform: 'uppercase',
-        letterSpacing: 2,
-        marginBottom: 8,
+        ...theme.typography.eyebrow,
+        color: theme.colors.stewardship.textDeep,
+        marginBottom: theme.layout.spacing.sm,
     },
     title: {
-        fontSize: 48,
-        fontWeight: '900',
-        color: '#102A20',
-        letterSpacing: -1.5,
-        marginBottom: 8,
+        ...theme.typography.display,
+        color: theme.colors.structural.charcoal,
+        marginBottom: theme.layout.spacing.sm,
     },
     description: {
-        fontSize: 17,
-        lineHeight: 30,
-        color: '#4B5563',
+        ...theme.typography.body,
+        color: theme.colors.structural.slate,
     },
     input: {
-        backgroundColor: '#F9FAFB',
+        backgroundColor: theme.colors.humanSpace.background,
         borderWidth: 1,
-        borderColor: '#D1D5DB',
-        borderRadius: 16,
-        paddingHorizontal: 16,
+        borderColor: theme.colors.structural.border,
+        borderRadius: theme.layout.radii.md,
+        paddingHorizontal: theme.layout.spacing.lg,
         paddingVertical: 14,
-        fontSize: 14,
-        color: '#111827',
-        marginBottom: 12,
+        ...theme.typography.body,
+        color: theme.colors.structural.charcoal,
+        marginBottom: theme.layout.spacing.md,
     },
     generatorCard: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 28,
-        padding: 22,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        shadowColor: '#102A20',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.08,
-        shadowRadius: 12,
-        elevation: 4,
+        ...theme.layout.cards.base,
     },
     sectionTitle: {
+        ...theme.typography.title,
         fontSize: 20,
-        fontWeight: '800',
-        color: '#111827',
-        marginBottom: 16,
+        color: theme.colors.structural.charcoal,
+        marginBottom: theme.layout.spacing.lg,
     },
     textArea: {
-        backgroundColor: '#F9FAFB',
+        backgroundColor: theme.colors.humanSpace.background,
         borderWidth: 1,
-        borderColor: '#D1D5DB',
-        borderRadius: 16,
-        paddingHorizontal: 16,
+        borderColor: theme.colors.structural.border,
+        borderRadius: theme.layout.radii.md,
+        paddingHorizontal: theme.layout.spacing.lg,
         paddingVertical: 14,
-        fontSize: 14,
-        color: '#111827',
+        ...theme.typography.body,
+        color: theme.colors.structural.charcoal,
         minHeight: 120,
-        marginBottom: 16,
+        marginBottom: theme.layout.spacing.lg,
     },
     buttonRow: {
         flexDirection: 'row',
-        gap: 12,
+        gap: theme.layout.spacing.md,
     },
     primaryButton: {
         flex: 1,
-        backgroundColor: '#1E3A2F',
-        borderRadius: 16,
+        backgroundColor: theme.colors.structural.charcoalLight,
+        borderRadius: theme.layout.radii.md,
         paddingVertical: 14,
         alignItems: 'center',
     },
     primaryButtonText: {
-        color: '#FFFFFF',
-        fontWeight: '700',
-        fontSize: 14,
+        ...theme.typography.bodyStrong,
+        color: theme.colors.humanSpace.surface,
     },
     secondaryButton: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: theme.colors.humanSpace.surface,
         borderWidth: 1,
-        borderColor: '#D1D5DB',
-        borderRadius: 16,
+        borderColor: theme.colors.structural.border,
+        borderRadius: theme.layout.radii.md,
         paddingVertical: 14,
         alignItems: 'center',
     },
     secondaryButtonText: {
-        color: '#1E3A2F',
-        fontWeight: '700',
-        fontSize: 14,
+        ...theme.typography.bodyStrong,
+        color: theme.colors.structural.charcoalLight,
     },
     samplesCard: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 24,
-        padding: 20,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
+        ...theme.layout.cards.base,
     },
     sampleItem: {
-        backgroundColor: '#F9FAFB',
-        borderRadius: 18,
-        padding: 16,
-        marginBottom: 14,
+        backgroundColor: theme.colors.humanSpace.background,
+        borderRadius: theme.layout.radii.md,
+        padding: theme.layout.spacing.lg,
+        marginBottom: theme.layout.spacing.md,
     },
     sampleType: {
-        fontSize: 13,
-        fontWeight: '800',
-        color: '#2F6B4F',
-        marginBottom: 8,
-        textTransform: 'uppercase',
+        ...theme.typography.eyebrow,
+        color: theme.colors.stewardship.textDeep,
+        marginBottom: theme.layout.spacing.sm,
     },
     sampleContent: {
-        fontSize: 14,
-        lineHeight: 22,
-        color: '#4B5563',
+        ...theme.typography.body,
+        color: theme.colors.structural.slate,
     },
     replayButton: {
-        backgroundColor: '#111827',
-        borderRadius: 12,
+        backgroundColor: theme.colors.structural.charcoal,
+        borderRadius: theme.layout.radii.md,
         paddingVertical: 12,
         alignItems: 'center',
-        marginTop: 16,
-        marginBottom: 20,
+        marginTop: theme.layout.spacing.lg,
+        marginBottom: theme.layout.spacing.xl,
     },
     replayButtonText: {
-        color: '#FFFFFF',
-        fontWeight: '800',
-        fontSize: 13,
+        ...theme.typography.bodyStrong,
+        color: theme.colors.humanSpace.surface,
     },
     boundaryCard: {
-        backgroundColor: '#FEF2F2',
-        borderRadius: 20,
-        padding: 18,
+        backgroundColor: theme.colors.resolution.bg,
+        borderRadius: theme.layout.radii.lg,
+        padding: theme.layout.spacing.lg,
         borderWidth: 1,
-        borderColor: '#FECACA',
+        borderColor: theme.colors.resolution.border,
     },
     boundaryTitle: {
-        fontSize: 15,
-        fontWeight: '800',
-        color: '#991B1B',
-        marginBottom: 8,
+        ...theme.typography.heading,
+        color: theme.colors.resolution.textDeep,
+        marginBottom: theme.layout.spacing.sm,
     },
     boundaryText: {
-        fontSize: 13,
-        lineHeight: 20,
-        color: '#B91C1C',
+        ...theme.typography.body,
+        color: theme.colors.resolution.textDeep,
     },
 });
 
