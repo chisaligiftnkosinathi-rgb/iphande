@@ -1,6 +1,7 @@
 import { createNavigationContainerRef } from '@react-navigation/native';
 
 export type RootTabParamList = {
+  ContinuityHome: undefined;
   Home: undefined;
   Opportunities: undefined;
   Timeline: undefined;
@@ -25,19 +26,36 @@ export type RootTabParamList = {
   };
   QuoteRequestsDashboard: undefined;
   ContentGenerator: undefined;
-  GeneratedContent: undefined;
   QuoteRequests: undefined;
   GivingSupport: undefined;
   StewardshipLedger: undefined;
+  InventoryLedger: undefined;
   PaymentReview: undefined;
+  InventoryReplay: { itemId: string };
+  LeadQuoteCapture: { postId?: string };
+  CommissionLedger: undefined;
+  ContinuityInbox: undefined; // Quiet pilot surface
 };
 
-export const navigationRef = createNavigationContainerRef<RootTabParamList>();
+export type RootStackParamList = {
+  AuthenticatedTabs: undefined;
+  DocumentComposer: { opportunity_id?: string; target_continuity_event_id?: string } | undefined;
+  MediaIngestion: { opportunity_id?: string; target_continuity_event_id?: string } | undefined;
+  AboutUs: undefined;
+  Acknowledgements: undefined;
+  Music: undefined;
+  ContinuityPrinciples: undefined;
+  Support: undefined;
+};
+
+export type GlobalParamList = RootTabParamList & RootStackParamList;
+
+export const navigationRef = createNavigationContainerRef<GlobalParamList>();
 
 // Overload for screens with params
-export function navigateTo<Name extends keyof RootTabParamList>(
+export function navigateTo<Name extends keyof GlobalParamList>(
   name: Name,
-  params?: RootTabParamList[Name]
+  params?: GlobalParamList[Name]
 ) {
   if (navigationRef.isReady()) {
     // @ts-ignore

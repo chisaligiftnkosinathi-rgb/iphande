@@ -1,35 +1,33 @@
-import ContentGeneratorScreen from './screens/ContentGeneratorScreen';
-import GeneratedContentScreen from './screens/GeneratedContentScreen';
-import GivingSupportScreen from './screens/GivingSupportScreen';
-import QuoteRequestFormScreen from './screens/QuoteRequestFormScreen';
-import QuoteRequestsScreen from './screens/QuoteRequestsScreen';
 
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import { navigationRef, RootTabParamList } from './navigation';
+
+import { getScreensForArchetype } from './data/archetypeScreenAccess';
+import AuthScreen from './screens/AuthScreen';
+import EmailVerificationScreen from './screens/EmailVerificationScreen';
+import OnboardingScreen from './screens/OnboardingScreen';
+import { AuthProvider, useAuth } from './src/auth/AuthContext';
+import { StewardMediaProvider } from './src/features/steward-media/StewardMediaContext';
 
 
-import CampaignsScreen from './screens/CampaignsScreen';
+import { navigationRef, RootStackParamList, RootTabParamList } from './navigation';
+import AboutUsScreen from './screens/AboutUsScreen';
+import AcknowledgementsScreen from './screens/AcknowledgementsScreen';
+import ContinuityPrinciplesScreen from './screens/ContinuityPrinciplesScreen';
+import DocumentComposerScreen from './screens/DocumentComposerScreen';
 import HomeScreen from './screens/HomeScreen';
-import LocationScreen from './screens/LocationScreen';
-import MediaScreen from './screens/MediaScreen';
-import MessageTemplatesScreen from './screens/MessageTemplatesScreen';
+import MediaIngestionScreen from './screens/MediaIngestionScreen';
 import MoreScreen from './screens/MoreScreen';
+import MusicScreen from './screens/MusicScreen';
 import OpportunitiesScreen from './screens/OpportunitiesScreen';
-import PaymentReviewScreen from './screens/PaymentReviewScreen';
-import ProfileScreen from './screens/ProfileScreen';
-import QuoteRequestsDashboardScreen from './screens/QuoteRequestsDashboardScreen';
-import ReflectionsScreen from './screens/ReflectionsScreen';
-import { EntityReplayScreen } from './screens/EntityReplayScreen';
-import { GraphReplayScreen } from './screens/GraphReplayScreen';
-import { ReplayEventDetailScreen } from './screens/ReplayEventDetailScreen';
 import { ReplayTimelineScreen } from './screens/ReplayTimelineScreen';
-import ScriptureReflectionsScreen from './screens/ScriptureReflectionsScreen';
-import StewardshipLedgerScreen from './screens/StewardshipLedgerScreen';
+import SupportScreen from './screens/SupportScreen';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const getTabIcon = (
   routeName: keyof RootTabParamList,
@@ -38,6 +36,7 @@ const getTabIcon = (
   size: number
 ) => {
   const icons: Record<keyof RootTabParamList, keyof typeof Ionicons.glyphMap> = {
+    ContinuityHome: focused ? 'compass' : 'compass-outline',
     Home: focused ? 'home' : 'home-outline',
     Opportunities: focused ? 'briefcase' : 'briefcase-outline',
     Timeline: focused ? 'time' : 'time-outline',
@@ -55,76 +54,124 @@ const getTabIcon = (
     QuoteRequestForm: 'mail',
     QuoteRequestsDashboard: 'list',
     ContentGenerator: 'flash-outline',
-    GeneratedContent: 'checkmark-done-outline',
     QuoteRequests: 'mail-outline',
     GivingSupport: 'heart-outline',
     StewardshipLedger: 'wallet-outline',
     PaymentReview: 'receipt-outline',
+    LeadQuoteCapture: 'create-outline',
+    InventoryLedger: 'cube-outline',
+    InventoryReplay: 'git-branch-outline',
+    CommissionLedger: 'cash-outline',
+    ContinuityInbox: 'infinite-outline',
   };
   return <Ionicons name={icons[routeName]} size={size} color={color} />;
 };
 
+
+function GovernedTabs() {
+  const { selectedBusinessArchetypeKey } = useAuth();
+  // Only show tabs for allowed screens for this archetype
+  const rawAllowedScreens = getScreensForArchetype(selectedBusinessArchetypeKey || '');
+  const allowedScreens = Array.from(new Set(rawAllowedScreens));
+  // Define valid tab names as keyof RootTabParamList
+  const validTabNames = [
+    'Home',
+    'Opportunities',
+    'Timeline',
+    'More',
+  ] as const;
+  // Filter allowedScreens to only valid tab names
+  const dynamicTabs = allowedScreens.filter((screen): screen is typeof validTabNames[number] =>
+    (validTabNames as readonly string[]).includes(screen)
+  );
+
+  // Enforce Home and More are always present as bookends
+  const filteredTabs = Array.from(new Set(['Home', ...dynamicTabs, 'More'])) as typeof validTabNames[number][];
+
+  // Map route name to component
+  const screenComponents: Record<typeof validTabNames[number], any> = {
+    Home: HomeScreen,
+    Timeline: ReplayTimelineScreen,
+    Opportunities: OpportunitiesScreen,
+    More: MoreScreen,
+  };
+  return (
+    <Tab.Navigator
+      initialRouteName={filteredTabs[0] || 'Home'}
+      screenOptions={({ route }: { route: any }) => ({
+        headerShown: false,
+        headerStyle: {
+          backgroundColor: '#F8FAF7',
+          elevation: 0,
+          shadowOpacity: 0,
+          borderBottomWidth: 1,
+          borderBottomColor: '#E5E7EB',
+        },
+        headerTitleStyle: {
+          fontSize: 34,
+          fontWeight: '900',
+          color: '#102A20',
+        },
+        headerTitleAlign: 'left',
+        tabBarIcon: ({ focused, color, size }: { focused: boolean, color: string, size: number }) =>
+          getTabIcon(route.name as keyof RootTabParamList, focused, color, size),
+        tabBarActiveTintColor: '#1E3A2F',
+        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarStyle: {
+          height: 78,
+          paddingBottom: 12,
+          paddingTop: 8,
+          backgroundColor: '#FFFFFF',
+          borderTopColor: '#E5E7EB',
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '800',
+        },
+      })}
+    >
+      {filteredTabs.map((screen) => {
+        const Comp = screenComponents[screen];
+        if (!Comp) return null;
+        return <Tab.Screen key={screen} name={screen} component={Comp} />;
+      })}
+    </Tab.Navigator>
+  );
+}
+
+function AuthenticatedStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="AuthenticatedTabs" component={GovernedTabs} />
+      <Stack.Group screenOptions={{ presentation: 'modal' }}>
+        <Stack.Screen name="DocumentComposer" component={DocumentComposerScreen} />
+        <Stack.Screen name="MediaIngestion" component={MediaIngestionScreen} />
+      </Stack.Group>
+      <Stack.Screen name="AboutUs" component={AboutUsScreen} />
+      <Stack.Screen name="Acknowledgements" component={AcknowledgementsScreen} />
+      <Stack.Screen name="Music" component={MusicScreen} />
+      <Stack.Screen name="ContinuityPrinciples" component={ContinuityPrinciplesScreen} />
+      <Stack.Screen name="Support" component={SupportScreen} />
+    </Stack.Navigator>
+  );
+}
+
 export default function App() {
   return (
-    <NavigationContainer ref={navigationRef}>
-      <Tab.Navigator
-        initialRouteName="Home"
-        screenOptions={({ route }) => ({
-          headerStyle: {
-            backgroundColor: '#F8FAF7',
-            elevation: 0,
-            shadowOpacity: 0,
-            borderBottomWidth: 1,
-            borderBottomColor: '#E5E7EB',
-          },
-          headerTitleStyle: {
-            fontSize: 34,
-            fontWeight: '900',
-            color: '#102A20',
-          },
-          headerTitleAlign: 'left',
-          tabBarIcon: ({ focused, color, size }) =>
-            getTabIcon(route.name, focused, color, size),
-          tabBarActiveTintColor: '#1E3A2F',
-          tabBarInactiveTintColor: '#9CA3AF',
-          tabBarStyle: {
-            height: 78,
-            paddingBottom: 12,
-            paddingTop: 8,
-            backgroundColor: '#FFFFFF',
-            borderTopColor: '#E5E7EB',
-          },
-          tabBarLabelStyle: {
-            fontSize: 11,
-            fontWeight: '800',
-          },
-        })}
-      >
-        <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="Timeline" component={ReplayTimelineScreen} options={{ title: 'Replay' }} />
-        <Tab.Screen name="Opportunities" component={OpportunitiesScreen} />
-        <Tab.Screen name="More" component={MoreScreen} />
-
-        {/* Hidden screens for navigation only */}
-        <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
-        <Tab.Screen name="Campaigns" component={CampaignsScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
-        <Tab.Screen name="Media" component={MediaScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
-        <Tab.Screen name="Location" component={LocationScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
-        <Tab.Screen name="Reflections" component={ReflectionsScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
-        <Tab.Screen name="Scripture" component={ScriptureReflectionsScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
-        <Tab.Screen name="Templates" component={MessageTemplatesScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
-        <Tab.Screen name="QuoteRequestForm" component={QuoteRequestFormScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
-        <Tab.Screen name="QuoteRequestsDashboard" component={QuoteRequestsDashboardScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
-        <Tab.Screen name="ContentGenerator" component={ContentGeneratorScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
-        <Tab.Screen name="GeneratedContent" component={GeneratedContentScreen} options={{ title: 'Generated Content', tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
-        <Tab.Screen name="QuoteRequests" component={QuoteRequestsScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
-        <Tab.Screen name="GivingSupport" component={GivingSupportScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
-        <Tab.Screen name="StewardshipLedger" component={StewardshipLedgerScreen} options={{ title: 'Stewardship', tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
-        <Tab.Screen name="PaymentReview" component={PaymentReviewScreen} options={{ title: 'Payment Review', tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
-        <Tab.Screen name="ReplayEventDetail" component={ReplayEventDetailScreen} options={{ title: 'Event Inspection', tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
-        <Tab.Screen name="EntityReplay" component={EntityReplayScreen} options={{ title: 'Entity Replay', tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
-        <Tab.Screen name="GraphReplay" component={GraphReplayScreen} options={{ title: 'Causal Graph', tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
-      </Tab.Navigator>
-    </NavigationContainer>
+    <AuthProvider>
+      <StewardMediaProvider>
+        <NavigationContainer ref={navigationRef}>
+          <AuthFlowRouter />
+        </NavigationContainer>
+      </StewardMediaProvider>
+    </AuthProvider>
   );
+}
+
+function AuthFlowRouter() {
+  const { isAuthenticated, isOnboarded, emailVerified, refreshUser, signOut } = useAuth();
+  if (!isAuthenticated) return <AuthScreen />;
+  if (!emailVerified) return <EmailVerificationScreen onRefresh={refreshUser} />;
+  if (!isOnboarded) return <OnboardingScreen />;
+  return <AuthenticatedStack />;
 }
