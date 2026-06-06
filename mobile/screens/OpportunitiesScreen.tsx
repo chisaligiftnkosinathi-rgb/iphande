@@ -6,6 +6,9 @@ import {
     Text,
     View,
 } from 'react-native';
+import { OpportunityQuickActions } from '../OpportunityQuickActions';
+import { ContinuityMeta } from '../components/ui/ContinuityMeta';
+import { TruthCard } from '../components/ui/TruthCard';
 import { navigateTo } from '../navigation';
 
 const OpportunitiesScreen: React.FC = () => {
@@ -36,14 +39,24 @@ const OpportunitiesScreen: React.FC = () => {
             </View>
 
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Current Opportunities</Text>
+                <Text style={styles.sectionTitle}>Active Opportunities</Text>
 
-                <View style={styles.emptyState}>
-                    <Text style={styles.emptyTitle}>No opportunities loaded yet</Text>
-                    <Text style={styles.emptyText}>
-                        API data will appear here once the documented opportunity endpoints are connected.
-                    </Text>
-                </View>
+                {/* Mock Opportunity Card to demonstrate contextual actions */}
+                <TruthCard>
+                    <View style={styles.cardHeader}>
+                        <Text style={styles.clientName}>Sipho & Family</Text>
+                        <Text style={styles.opportunityStatus}>Inquiry</Text>
+                    </View>
+                    <Text style={styles.opportunityDetails}>Requested a quote and operational details for an upcoming community event.</Text>
+
+                    <ContinuityMeta label="Opportunity Opened" value="REV-OPP-789 • 2026-05-27 12:00 PM" />
+
+                    <Text style={styles.actionEyebrow}>Lineage Actions</Text>
+                    <OpportunityQuickActions
+                        opportunityId="OPP-12345"
+                        targetContinuityEventId="REV-OPP-789"
+                    />
+                </TruthCard>
             </View>
 
             <View style={styles.noteCard}>
@@ -143,21 +156,35 @@ const styles = StyleSheet.create({
         color: '#111827',
         marginBottom: 12,
     },
-    emptyState: {
-        borderRadius: 16,
-        padding: 18,
-        backgroundColor: '#F3F4F6',
+    cardHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 8,
     },
-    emptyTitle: {
-        fontSize: 16,
-        fontWeight: '800',
-        color: '#111827',
-        marginBottom: 6,
+    clientName: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#102A20',
     },
-    emptyText: {
+    opportunityStatus: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        textTransform: 'uppercase',
+        color: '#3E6B57',
+    },
+    opportunityDetails: {
         fontSize: 14,
-        lineHeight: 20,
         color: '#6B7280',
+        marginBottom: 16,
+    },
+    actionEyebrow: {
+        fontSize: 11,
+        fontWeight: 'bold',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        color: '#9CA3AF',
+        marginTop: 8,
     },
     noteCard: {
         backgroundColor: '#ECFDF5',
