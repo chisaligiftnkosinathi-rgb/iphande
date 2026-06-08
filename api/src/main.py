@@ -1,6 +1,5 @@
-
-import logging
 from contextlib import asynccontextmanager
+import logging
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,7 +9,8 @@ from src.config import API_VERSION, APP_NAME, CORS_ORIGINS
 from src.routes import (
     health_routes, profile_routes, opportunity_routes, timeline_routes, followup_routes,
     media_routes, reflection_routes, campaign_routes, message_template_routes, scripture_reflection_routes, content_post_routes,
-    business_categories, business_content_rules, quote_request_routes, giving_routes
+    business_categories, business_content_rules, quote_request_routes, giving_routes,
+    steward_timeline_routes, steward_annotations
 )
 from src.routers.handshake import router as handshake_router
 from src.routers.financial_events import router as financial_events_router
@@ -18,6 +18,8 @@ from src.routers.quotes import router as quotes_router
 from src.routers.invoices import router as invoices_router
 from src.routers.payments import router as payments_router
 from src.routers.inventory import router as inventory_router
+from src.routers.commissions import router as commissions_router
+from src.routes.continuity_capture_routes import router as continuity_capture_router
 
 from src.models.quote_request_model import QuoteRequest
 from src.database import create_tables
@@ -47,8 +49,13 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
-    allow_credentials=False,
+    allow_origins=[
+        "http://localhost:19006",
+        "http://127.0.0.1:19006",
+        "http://localhost:8081",
+        "http://127.0.0.1:8081",
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -60,6 +67,7 @@ app.include_router(quotes_router)
 app.include_router(invoices_router)
 app.include_router(payments_router)
 app.include_router(inventory_router)
+app.include_router(commissions_router)
 app.include_router(profile_routes.router, prefix="/api/v1")
 app.include_router(opportunity_routes.router, prefix="/api/v1")
 app.include_router(timeline_routes.router, prefix="/api/v1")
@@ -75,7 +83,10 @@ app.include_router(campaign_routes.router, prefix="/api/v1")
 app.include_router(message_template_routes.router, prefix="/api/v1")
 app.include_router(scripture_reflection_routes.router, prefix="/api/v1")
 app.include_router(content_post_routes.router, prefix="/api/v1")
+app.include_router(steward_timeline_routes.router)
+app.include_router(steward_annotations.router, prefix="/api/v1", tags=["steward-annotations"])
 app.include_router(continuity_event_router, prefix="/api/v1/continuity-events", tags=["continuity-events"])
+app.include_router(continuity_capture_router, prefix="/api/v1/continuity-captures", tags=["continuity-captures"])
 
 # Clean 404 handler
 @app.exception_handler(404)
