@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 from sqlalchemy.orm import Session
 
 from src.database import get_db, replay_transaction
@@ -105,32 +105,57 @@ def list_payment_intents_for_business(business_owner_id: str, db: Session = Depe
 
 @router.post("/intents", response_model=PaymentIntentOut)
 def create_payment_intent(payload: PaymentIntentCreate, db: Session = Depends(get_db)):
-    invoice = db.query(Invoice).filter(Invoice.id == payload.invoice_id).first()
-    if not invoice:
-        raise HTTPException(status_code=404, detail="Invoice not found")
-    if invoice.status != InvoiceStatus.issued:
-        raise HTTPException(status_code=409, detail="Payment intents require an issued invoice")
+    parent_event_id = None
+    business_owner_id = None
+    amount = None
+    currency = None
+    quote_id = None
+    invoice_id = None
+
+    if getattr(payload, "invoice_id", None):
+        invoice = db.query(Invoice).filter(Invoice.id == payload.invoice_id).first()
+        if not invoice:
+            raise HTTPException(status_code=404, detail="Invoice not found")
+        if invoice.status != InvoiceStatus.issued:
+            raise HTTPException(status_code=409, detail="Payment intents require an issued invoice")
+        parent_event_id = invoice.continuity_event_id
+        business_owner_id = invoice.business_owner_id
+        amount = invoice.amount
+        currency = invoice.currency
+        quote_id = invoice.quote_id
+        invoice_id = invoice.id
+    elif getattr(payload, "quote_id", None):
+        quote = db.query(Quote).filter(Quote.id == payload.quote_id).first()
+        if not quote:
+            raise HTTPException(status_code=404, detail="Quote not found")
+        parent_event_id = quote.continuity_event_id
+        business_owner_id = quote.business_owner_id
+        amount = quote.amount
+        currency = quote.currency
+        quote_id = quote.id
+    else:
+        raise HTTPException(status_code=400, detail="Must provide either invoice_id or quote_id")
 
     payment_id = uuid.uuid4()
     payment = PaymentIntent(
         id=payment_id,
-        business_owner_id=invoice.business_owner_id,
-        invoice_id=invoice.id,
-        quote_id=invoice.quote_id,
+        business_owner_id=business_owner_id,
+        invoice_id=invoice_id,
+        quote_id=quote_id,
         provider_name=payload.provider_name,
         payment_reference=f"demo-{uuid.uuid4()}",
         payer_reference=payload.payer_reference,
-        amount=invoice.amount,
-        currency=invoice.currency,
+        amount=amount,
+        currency=currency,
         status=PaymentIntentStatus.pending,
     )
 
     try:
         audit_transition(
             db,
-            business_owner_id=invoice.business_owner_id,
+            business_owner_id=business_owner_id,
             entity_type="PaymentIntent",
-            entity_id=str(payment_id),
+            entity_id=str(payment.id),
             current_state="created",
             next_state="pending",
             actor_type="system",
@@ -150,9 +175,10 @@ def create_payment_intent(payload: PaymentIntentCreate, db: Session = Depends(ge
             actor_id=payment.provider_name,
             related_entity_type="payment_intent",
             related_entity_id=str(payment.id),
-            parent_event_id=invoice.continuity_event_id,
+            parent_event_id=parent_event_id,
             payload={
-                "invoice_id": str(invoice.id),
+                "invoice_id": str(invoice_id) if invoice_id else None,
+                "quote_id": str(quote_id) if quote_id else None,
                 "provider_name": payment.provider_name,
                 "payment_reference": payment.payment_reference,
                 "amount": str(payment.amount),
@@ -167,6 +193,60 @@ def create_payment_intent(payload: PaymentIntentCreate, db: Session = Depends(ge
         db.refresh(payment)
     return payment
 
+
+@router.post("/intents/{payment_id}/receipt-upload", response_model=PaymentIntentOut)
+def upload_payment_receipt(
+    payment_id: UUID,
+    receipt_file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    payment = db.query(PaymentIntent).filter(PaymentIntent.id == payment_id).first()
+    if not payment:
+        raise HTTPException(status_code=404, detail="Payment intent not found")
+
+    # Create proof record but do not automatically evaluate or verify
+    proof_id = uuid.uuid4()
+    proof = ProofOfPayment(
+        id=proof_id,
+        payment_intent_id=payment.id,
+        file_name=receipt_file.filename,
+        file_type=receipt_file.content_type,
+        uploaded_by="business_owner",
+    )
+
+    # Only progress state to submitted; Steward verification is still required
+    if payment.status in {PaymentIntentStatus.pending, PaymentIntentStatus.evidence_awaiting}:
+        payment.status = PaymentIntentStatus.evidence_submitted
+
+    latest_event = latest_payment_event(db, payment.id)
+
+    with replay_transaction(db):
+        event = emit_continuity_event(
+            db,
+            business_owner_id=payment.business_owner_id,
+            business_category_key=None,
+            business_line=None,
+            event_type="receipt_uploaded",
+            actor_type="business_owner",
+            actor_id=payment.business_owner_id,
+            related_entity_type="proof_of_payment",
+            related_entity_id=str(proof.id),
+            parent_event_id=latest_event.id if latest_event else payment.continuity_event_id,
+            payload={
+                "payment_intent_id": str(payment.id),
+                "proof_id": str(proof.id),
+                "file_name": receipt_file.filename,
+                "file_type": receipt_file.content_type,
+                "message": "Receipt metadata attached. File storage not yet implemented.",
+                "truth_boundary": "Receipt metadata attached. File storage not yet implemented. Not steward verified.",
+            },
+            auto_commit=False,
+        )
+        proof.continuity_event_id = event.id
+        db.add(proof)
+        db.flush()
+        db.refresh(payment)
+    return payment
 
 @router.post("/intents/{payment_id}/proofs", response_model=ProofOfPaymentOut)
 def submit_proof_of_payment(

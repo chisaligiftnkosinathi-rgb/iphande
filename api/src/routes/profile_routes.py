@@ -2,6 +2,8 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from src.database import SessionLocal, replay_transaction
 import uuid
+from pydantic import BaseModel
+from typing import Optional
 from src.models.profile import Profile
 from src.schemas.profile_schema import ProfileCreate, ProfileOut
 from src.schemas.public_profile_schema import PublicProfileOut
@@ -156,3 +158,34 @@ def update_profile_location(profile_id: str, data: ProfileLocationUpdate, db: Se
         db.flush()
         db.refresh(profile)
     return ProfileOut.from_orm_with_privacy(profile)
+
+class ProfileVisibilityUpdate(BaseModel):
+    name: Optional[str] = None
+    slug: Optional[str] = None
+    short_bio: Optional[str] = None
+    whatsapp_number: Optional[str] = None
+    facebook_page_url: Optional[str] = None
+    province: Optional[str] = None
+    city: Optional[str] = None
+    suburb: Optional[str] = None
+    services: Optional[str] = None
+    cover_photo_url: Optional[str] = None
+    logo_url: Optional[str] = None
+    supporting_image_urls: Optional[str] = None
+    is_public: Optional[bool] = None
+
+@router.patch("/profiles/{profile_id}/visibility")
+def update_profile_visibility(profile_id: str, payload: ProfileVisibilityUpdate, db: Session = Depends(get_db)):
+    profile = db.query(Profile).filter(Profile.id == profile_id).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    update_data = payload.model_dump(exclude_unset=True) if hasattr(payload, 'model_dump') else payload.dict(exclude_unset=True)
+
+    for key, value in update_data.items():
+        setattr(profile, key, value)
+
+    db.commit()
+    db.refresh(profile)
+
+    return {"status": "success", "profile_id": profile.id, "slug": profile.slug}

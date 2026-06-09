@@ -1,10 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
+from typing import Optional
 from src.database import SessionLocal, replay_transaction
 from src.models.opportunity import Opportunity
 from src.schemas.opportunity_schema import OpportunityCreate, OpportunityOut, OpportunityUpdate
 from src.services.continuity_event_service import emit_continuity_event
-from src.replay.constants import ContinuityEventType, ActorType, EntityType
 
 router = APIRouter()
 
@@ -21,24 +21,38 @@ def create_opportunity(opportunity: OpportunityCreate, db: Session = Depends(get
         db_opp = Opportunity(**opportunity.dict())
         db.add(db_opp)
         db.flush()
-        db.refresh(db_opp)
-        emit_continuity_event(
+
+        event = emit_continuity_event(
             db,
             business_owner_id=db_opp.profile_id,
             business_category_key=None,
             business_line=None,
-            event_type=ContinuityEventType.ENTITY_CREATED,
-            actor_type=ActorType.BUSINESS_OWNER,
-            related_entity_type=EntityType.OPPORTUNITY,
+            event_type="opportunity_created",
+            actor_type="business_owner",
+            actor_id=db_opp.profile_id,
+            related_entity_type="opportunity",
             related_entity_id=str(db_opp.id),
-            payload={"title": db_opp.title},
+            parent_event_id=getattr(db_opp, "continuity_event_id", None),
+            payload={
+                "business_owner_id": db_opp.profile_id,
+                "surface": "opportunity",
+                "action": "created",
+                "summary_available": True,
+            },
             auto_commit=False
         )
+        if hasattr(db_opp, "continuity_event_id"):
+            db_opp.continuity_event_id = str(event.id)
+        db.flush()
+        db.refresh(db_opp)
     return db_opp
 
 @router.get("/opportunities", response_model=list[OpportunityOut])
-def list_opportunities(db: Session = Depends(get_db)):
-    return db.query(Opportunity).all()
+def list_opportunities(profile_id: Optional[str] = None, db: Session = Depends(get_db)):
+    query = db.query(Opportunity)
+    if profile_id:
+        query = query.filter(Opportunity.profile_id == profile_id)
+    return query.order_by(Opportunity.created_at.desc()).all()
 
 @router.get("/opportunities/{opportunity_id}", response_model=OpportunityOut)
 def get_opportunity(opportunity_id: str, db: Session = Depends(get_db)):
@@ -53,21 +67,33 @@ def update_opportunity(opportunity_id: str, update: OpportunityUpdate, db: Sessi
     if not opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
 
+    update_data = update.dict(exclude_unset=True)
+    if not update_data:
+        return opp
+
     with replay_transaction(db):
-        for key, value in update.dict(exclude_unset=True).items():
+        for key, value in update_data.items():
             setattr(opp, key, value)
 
-        emit_continuity_event(
+        event = emit_continuity_event(
             db,
             business_owner_id=opp.profile_id,
             business_category_key=None,
             business_line=None,
-            event_type=ContinuityEventType.ENTITY_UPDATED,
-            actor_type=ActorType.BUSINESS_OWNER,
-            related_entity_type=EntityType.OPPORTUNITY,
+            event_type="opportunity_amended",
+            actor_type="business_owner",
+            actor_id=opp.profile_id,
+            related_entity_type="opportunity",
             related_entity_id=str(opp.id),
-            payload={"status": opp.status},
+            parent_event_id=getattr(opp, "continuity_event_id", None),
+            payload={
+                "updated_fields": list(update_data.keys()),
+                "summary_available": True,
+            },
             auto_commit=False
         )
+        if hasattr(opp, "continuity_event_id"):
+            opp.continuity_event_id = str(event.id)
+        db.flush()
         db.refresh(opp)
     return opp

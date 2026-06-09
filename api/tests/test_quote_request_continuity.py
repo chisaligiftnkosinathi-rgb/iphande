@@ -132,6 +132,9 @@ def test_quote_requests_can_be_filtered_for_steward_inbox():
 def test_legacy_status_patch_aliases_to_continuity_statuses():
     quote_request = create_quote_request()
 
+    # Move to quote_reviewed first to satisfy the state machine rules
+    client.post(f"/api/v1/quote-requests/{quote_request['id']}/review")
+
     response = client.patch(
         f"/api/v1/quote-requests/{quote_request['id']}/status",
         json={"status": "contacted"},

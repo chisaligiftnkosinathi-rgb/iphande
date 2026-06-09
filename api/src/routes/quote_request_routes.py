@@ -15,21 +15,20 @@ from src.schemas.quote_request_schema import (
     QuoteRequestStatusUpdate,
 )
 from src.services.continuity_event_service import emit_continuity_event
+from src.services.state_machine import enforce_transition_for_lineage
 
 router = APIRouter()
 
-STATUS_ALIASES = {
-    QuoteRequestStatus.new: QuoteRequestStatus.quote_requested,
-    QuoteRequestStatus.contacted: QuoteRequestStatus.quote_contacted,
-    QuoteRequestStatus.quoted: QuoteRequestStatus.quote_reviewed,
-    QuoteRequestStatus.accepted: QuoteRequestStatus.quote_converted,
-    QuoteRequestStatus.declined: QuoteRequestStatus.quote_closed,
-    QuoteRequestStatus.closed: QuoteRequestStatus.quote_closed,
-}
-
-
 def normalize_quote_status(status: QuoteRequestStatus) -> QuoteRequestStatus:
-    return STATUS_ALIASES.get(status, status)
+    val = status.value if hasattr(status, "value") else status
+    aliases = {
+        "requested": getattr(QuoteRequestStatus, "quote_requested", status),
+        "reviewed": getattr(QuoteRequestStatus, "quote_reviewed", status),
+        "contacted": getattr(QuoteRequestStatus, "quote_contacted", status),
+        "converted": getattr(QuoteRequestStatus, "quote_converted", status),
+        "closed": getattr(QuoteRequestStatus, "quote_closed", status),
+    }
+    return aliases.get(val, status)
 
 
 def parse_quote_request_id(quote_request_id: str) -> UUID:
@@ -67,6 +66,13 @@ def transition_quote_request_status(
     if previous_status == next_status:
         quote.status = next_status
         return quote
+
+    enforce_transition_for_lineage(
+        lineage_key=getattr(quote, "lineage_key", quote.business_category_key) or "commission_based_sales",
+        current_state=previous_status.value if hasattr(previous_status, "value") else str(previous_status),
+        target_state=next_status.value if hasattr(next_status, "value") else str(next_status),
+        entity_name="QuoteRequest",
+    )
 
     with replay_transaction(db):
         parent_event = get_latest_quote_request_event(db, quote_request_id)

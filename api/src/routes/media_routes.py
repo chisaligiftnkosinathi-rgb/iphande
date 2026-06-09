@@ -1,59 +1,74 @@
-from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.orm import Session
-from src.database import SessionLocal
-from src.models.media import Media
-from src.schemas.media_schema import MediaCreate, MediaUpdate, MediaOut
-from src.services.media_service import create_media_timeline_event
-from datetime import datetime
+
+
+
+from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi.responses import FileResponse
+from src.schemas.media_schema import MediaUploadOut
+from src.services.media_service import save_media_file, get_media_file_info
+import os
 
 router = APIRouter()
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+ALLOWED_TYPES = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+}
 
-@router.post("/media", response_model=MediaOut)
-def create_media(media: MediaCreate, db: Session = Depends(get_db)):
-    db_media = Media(**media.dict())
-    db.add(db_media)
-    db.commit()
-    db.refresh(db_media)
-    create_media_timeline_event(db, db_media.id, "created", "Media created")
-    return db_media
 
-@router.get("/media", response_model=list[MediaOut])
-def list_media(db: Session = Depends(get_db)):
-    return db.query(Media).all()
+@router.post("/media/upload", response_model=MediaUploadOut)
+async def upload_media(file: UploadFile = File(...)):
+    if file.content_type not in ALLOWED_TYPES:
+        raise HTTPException(status_code=415, detail="Unsupported media type")
+    media_info = await save_media_file(file)
+    return media_info
 
-@router.get("/media/{media_id}", response_model=MediaOut)
-def get_media(media_id: str, db: Session = Depends(get_db)):
-    media = db.query(Media).filter(Media.id == media_id).first()
-    if not media:
+
+# Minimal media replay endpoint
+@router.get("/media/{media_id}")
+def get_media(media_id: str):
+    file_info = get_media_file_info(media_id)
+    if not file_info or not os.path.exists(file_info["path"]):
         raise HTTPException(status_code=404, detail="Media not found")
-    return media
+    return FileResponse(
+        file_info["path"],
+        media_type=file_info["content_type"],
+        filename=file_info["filename"]
+    )
 
-@router.patch("/media/{media_id}", response_model=MediaOut)
-def update_media(media_id: str, update: MediaUpdate, db: Session = Depends(get_db)):
-    media = db.query(Media).filter(Media.id == media_id).first()
-    if not media:
-        raise HTTPException(status_code=404, detail="Media not found")
-    for key, value in update.dict(exclude_unset=True).items():
-        setattr(media, key, value)
-    media.updated_at = datetime.utcnow()
-    db.commit()
-    db.refresh(media)
-    create_media_timeline_event(db, media.id, "updated", "Media updated")
-    return media
+# @router.post("/media/ingest", response_model=MediaOut)
+# async def ingest_media(
+#     file: UploadFile = File(...),
+#     owner_profile_id: str = Form(...),
+#     media_type: str = Form(...),
+#     source: str = Form("human_device"),
+#     allow_exif_processing: bool = Form(False),
+#     allow_location_extraction: bool = Form(False),
+#     db: Session = Depends(get_db)
+# ):
+#     with replay_transaction(db):
+#         db_media = Media(
+#             owner_profile_id=owner_profile_id,
+#             title=file.filename,
+#             media_type=media_type,
+#             file_url=f"/local/{file.filename}", # Placeholder for actual cloud storage path
+#             local_file_path=file.filename,
+#             storage_origin=source,
+#             storage_provider="local",
+#             allow_exif_processing=allow_exif_processing,
+#             allow_location_extraction=allow_location_extraction
+#         )
+#         db.add(db_media)
+#         db.flush()
+#
+#         event = emit_continuity_event(
+#             db,
+#             business_owner_id=owner_profile_id,
+#             business_category_key=None,
+#             business_line=None,
+#             event_type="media_ingested",
+#             actor_type="business_owner",
+#             actor_id=owner_profile_id,
+#             related_entity_type="media",
 
-@router.delete("/media/{media_id}")
-def delete_media(media_id: str, db: Session = Depends(get_db)):
-    media = db.query(Media).filter(Media.id == media_id).first()
-    if not media:
-        raise HTTPException(status_code=404, detail="Media not found")
-    db.delete(media)
-    db.commit()
-    create_media_timeline_event(db, media_id, "deleted", "Media deleted")
-    return {"detail": "Media deleted"}
+#                 "surface": "media",

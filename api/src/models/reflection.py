@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime
+from sqlalchemy import Column, String, DateTime, Boolean
 from src.database import Base
 import uuid
 from datetime import datetime
@@ -14,3 +14,5 @@ class Reflection(Base):
     tomorrow_focus = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    continuity_event_id = Column(String, nullable=True)
+    is_archived = Column(Boolean, default=False, nullable=True)

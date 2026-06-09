@@ -29,5 +29,7 @@ class ScriptureReflectionRead(BaseModel):
     linked_reflection_id: Optional[str]
     linked_opportunity_id: Optional[str]
     created_at: datetime
+    continuity_event_id: Optional[str] = None
+    is_archived: Optional[bool] = False
 
     model_config = ConfigDict(from_attributes=True)

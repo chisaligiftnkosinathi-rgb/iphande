@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, Date
+from sqlalchemy import Column, String, DateTime, Date, Boolean
 from src.database import Base
 import uuid
 from datetime import datetime
@@ -15,3 +15,5 @@ class ScriptureReflection(Base):
     linked_reflection_id = Column(String, nullable=True)
     linked_opportunity_id = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    continuity_event_id = Column(String, nullable=True)
+    is_archived = Column(Boolean, default=False, nullable=True)

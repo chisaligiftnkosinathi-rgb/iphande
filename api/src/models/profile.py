@@ -21,6 +21,17 @@ class Profile(Base):
     service_radius_km = Column('service_radius_km', Float, nullable=True)
     service_area_notes = Column(String, nullable=True)
 
+    # V1 Public Visibility Layer
+    is_public = Column(Boolean, default=True, nullable=False)
+    province = Column(String, nullable=True)
+    city = Column(String, nullable=True)
+    suburb = Column(String, nullable=True)
+    whatsapp_number = Column(String, nullable=True)
+    facebook_page_url = Column(String, nullable=True)
+    cover_photo_url = Column(String, nullable=True)
+    logo_url = Column(String, nullable=True)
+    supporting_image_urls = Column(String, nullable=True) # Comma-separated list of up to 5 URLs
+
     # Business Truthfulness Layer
     provider_type = Column(String, nullable=True)
     location = Column(String, nullable=True)

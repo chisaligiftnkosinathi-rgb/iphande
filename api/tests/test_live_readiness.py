@@ -36,7 +36,7 @@ def test_cors_preflight_allows_mobile_clients():
         )
 
     assert response.status_code == 200
-    assert response.headers["access-control-allow-origin"] == "*"
+    assert response.headers["access-control-allow-origin"] == "http://localhost:19006"
 
 
 def test_mobile_handshake_reports_replay_contract():

@@ -13,3 +13,5 @@ class MessageTemplate(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    continuity_event_id = Column(String, nullable=True)
+    is_archived = Column(Boolean, default=False, nullable=True)

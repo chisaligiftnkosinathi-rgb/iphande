@@ -195,6 +195,9 @@ def generate_post(data: dict = Body(...), db: Session = Depends(get_db)):
     result = generate_content_post(data)
     print("GENERATOR RETURNING:", result)
 
+    if "error" in result:
+        raise HTTPException(status_code=500, detail=result["error"])
+
     business_owner_id = data.get("business_owner_id") or data.get("owner_profile_id") or "unknown"
     business_category_key = result.get("business_category_key")
     business_line = result.get("business_line")
