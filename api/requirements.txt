@@ -8,3 +8,4 @@ pydantic[email]
 python-multipart==0.0.20
 pytest==9.0.3
 httpx==0.28.1
+PyJWT==2.10.1
