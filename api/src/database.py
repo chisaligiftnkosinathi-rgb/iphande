@@ -63,6 +63,7 @@ def create_tables():
     ensure_sqlite_quotes_schema()
     ensure_sqlite_payment_evidence_schema()
     ensure_sqlite_profiles_schema()
+    ensure_postgres_profiles_schema()
 
 
 def ensure_sqlite_content_posts_schema():
@@ -147,6 +148,36 @@ def ensure_sqlite_replay_schema():
                 """
             )
         )
+
+def ensure_postgres_profiles_schema():
+    if engine.dialect.name != "postgresql":
+        return
+
+    inspector = inspect(engine)
+    if "profiles" not in inspector.get_table_names():
+        return
+
+    columns = {column["name"] for column in inspector.get_columns("profiles")}
+
+    with engine.begin() as connection:
+        if "is_public" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN is_public BOOLEAN NOT NULL DEFAULT TRUE"))
+        if "province" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN province VARCHAR"))
+        if "city" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN city VARCHAR"))
+        if "suburb" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN suburb VARCHAR"))
+        if "whatsapp_number" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN whatsapp_number VARCHAR"))
+        if "facebook_page_url" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN facebook_page_url VARCHAR"))
+        if "cover_photo_url" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN cover_photo_url VARCHAR"))
+        if "logo_url" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN logo_url VARCHAR"))
+        if "supporting_image_urls" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN supporting_image_urls VARCHAR"))
         connection.execute(
             text(
                 """
