@@ -1,12 +1,19 @@
+import os
+import json
 from fastapi import Security, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import firebase_admin
-from firebase_admin import auth
+from firebase_admin import auth, credentials
 
 if not firebase_admin._apps:
-    firebase_admin.initialize_app(options={
-        "projectId": "helios-prime-kdb3m"
-    })
+    firebase_sa = os.environ.get("FIREBASE_SERVICE_ACCOUNT")
+    if firebase_sa:
+        cred = credentials.Certificate(json.loads(firebase_sa))
+        firebase_admin.initialize_app(cred)
+    else:
+        firebase_admin.initialize_app(options={
+            "projectId": "helios-prime-kdb3m"
+        })
 
 security = HTTPBearer()
 

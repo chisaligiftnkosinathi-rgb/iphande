@@ -48,3 +48,10 @@ class Profile(Base):
 
     continuity_event_id = Column(String, nullable=True)
     owner_id = Column(String, nullable=True)
+
+    # V1 Onboarding & Setup Fee
+    setup_fee_required = Column(Float, default=120.0, nullable=True)
+    setup_fee_status = Column(String, default="pending", nullable=True)
+    setup_fee_proof_url = Column(String, nullable=True)
+    setup_fee_paid_at = Column(DateTime, nullable=True)
+    setup_fee_review_note = Column(String, nullable=True)
