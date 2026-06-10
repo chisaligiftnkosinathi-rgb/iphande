@@ -49,8 +49,12 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # V1: Open for web testing
-    allow_credentials=False, # Required for wildcard origin
+    allow_origins=[
+        "http://localhost:8081",
+        "http://localhost:19006",
+        "https://iphande-production.up.railway.app",
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
