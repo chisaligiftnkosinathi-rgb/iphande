@@ -51,8 +51,14 @@ def get_current_firebase_user(
                 options={"verify_aud": False},
             )
 
+        print("JWT CLAIMS KEYS:", decoded.keys())
+        print("JWT SUB:", decoded.get("sub"))
+        print("JWT EMAIL:", decoded.get("email"))
+        print("JWT ISS:", decoded.get("iss"))
+        print("JWT AUD:", decoded.get("aud"))
+
         return {
-            "uid": decoded.get("sub"),
+            "uid": decoded.get("uid") or decoded.get("sub"),
             "email": decoded.get("email"),
             **decoded,
         }
