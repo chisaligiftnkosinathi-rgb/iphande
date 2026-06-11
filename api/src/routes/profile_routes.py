@@ -309,7 +309,7 @@ def review_setup_fee(profile_id: str, payload: SetupFeeReview, db: Session = Dep
     profile.setup_fee_status = payload.setup_fee_status
     profile.setup_fee_review_note = payload.setup_fee_review_note
 
-    if payload.setup_fee_status in ["paid", "waived"]:
+    if payload.setup_fee_status in ["approved", "paid", "waived"]:
         profile.setup_fee_paid_at = datetime.utcnow()
 
     db.commit()
