@@ -76,6 +76,7 @@ class ProfileOut(BaseModel):
     operating_area: Optional[str] = None
     address_label: Optional[str] = None
     location_is_public: Optional[bool] = False
+    is_public: Optional[bool] = False
     service_radius_km: Optional[float] = None
     service_area_notes: Optional[str] = None
     latitude: Optional[float] = None
