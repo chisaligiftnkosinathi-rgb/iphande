@@ -22,6 +22,6 @@ class PublicProfileOut(BaseModel):
     contact_method: Optional[str] = None
     logo_url: Optional[str] = None
     cover_photo_url: Optional[str] = None
-    supporting_image_urls: Optional[List[str]] = None
+    supporting_image_urls: list[str] | str | None = None
 
     model_config = ConfigDict(from_attributes=True)

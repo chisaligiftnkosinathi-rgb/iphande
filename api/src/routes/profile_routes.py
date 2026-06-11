@@ -30,6 +30,9 @@ def create_profile(profile: ProfileCreate, db: Session = Depends(get_db)):
     with replay_transaction(db):
         if existing_profile:
             update_data = profile.dict(exclude_unset=True)
+            if isinstance(update_data.get("supporting_image_urls"), list):
+                update_data["supporting_image_urls"] = ",".join(update_data["supporting_image_urls"])
+
             for field, value in update_data.items():
                 setattr(existing_profile, field, value)
 
@@ -61,7 +64,11 @@ def create_profile(profile: ProfileCreate, db: Session = Depends(get_db)):
             db.refresh(existing_profile)
             return existing_profile
 
-        db_profile = Profile(**profile.dict())
+        create_data = profile.dict()
+        if isinstance(create_data.get("supporting_image_urls"), list):
+            create_data["supporting_image_urls"] = ",".join(create_data["supporting_image_urls"])
+
+        db_profile = Profile(**create_data)
         db.add(db_profile)
         db.flush()
 
@@ -156,6 +163,10 @@ def update_my_profile(data: ProfileUpdate, db: Session = Depends(get_db), curren
         raise HTTPException(status_code=404, detail="Profile not found")
 
     update_data = data.model_dump(exclude_unset=True) if hasattr(data, 'model_dump') else data.dict(exclude_unset=True)
+
+    if isinstance(update_data.get("supporting_image_urls"), list):
+        update_data["supporting_image_urls"] = ",".join(update_data["supporting_image_urls"])
+
     if not update_data:
         return ProfileOut.from_orm_with_privacy(profile)
 
@@ -287,6 +298,9 @@ def update_profile_visibility(profile_id: str, payload: ProfileVisibilityUpdate,
         raise HTTPException(status_code=404, detail="Profile not found")
 
     update_data = payload.model_dump(exclude_unset=True) if hasattr(payload, 'model_dump') else payload.dict(exclude_unset=True)
+
+    if isinstance(update_data.get("supporting_image_urls"), list):
+        update_data["supporting_image_urls"] = ",".join(update_data["supporting_image_urls"])
 
     for key, value in update_data.items():
         setattr(profile, key, value)

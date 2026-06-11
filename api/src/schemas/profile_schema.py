@@ -29,7 +29,7 @@ class ProfileCreate(BaseModel):
     trust_posture: Optional[str] = None
     logo_url: Optional[str] = None
     cover_photo_url: Optional[str] = None
-    supporting_image_urls: Optional[List[str]] = None
+    supporting_image_urls: list[str] | str | None = None
     owner_id: Optional[str] = None
     setup_fee_required: Optional[float] = 120.0
     setup_fee_status: Optional[str] = "pending"
@@ -66,7 +66,7 @@ class ProfileUpdate(BaseModel):
     is_public: Optional[bool] = None
     logo_url: Optional[str] = None
     cover_photo_url: Optional[str] = None
-    supporting_image_urls: Optional[List[str]] = None
+    supporting_image_urls: list[str] | str | None = None
     setup_fee_status: Optional[str] = None
     setup_fee_proof_url: Optional[str] = None
     onboarding_completed: Optional[bool] = None
@@ -101,7 +101,7 @@ class ProfileOut(BaseModel):
     trust_posture: Optional[str] = None
     logo_url: Optional[str] = None
     cover_photo_url: Optional[str] = None
-    supporting_image_urls: Optional[List[str]] = None
+    supporting_image_urls: list[str] | str | None = None
     owner_id: Optional[str] = None
     setup_fee_required: Optional[float] = None
     setup_fee_status: Optional[str] = None
