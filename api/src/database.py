@@ -64,6 +64,7 @@ def create_tables():
     ensure_sqlite_payment_evidence_schema()
     ensure_sqlite_profiles_schema()
     ensure_postgres_profiles_schema()
+    ensure_postgres_leads_schema()
 
 
 def ensure_sqlite_content_posts_schema():
@@ -150,6 +151,31 @@ def ensure_sqlite_replay_schema():
                 """
             )
         )
+
+
+def ensure_postgres_leads_schema():
+    if not DATABASE_URL or not DATABASE_URL.startswith("postgres"):
+        return
+
+    with engine.begin() as conn:
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS leads (
+                id VARCHAR PRIMARY KEY,
+                owner_id VARCHAR NOT NULL,
+                profile_slug VARCHAR NOT NULL,
+                name VARCHAR NOT NULL,
+                phone VARCHAR NOT NULL,
+                message TEXT,
+                service_needed VARCHAR,
+                status VARCHAR NOT NULL DEFAULT 'new',
+                source VARCHAR NOT NULL DEFAULT 'public_profile',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """))
+        conn.execute(text("""
+            CREATE INDEX IF NOT EXISTS ix_leads_owner_id
+            ON leads(owner_id)
+        """))
 
 def ensure_postgres_profiles_schema():
     if engine.dialect.name != "postgresql":
