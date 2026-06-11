@@ -20,6 +20,7 @@ from src.routers.payments import router as payments_router
 from src.routers.inventory import router as inventory_router
 from src.routers.commissions import router as commissions_router
 from src.routes.continuity_capture_routes import router as continuity_capture_router
+from src.routes.lead_routes import router as lead_router
 
 from src.models.quote_request_model import QuoteRequest
 from src.database import create_tables
@@ -53,7 +54,7 @@ app.add_middleware(
         "http://localhost:8081",
         "http://127.0.0.1:8081",
         "http://localhost:19006",
-        "http://127.0.0.1:19006",
+            "http://127.0.0.1:19006",
         "https://iphande-production.up.railway.app",
     ],
     allow_credentials=True,
@@ -73,6 +74,7 @@ app.include_router(profile_routes.router, prefix="/api/v1")
 app.include_router(opportunity_routes.router, prefix="/api/v1")
 app.include_router(timeline_routes.router, prefix="/api/v1")
 app.include_router(followup_routes.router, prefix="/api/v1")
+app.include_router(lead_router, prefix="/api/v1", tags=["leads"])
 
 app.include_router(business_categories.router)
 app.include_router(business_content_rules.router)
