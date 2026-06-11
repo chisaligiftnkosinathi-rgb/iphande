@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, Float, Boolean
+from sqlalchemy import Column, String, DateTime, Float, Boolean, JSON
 from sqlalchemy.dialects.sqlite import TEXT
 from src.database import Base
 import uuid
@@ -30,7 +30,7 @@ class Profile(Base):
     facebook_page_url = Column(String, nullable=True)
     cover_photo_url = Column(String, nullable=True)
     logo_url = Column(String, nullable=True)
-    supporting_image_urls = Column(String, nullable=True) # Comma-separated list of up to 5 URLs
+    supporting_image_urls = Column(JSON, nullable=True, default=list) # Array of up to 5 URLs
 
     # Business Truthfulness Layer
     provider_type = Column(String, nullable=True)
