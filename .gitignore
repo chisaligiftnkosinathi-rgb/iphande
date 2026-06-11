@@ -17,6 +17,7 @@ __pycache__/
 .mypy_cache/
 
 # Local SQLite data and backups
+api/*.db
 api/data/*.db
 api/data/*.db-*
 api/data/*.sqlite
