@@ -126,6 +126,8 @@ def ensure_sqlite_profiles_schema():
     with engine.begin() as connection:
         if "owner_id" not in columns:
             connection.execute(text("ALTER TABLE profiles ADD COLUMN owner_id VARCHAR"))
+        if "onboarding_completed" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN onboarding_completed BOOLEAN NOT NULL DEFAULT 0"))
 
 def ensure_sqlite_replay_schema():
     if engine.dialect.name != "sqlite":
@@ -178,6 +180,8 @@ def ensure_postgres_profiles_schema():
             connection.execute(text("ALTER TABLE profiles ADD COLUMN logo_url VARCHAR"))
         if "supporting_image_urls" not in columns:
             connection.execute(text("ALTER TABLE profiles ADD COLUMN supporting_image_urls VARCHAR"))
+        if "onboarding_completed" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN onboarding_completed BOOLEAN NOT NULL DEFAULT FALSE"))
         connection.execute(
             text(
                 """

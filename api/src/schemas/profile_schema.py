@@ -33,6 +33,7 @@ class ProfileCreate(BaseModel):
     setup_fee_proof_url: Optional[str] = None
     setup_fee_paid_at: Optional[datetime] = None
     setup_fee_review_note: Optional[str] = None
+    onboarding_completed: Optional[bool] = False
 
 
 class ProfileUpdate(BaseModel):
@@ -62,6 +63,7 @@ class ProfileUpdate(BaseModel):
     is_public: Optional[bool] = None
     setup_fee_status: Optional[str] = None
     setup_fee_proof_url: Optional[str] = None
+    onboarding_completed: Optional[bool] = None
 
 
 class ProfileOut(BaseModel):
@@ -97,6 +99,7 @@ class ProfileOut(BaseModel):
     setup_fee_paid_at: Optional[datetime] = None
     setup_fee_review_note: Optional[str] = None
     continuity_event_id: Optional[str] = None
+    onboarding_completed: Optional[bool] = False
 
     model_config = ConfigDict(from_attributes=True)
 
