@@ -55,3 +55,4 @@ class Profile(Base):
     setup_fee_proof_url = Column(String, nullable=True)
     setup_fee_paid_at = Column(DateTime, nullable=True)
     setup_fee_review_note = Column(String, nullable=True)
+    onboarding_completed = Column(Boolean, default=False, nullable=False)
