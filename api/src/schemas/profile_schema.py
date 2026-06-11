@@ -60,6 +60,8 @@ class ProfileUpdate(BaseModel):
     languages: Optional[str] = None
     trust_posture: Optional[str] = None
     is_public: Optional[bool] = None
+    setup_fee_status: Optional[str] = None
+    setup_fee_proof_url: Optional[str] = None
 
 
 class ProfileOut(BaseModel):
