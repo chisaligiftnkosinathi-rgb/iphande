@@ -53,6 +53,7 @@ app.add_middleware(
         "http://localhost:8081",
         "http://127.0.0.1:8081",
         "http://localhost:19006",
+        "http://127.0.0.1:19006",
         "https://iphande-production.up.railway.app",
     ],
     allow_credentials=True,
