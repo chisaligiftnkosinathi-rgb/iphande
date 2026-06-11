@@ -58,9 +58,16 @@ def get_public_opportunities(
 
 @router.get("/business/{slug}")
 def get_public_business_profile(slug: str, db: Session = Depends(get_db)):
-    profile = db.query(Profile).filter(Profile.slug == slug, Profile.is_public == True).first()
+    # Diagnostic: Query by slug first to see if it exists at all
+    profile = db.query(Profile).filter(Profile.slug == slug).first()
     if not profile:
-        raise HTTPException(status_code=404, detail="Business not found")
+        raise HTTPException(status_code=404, detail=f"Profile with slug '{slug}' not found in database.")
+
+    # Now, check if it's public. If not, raise a specific error.
+    if not profile.is_public:
+        raise HTTPException(
+            status_code=403, detail=f"Profile '{slug}' found, but it is not public. The 'is_public' flag is False."
+        )
 
     opportunities = db.query(Opportunity).filter(
         Opportunity.profile_id == profile.id,
@@ -90,9 +97,10 @@ def get_public_business_profile(slug: str, db: Session = Depends(get_db)):
     return {
         "slug": profile.slug,
         "name": profile.name,
+        "category": profile.business_category_key,
         "steward_story": profile.short_bio or "No story provided yet.",
         "location_string": location_string,
-        "whatsapp_number": profile.whatsapp_number,
+        "whatsapp_number": profile.whatsapp_number or profile.phone,
         "cover_photo_url": profile.cover_photo_url,
         "logo_url": profile.logo_url,
         "supporting_images": supporting_images_list,
