@@ -2,20 +2,15 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import List
 
-from src.database import SessionLocal, replay_transaction
+from src.database import SessionLocal, replay_transaction, get_db
 from src.models.lead import Lead
 from src.models.profile import Profile
 from src.schemas.lead_schema import LeadCreate, LeadUpdate, LeadOut
 from src.auth.supabase_auth import get_current_firebase_user
+from src.services.continuity_event_service import emit_continuity_event
 
 router = APIRouter()
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.post("/leads", response_model=LeadOut)
 def create_lead(lead_in: LeadCreate, db: Session = Depends(get_db)):
@@ -36,6 +31,27 @@ def create_lead(lead_in: LeadCreate, db: Session = Depends(get_db)):
         )
         db.add(db_lead)
         db.flush()
+
+        # Phase 5 Audit Fix: Create a timeline event for the lead
+        event = emit_continuity_event(
+            db,
+            business_owner_id=profile.id,
+            business_category_key=profile.business_category_key,
+            business_line=profile.business_line,
+            event_type="lead_received",
+            actor_type="customer",
+            actor_id=lead_in.phone,
+            related_entity_type="lead",
+            related_entity_id=str(db_lead.id),
+            parent_event_id=None,
+            payload={
+                "customer_name": lead_in.name,
+                "service_needed": lead_in.service_needed,
+                "source": db_lead.source
+            },
+            auto_commit=False,
+        )
+        
         db.refresh(db_lead)
     return db_lead
 

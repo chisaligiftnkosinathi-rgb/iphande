@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from src.database import get_db, replay_transaction
 from src.models.quote import Quote, QuoteStatus
 from src.models.payment_intent import PaymentIntent, PaymentIntentStatus
+from src.models.opportunity import Opportunity
 from src.schemas.quote_to_cash_schema import (
     PaymentIntentOut,
     QuoteCreate,
@@ -57,7 +58,29 @@ def create_quote(payload: QuoteCreate, db: Session = Depends(get_db)):
         business_line=payload.business_line,
         quote_template_version=payload.quote_template_version,
     )
+    
     with replay_transaction(db):
+        if payload.opportunity_id:
+            opp = db.query(Opportunity).filter(Opportunity.id == payload.opportunity_id).first()
+            if opp:
+                opp.status = "quoted"
+                emit_continuity_event(
+                    db,
+                    business_owner_id=opp.created_by_profile_id,
+                    business_category_key=opp.category_key,
+                    business_line=opp.service_needed,
+                    event_type="opportunity_quoted",
+                    actor_type="business_owner",
+                    actor_id=opp.created_by_profile_id,
+                    related_entity_type="opportunity",
+                    related_entity_id=str(opp.id),
+                    payload={
+                        "quote_id": str(quote.id),
+                        "summary_available": True,
+                    },
+                    auto_commit=False
+                )
+
         event = emit_continuity_event(
             db,
             business_owner_id=quote.business_owner_id,

@@ -381,24 +381,23 @@ export default function LeadsScreen() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F7F3EA' },
+    container: { flex: 1, backgroundColor: '#F9FAFB' },
     content: { paddingBottom: 60 },
 
-    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F7F3EA' },
-    loadingText: { marginTop: 12, fontSize: 15, color: '#6F7D75' },
+    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F9FAFB' },
+    loadingText: { marginTop: 12, fontSize: 15, color: '#6B7280' },
 
     // Header
     header: {
-        paddingHorizontal: 24, paddingTop: 52, paddingBottom: 20,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1, borderBottomColor: '#E8DFD0',
+        paddingHorizontal: 24, paddingTop: 56, paddingBottom: 32,
+        backgroundColor: '#F9FAFB',
     },
     kicker: {
-        fontSize: 11, fontWeight: '800', color: '#9EAD9B',
-        letterSpacing: 2, textTransform: 'uppercase', marginBottom: 6,
+        fontSize: 12, fontWeight: '800', color: '#9CA3AF',
+        letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8,
     },
-    title: { fontSize: 28, fontWeight: '800', color: '#24352F', marginBottom: 4 },
-    subtitle: { fontSize: 15, color: '#6F7D75', lineHeight: 22 },
+    title: { fontSize: 32, fontWeight: '800', color: '#111827', marginBottom: 8 },
+    subtitle: { fontSize: 16, color: '#6B7280', lineHeight: 24 },
     summaryRow: { flexDirection: 'row', gap: 8, marginTop: 14 },
     summaryChip: {
         backgroundColor: '#EDF3EC', borderRadius: 20,
@@ -418,10 +417,10 @@ const styles = StyleSheet.create({
 
     // Card
     card: {
-        backgroundColor: '#fff', borderRadius: 16, padding: 20,
-        borderWidth: 1, borderColor: '#E8DFD0',
+        backgroundColor: '#FFFFFF', borderRadius: 16, padding: 24,
+        borderWidth: 1, borderColor: '#F3F4F6',
         shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06, shadowRadius: 6, elevation: 3,
+        shadowOpacity: 0.03, shadowRadius: 3, elevation: 1,
     },
     cardTerminal: { opacity: 0.75 },
     cardHeader: {
@@ -439,8 +438,8 @@ const styles = StyleSheet.create({
     phoneText: { fontSize: 14, color: '#6F7D75', fontWeight: '500' },
 
     serviceBox: {
-        backgroundColor: '#F0F5EF', borderRadius: 10, padding: 12, marginBottom: 10,
-        borderLeftWidth: 3, borderLeftColor: '#5D7A5A',
+        backgroundColor: '#F9FAFB', borderRadius: 12, padding: 16, marginBottom: 12,
+        borderWidth: 1, borderColor: '#F3F4F6',
     },
     serviceLabel: {
         fontSize: 10, fontWeight: '800', color: '#9EAD9B',
@@ -460,25 +459,21 @@ const styles = StyleSheet.create({
     actionRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
 
     waBtn: {
-        flex: 1, backgroundColor: '#25D366', paddingVertical: 12,
-        borderRadius: 10, alignItems: 'center',
-        shadowColor: '#25D366', shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.25, shadowRadius: 6, elevation: 3,
+        flex: 1, backgroundColor: '#10B981', paddingVertical: 14,
+        borderRadius: 12, alignItems: 'center',
     },
     waBtnText: { color: '#fff', fontWeight: '800', fontSize: 14 },
 
     quoteBtn: {
-        flex: 1, backgroundColor: '#24352F', paddingVertical: 12,
-        borderRadius: 10, alignItems: 'center',
-        shadowColor: '#000', shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.15, shadowRadius: 6, elevation: 3,
+        flex: 1, backgroundColor: '#111827', paddingVertical: 14,
+        borderRadius: 12, alignItems: 'center',
     },
     quoteBtnText: { color: '#fff', fontWeight: '800', fontSize: 14 },
 
     secondaryBtn: {
-        flex: 1, backgroundColor: '#EDF3EC', paddingVertical: 12,
-        borderRadius: 10, alignItems: 'center',
-        borderWidth: 1, borderColor: '#C5D9C2',
+        flex: 1, backgroundColor: '#FFFFFF', paddingVertical: 14,
+        borderRadius: 12, alignItems: 'center',
+        borderWidth: 1, borderColor: '#E5E7EB',
     },
     secondaryBtnText: { color: '#3D5E3A', fontWeight: '700', fontSize: 14 },
 
@@ -501,9 +496,9 @@ const styles = StyleSheet.create({
 
     // Empty state
     emptyContainer: {
-        margin: 24, padding: 36, backgroundColor: '#fff',
-        borderRadius: 20, alignItems: 'center',
-        borderWidth: 1.5, borderColor: '#E8DFD0', borderStyle: 'dashed',
+        margin: 24, padding: 36, backgroundColor: '#FFFFFF',
+        borderRadius: 16, alignItems: 'center',
+        borderWidth: 1, borderColor: '#E5E7EB', borderStyle: 'dashed',
     },
     emptyIcon: { fontSize: 48, marginBottom: 16 },
     emptyTitle: { fontSize: 20, fontWeight: '800', color: '#24352F', marginBottom: 10 },

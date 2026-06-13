@@ -1,6 +1,8 @@
 import { Link } from 'expo-router';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSteward } from '../../src/context/StewardContext';
+import { ShareButton } from '../../src/components/ShareButton';
+import { shareProfile } from '../../src/services/shareApi';
 
 // ─── Visibility Score Computation ─────────────────────────────────────────────
 
@@ -23,7 +25,7 @@ const parseSupportingImagesCount = (v: unknown): number => {
     return s.split(',').map((x) => x.trim()).filter(Boolean).length;
 };
 
-const computeVisibilityScore = (profile: Record<string, unknown> | null): { score: number; items: ScoreItem[] } => {
+export const computeVisibilityScore = (profile: Record<string, unknown> | null): { score: number; items: ScoreItem[] } => {
     if (!profile) return { score: 0, items: [] };
 
     const clean = (x: unknown): boolean => {
@@ -237,25 +239,39 @@ export default function VisibilityScreen() {
                     {proofImages.length < 3 && (
                         <View style={styles.powGovernance}>
                             <Text style={styles.powGovernanceText}>
-                                📷 Add at least {3 - proofImages.length} more image{proofImages.length < 2 ? 's' : ''} to complete your Visibility Score.
+                                📷 Add at least {3 - proofImages.length} more image{proofImages.length < 2 ? 's' : ''} to build complete trust with customers.
                             </Text>
                         </View>
                     )}
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.galleryScroll}>
-                        {proofImages.length > 0 ? proofImages.map((url, idx) => (
-                            <Image key={idx} source={{ uri: url }} style={styles.galleryImage} />
-                        )) : (
-                            <Text style={styles.paragraph}>Add Proof of Work images to build trust.</Text>
-                        )}
+                        {[0, 1, 2, 3, 4].map((idx) => {
+                            const url = proofImages[idx];
+                            return url ? (
+                                <Image key={idx} source={{ uri: url }} style={styles.galleryImage} />
+                            ) : (
+                                <View key={idx} style={styles.emptyGallerySlot}>
+                                    <Text style={styles.emptySlotText}>+</Text>
+                                </View>
+                            );
+                        })}
                     </ScrollView>
                 </View>
             </View>
 
             {/* ── ACTIONS ─────────────────────────────────────────────────── */}
             <View style={styles.actions}>
+                {typeof p?.id === 'string' && p.id ? (
+                    <ShareButton 
+                        fetchShareText={() => shareProfile(String(p.id))}
+                        label="Share Profile"
+                        style={styles.primaryBtn}
+                        textStyle={styles.primaryBtnText}
+                        iconColor="#fff"
+                    />
+                ) : null}
                 <Link href="/onboarding" asChild>
-                    <TouchableOpacity style={styles.primaryBtn} accessibilityLabel="Edit your profile">
-                        <Text style={styles.primaryBtnText}>✏️ Edit Visibility</Text>
+                    <TouchableOpacity style={styles.secondaryBtn} accessibilityLabel="Edit your profile">
+                        <Text style={styles.secondaryBtnText}>✏️ Edit Visibility</Text>
                     </TouchableOpacity>
                 </Link>
                 <Link href={`/public/${p?.slug ?? ''}`} asChild>
@@ -275,21 +291,20 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F9FAFB' },
 
     header: {
-        padding: 24, paddingTop: 52, backgroundColor: '#fff',
-        borderBottomWidth: 1, borderBottomColor: '#E5E7EB',
+        padding: 24, paddingTop: 56, paddingBottom: 32, backgroundColor: '#F9FAFB',
     },
-    kicker: { fontSize: 11, fontWeight: '800', color: '#9CA3AF', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 6 },
-    title: { fontSize: 28, fontWeight: '800', color: '#111827', marginBottom: 6 },
-    subtitle: { fontSize: 15, color: '#6B7280', lineHeight: 22 },
+    kicker: { fontSize: 12, fontWeight: '800', color: '#9CA3AF', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 },
+    title: { fontSize: 32, fontWeight: '800', color: '#111827', marginBottom: 8 },
+    subtitle: { fontSize: 16, color: '#6B7280', lineHeight: 24 },
 
-    section: { padding: 24 },
+    section: { paddingHorizontal: 24, paddingBottom: 32 },
     sectionKicker: { fontSize: 11, fontWeight: '800', color: '#9CA3AF', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 14 },
 
     // Score card
     scoreCard: {
-        backgroundColor: '#fff', borderRadius: 16, padding: 24,
-        borderWidth: 1, borderColor: '#E5E7EB',
-        shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2,
+        backgroundColor: '#FFFFFF', borderRadius: 16, padding: 24,
+        borderWidth: 1, borderColor: '#F3F4F6',
+        shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 3, elevation: 1,
     },
     scoreHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
     scoreLabel: { fontSize: 13, fontWeight: '700', color: '#6B7280', marginBottom: 4 },
@@ -318,9 +333,9 @@ const styles = StyleSheet.create({
 
     // Profile card
     card: {
-        backgroundColor: '#fff', padding: 24, borderRadius: 16,
-        borderWidth: 1, borderColor: '#E5E7EB',
-        shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 2,
+        backgroundColor: '#FFFFFF', padding: 24, borderRadius: 16,
+        borderWidth: 1, borderColor: '#F3F4F6',
+        shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 3, elevation: 1,
     },
     coverImage: { width: '100%', height: 120, borderRadius: 12, marginBottom: 16, backgroundColor: '#E5E7EB', resizeMode: 'cover' },
     coverPlaceholder: { width: '100%', height: 80, borderRadius: 12, marginBottom: 16, backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center' },
@@ -360,12 +375,18 @@ const styles = StyleSheet.create({
 
     // Proof governance
     powGovernance: {
-        backgroundColor: '#FEF3C7', borderRadius: 10, padding: 12, marginBottom: 12,
-        borderWidth: 1, borderColor: '#FCD34D',
+        backgroundColor: '#F9FAFB', borderRadius: 10, padding: 12, marginBottom: 12,
+        borderWidth: 1, borderColor: '#E5E7EB',
     },
-    powGovernanceText: { fontSize: 13, color: '#92400E', fontWeight: '600', lineHeight: 18 },
+    powGovernanceText: { fontSize: 13, color: '#4B5563', fontWeight: '600', lineHeight: 18 },
     galleryScroll: { flexDirection: 'row', marginBottom: 4 },
-    galleryImage: { width: 120, height: 90, borderRadius: 8, marginRight: 10, backgroundColor: '#E5E7EB', resizeMode: 'cover' },
+    galleryImage: { width: 100, height: 100, borderRadius: 8, marginRight: 10, backgroundColor: '#E5E7EB', resizeMode: 'cover' },
+    emptyGallerySlot: {
+        width: 100, height: 100, borderRadius: 8, marginRight: 10,
+        backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB', borderStyle: 'dashed',
+        justifyContent: 'center', alignItems: 'center'
+    },
+    emptySlotText: { fontSize: 24, color: '#D1D5DB' },
 
     // Actions
     actions: { paddingHorizontal: 24, paddingBottom: 56, gap: 12 },

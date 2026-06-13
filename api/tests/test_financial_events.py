@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from src.database import Base, get_db
+from src.database import get_db, Base, get_db
 from src.main import app
 from src.models.continuity_event_model import ContinuityEvent
 from src.models.financial_event import FinancialEvent

@@ -66,4 +66,27 @@ export interface StewardProfile {
     onboarding_completed?: boolean;
     is_public?: boolean;
     created_at?: string;
+    
+    // Referral Program
+    referral_code?: string;
+    referred_by_code?: string;
+}
+
+export interface Referral {
+    id: string;
+    referred_profile_id: string;
+    referral_code: string;
+    status: 'pending' | 'qualified' | 'paid' | 'rejected';
+    reason?: 'cap_reached' | 'self_referral' | 'duplicate' | 'admin_rejected';
+    reward_amount: number;
+    created_at: string;
+    qualified_at?: string;
+    paid_at?: string;
+}
+
+export interface ReferralMeResponse {
+    referral_code?: string;
+    successful_referrals: number;
+    total_reward: number;
+    referrals: Referral[];
 }

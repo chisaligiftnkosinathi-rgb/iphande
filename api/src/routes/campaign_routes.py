@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from src.database import SessionLocal, replay_transaction
+from src.database import SessionLocal, replay_transaction, get_db
 from src.models.campaign import Campaign
 from src.schemas.campaign_schema import CampaignCreate, CampaignUpdate, CampaignOut
 from src.services.continuity_event_service import emit_continuity_event
@@ -8,12 +8,6 @@ from datetime import datetime
 
 router = APIRouter()
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.post("/campaigns", response_model=CampaignOut)
 def create_campaign(campaign: CampaignCreate, db: Session = Depends(get_db)):

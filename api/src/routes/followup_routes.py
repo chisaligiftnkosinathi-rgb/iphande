@@ -1,19 +1,13 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from datetime import datetime, date
-from src.database import SessionLocal, replay_transaction
+from src.database import SessionLocal, replay_transaction, get_db
 from src.models.followup import FollowUp
 from src.schemas.followup_schema import FollowUpCreate, FollowUpOut
 from src.services.continuity_event_service import emit_continuity_event
 
 router = APIRouter()
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.post("/followups", response_model=FollowUpOut)
 def create_followup(followup: FollowUpCreate, db: Session = Depends(get_db)):

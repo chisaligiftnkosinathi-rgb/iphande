@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from src.database import SessionLocal, replay_transaction
+from src.database import SessionLocal, replay_transaction, get_db
 import uuid
 from pydantic import BaseModel
 from typing import Optional, List
@@ -11,15 +11,65 @@ from src.schemas.public_profile_schema import PublicProfileOut
 from src.schemas.profile_location_schema import ProfileLocationUpdate
 from src.services.continuity_event_service import emit_continuity_event
 from src.auth.supabase_auth import get_current_firebase_user
+from src.models.referral import Referral
+import string
+import random
+
+def generate_referral_code(db: Session, slug: str) -> str:
+    slug_prefix = "".join([c for c in slug if c.isalnum()]).upper()[:4]
+    if not slug_prefix:
+        slug_prefix = "USER"
+    while True:
+        random_chars = "".join(random.choices(string.ascii_uppercase + string.digits, k=4))
+        code = f"IPH-{slug_prefix}-{random_chars}"
+        if not db.query(Profile).filter(Profile.referral_code == code).first():
+            return code
+
+def handle_referral(db: Session, new_profile: Profile, referred_by_code: str):
+    if not referred_by_code:
+        return
+    
+    referrer = db.query(Profile).filter(Profile.referral_code == referred_by_code).first()
+    if not referrer:
+        return
+    
+    if referrer.id == new_profile.id:
+        return
+    
+    existing_referral = db.query(Referral).filter(
+        Referral.referred_profile_id == new_profile.id
+    ).first()
+    if existing_referral:
+        return
+    
+    count = db.query(Referral).filter(
+        Referral.referrer_profile_id == referrer.id,
+        Referral.status.in_(["pending", "qualified", "paid"])
+    ).count()
+    
+    if count >= 5:
+        referral = Referral(
+            referrer_profile_id=referrer.id,
+            referred_profile_id=new_profile.id,
+            referral_code=referred_by_code,
+            status="rejected",
+            reason="cap_reached",
+            reward_amount=0.0
+        )
+    else:
+        referral = Referral(
+            referrer_profile_id=referrer.id,
+            referred_profile_id=new_profile.id,
+            referral_code=referred_by_code,
+            status="qualified",
+            reward_amount=10.0,
+            qualified_at=datetime.utcnow()
+        )
+    db.add(referral)
+    db.flush()
 
 router = APIRouter()
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.post("/profiles", response_model=ProfileOut)
 def create_profile(profile: ProfileCreate, db: Session = Depends(get_db)):
@@ -60,6 +110,13 @@ def create_profile(profile: ProfileCreate, db: Session = Depends(get_db)):
                 auto_commit=False,
             )
             existing_profile.continuity_event_id = str(event.id)
+            if not existing_profile.referral_code:
+                existing_profile.referral_code = generate_referral_code(db, existing_profile.slug)
+            
+            if profile.referred_by_code and not existing_profile.referred_by_code:
+                existing_profile.referred_by_code = profile.referred_by_code
+                handle_referral(db, existing_profile, profile.referred_by_code)
+
             db.flush()
             db.refresh(existing_profile)
             return existing_profile
@@ -93,6 +150,10 @@ def create_profile(profile: ProfileCreate, db: Session = Depends(get_db)):
             auto_commit=False,
         )
         db_profile.continuity_event_id = str(event.id)
+        db_profile.referral_code = generate_referral_code(db, db_profile.slug)
+        if profile.referred_by_code:
+            handle_referral(db, db_profile, profile.referred_by_code)
+
         db.flush()
         db.refresh(db_profile)
     return db_profile
@@ -140,6 +201,7 @@ def bootstrap_profile(db: Session = Depends(get_db), current_user: dict = Depend
             auto_commit=False,
         )
         db_profile.continuity_event_id = str(event.id)
+        db_profile.referral_code = generate_referral_code(db, db_profile.slug)
         db.flush()
         db.refresh(db_profile)
 
@@ -197,6 +259,14 @@ def update_my_profile(data: ProfileUpdate, db: Session = Depends(get_db), curren
             auto_commit=False,
         )
         profile.continuity_event_id = str(event.id)
+
+        if not profile.referral_code:
+            profile.referral_code = generate_referral_code(db, profile.slug)
+
+        if data.referred_by_code and not profile.referred_by_code:
+            profile.referred_by_code = data.referred_by_code
+            handle_referral(db, profile, data.referred_by_code)
+
         db.flush()
         db.refresh(profile)
 

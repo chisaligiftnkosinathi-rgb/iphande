@@ -57,3 +57,7 @@ class Profile(Base):
     setup_fee_paid_at = Column(DateTime, nullable=True)
     setup_fee_review_note = Column(String, nullable=True)
     onboarding_completed = Column(Boolean, default=False, nullable=False)
+
+    # Referral Program V1
+    referral_code = Column(String, unique=True, nullable=True)
+    referred_by_code = Column(String, nullable=True)

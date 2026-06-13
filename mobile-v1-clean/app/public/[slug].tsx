@@ -143,98 +143,70 @@ function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }
 }
 
 function ProofGallery({ items }: { items: ProofOfWorkItem[] }) {
-    const count = items.length;
+    const paddedItems = [...items];
+    while (paddedItems.length < 5) {
+        paddedItems.push({ url: '' }); // empty placeholder
+    }
 
     const imgStyle = (w: number, h: number) => ({
         width: w, height: h, borderRadius: 12,
-        backgroundColor: '#E8DFD0' as const,
+        backgroundColor: '#F9FAFB' as const,
         resizeMode: 'cover' as const,
     });
 
-    const ItemCard = ({ item, w, h }: { item: ProofOfWorkItem; w: number; h: number }) => (
-        <View style={{ width: w, marginBottom: item.title || item.note ? 0 : 0 }}>
-            <Image source={{ uri: item.url }} style={imgStyle(w, h)} />
-            {(item.title || item.completed_date || item.note) && (
-                <View style={sc.powMeta}>
-                    {item.title ? <Text style={sc.powMetaTitle}>{item.title}</Text> : null}
-                    {item.completed_date ? (
-                        <Text style={sc.powMetaDate}>Completed: {formatDate(item.completed_date)}</Text>
-                    ) : null}
-                    {item.note ? <Text style={sc.powMetaNote}>{item.note}</Text> : null}
-                </View>
-            )}
-        </View>
-    );
+    const emptyStyle = (w: number, h: number) => ({
+        width: w, height: h, borderRadius: 12,
+        backgroundColor: '#F9FAFB' as const,
+        borderWidth: 1, borderColor: '#E5E7EB', borderStyle: 'dashed' as const,
+        justifyContent: 'center' as const, alignItems: 'center' as const,
+    });
 
-    if (count === 0) {
+    const ItemCard = ({ item, w, h }: { item: ProofOfWorkItem; w: number; h: number }) => {
+        if (!item.url) {
+            return (
+                <View style={emptyStyle(w, h)}>
+                    <Text style={{ fontSize: 24, color: '#D1D5DB' }}>+</Text>
+                </View>
+            );
+        }
         return (
-            <View style={sc.powEmpty}>
-                <Text style={sc.powEmptyIcon}>📷</Text>
-                <Text style={sc.powEmptyText}>No proof of work added yet.</Text>
-                <Text style={sc.powEmptyHint}>
-                    The steward will add completed job photos and notes here.
-                </Text>
+            <View style={{ width: w, marginBottom: item.title || item.note ? 0 : 0 }}>
+                <Image source={{ uri: item.url }} style={imgStyle(w, h)} />
+                {(item.title || item.completed_date || item.note) && (
+                    <View style={sc.powMeta}>
+                        {item.title ? <Text style={sc.powMetaTitle}>{item.title}</Text> : null}
+                        {item.completed_date ? (
+                            <Text style={sc.powMetaDate}>Completed: {formatDate(item.completed_date)}</Text>
+                        ) : null}
+                        {item.note ? <Text style={sc.powMetaNote}>{item.note}</Text> : null}
+                    </View>
+                )}
             </View>
         );
-    }
+    };
 
-    if (count === 1) return <ItemCard item={items[0]} w={INNER} h={220} />;
-
-    if (count === 2) {
-        return (
-            <View style={sc.row}>
-                <ItemCard item={items[0]} w={HALF} h={180} />
-                <View style={{ width: GAP }} />
-                <ItemCard item={items[1]} w={HALF} h={180} />
-            </View>
-        );
-    }
-
-    if (count === 3) {
-        return (
-            <>
-                <ItemCard item={items[0]} w={INNER} h={200} />
-                <View style={{ height: GAP }} />
-                <View style={sc.row}>
-                    <ItemCard item={items[1]} w={HALF} h={150} />
-                    <View style={{ width: GAP }} />
-                    <ItemCard item={items[2]} w={HALF} h={150} />
-                </View>
-            </>
-        );
-    }
-
-    if (count === 4) {
-        return (
-            <>
-                <View style={[sc.row, { marginBottom: GAP }]}>
-                    <ItemCard item={items[0]} w={HALF} h={160} />
-                    <View style={{ width: GAP }} />
-                    <ItemCard item={items[1]} w={HALF} h={160} />
-                </View>
-                <View style={sc.row}>
-                    <ItemCard item={items[2]} w={HALF} h={160} />
-                    <View style={{ width: GAP }} />
-                    <ItemCard item={items[3]} w={HALF} h={160} />
-                </View>
-            </>
-        );
-    }
-
-    // 5 images
     return (
         <>
-            <ItemCard item={items[0]} w={INNER} h={200} />
-            <View style={{ height: GAP }} />
-            <View style={[sc.row, { marginBottom: GAP }]}>
-                <ItemCard item={items[1]} w={HALF} h={140} />
-                <View style={{ width: GAP }} />
-                <ItemCard item={items[2]} w={HALF} h={140} />
-            </View>
-            <View style={sc.row}>
-                <ItemCard item={items[3]} w={HALF} h={140} />
-                <View style={{ width: GAP }} />
-                <ItemCard item={items[4]} w={HALF} h={140} />
+            {items.length === 0 && (
+                <View style={sc.powEmpty}>
+                    <Text style={sc.powEmptyIcon}>📷</Text>
+                    <Text style={sc.powEmptyText}>Proof of Work coming soon.</Text>
+                    <Text style={sc.powEmptyHint}>This steward is building their public portfolio.</Text>
+                </View>
+            )}
+            <View style={{ opacity: items.length === 0 ? 0.5 : 1 }}>
+                <ItemCard item={paddedItems[0]} w={INNER} h={200} />
+                <View style={{ height: GAP }} />
+                <View style={[sc.row, { marginBottom: GAP }]}>
+                    <ItemCard item={paddedItems[1]} w={HALF} h={140} />
+                    <View style={{ width: GAP }} />
+                    <ItemCard item={paddedItems[2]} w={HALF} h={140} />
+                </View>
+                <View style={sc.row}>
+                    <ItemCard item={paddedItems[3]} w={HALF} h={140} />
+                    <View style={{ width: GAP }} />
+                    <ItemCard item={paddedItems[4]} w={HALF} h={140} />
+                </View>
             </View>
         </>
     );

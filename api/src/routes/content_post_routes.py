@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, Body, Query
 from sqlalchemy.orm import Session
 from datetime import datetime
-from src.database import SessionLocal, replay_transaction
+from src.database import SessionLocal, replay_transaction, get_db
 from src.models.content_post import ContentPost
 from src.models.continuity_event_model import ContinuityEvent
 from src.schemas.content_post_schema import ContentPostCreate, ContentPostUpdate, ContentPostOut, GeneratedContentPostOut
@@ -13,12 +13,6 @@ from src.replay.constants import ContinuityEventType, ActorType, EntityType
 
 router = APIRouter()
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.post("/content-posts", response_model=ContentPostOut)
 def create_content_post(post: ContentPostCreate, db: Session = Depends(get_db)):

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from datetime import date, datetime
-from src.database import SessionLocal, replay_transaction
+from src.database import SessionLocal, replay_transaction, get_db
 from src.models.scripture_reflection import ScriptureReflection
 from src.schemas.scripture_reflection_schema import (
     ScriptureReflectionCreate, ScriptureReflectionUpdate, ScriptureReflectionRead
@@ -11,12 +11,6 @@ from src.services.continuity_event_service import emit_continuity_event
 
 router = APIRouter()
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.post("/scripture-reflections", response_model=ScriptureReflectionRead)
 def create_scripture_reflection(data: ScriptureReflectionCreate, db: Session = Depends(get_db)):

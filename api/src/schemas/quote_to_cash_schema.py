@@ -13,6 +13,7 @@ from src.models.quote import QuoteStatus
 class QuoteCreate(BaseModel):
     business_owner_id: str
     customer_request_id: str | None = None
+    opportunity_id: str | None = None
     customer_name: str
     customer_phone: str | None = None
     description: str | None = None

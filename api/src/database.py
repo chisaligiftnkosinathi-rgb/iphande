@@ -48,12 +48,15 @@ def register_models():
     from src.models.message_template import MessageTemplate  # noqa: F401
     from src.models.scripture_reflection import ScriptureReflection  # noqa: F401
     from src.models.content_post import ContentPost  # noqa: F401
+    from src.models.advertisement import Advertisement  # noqa: F401
     from src.models.financial_event import FinancialEvent  # noqa: F401
     from src.models.quote import Quote  # noqa: F401
     from src.models.invoice import Invoice  # noqa: F401
     from src.models.payment_intent import PaymentIntent, ProofOfPayment  # noqa: F401
     from src.models.inventory import InventoryItem, InventoryMovement  # noqa: F401
     from src.models.steward_annotation import StewardAnnotation  # noqa: F401
+    from src.models.expense import Expense  # noqa: F401
+    from src.models.referral import Referral  # noqa: F401
 
 def create_tables():
     register_models()
@@ -68,6 +71,7 @@ def create_tables():
     ensure_postgres_leads_schema()
     ensure_postgres_quotes_schema()
     ensure_postgres_quotes_v2_schema()
+    ensure_postgres_opportunities_schema()
 
 
 def ensure_sqlite_content_posts_schema():
@@ -181,6 +185,11 @@ def ensure_sqlite_profiles_schema():
             connection.execute(text("ALTER TABLE profiles ADD COLUMN owner_id VARCHAR"))
         if "onboarding_completed" not in columns:
             connection.execute(text("ALTER TABLE profiles ADD COLUMN onboarding_completed BOOLEAN NOT NULL DEFAULT 0"))
+        if "referral_code" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN referral_code VARCHAR"))
+            connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_profiles_referral_code ON profiles(referral_code)"))
+        if "referred_by_code" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN referred_by_code VARCHAR"))
 
 def ensure_sqlite_replay_schema():
     if engine.dialect.name != "sqlite":
@@ -260,6 +269,15 @@ def ensure_postgres_profiles_schema():
             connection.execute(text("ALTER TABLE profiles ADD COLUMN supporting_image_urls VARCHAR"))
         if "onboarding_completed" not in columns:
             connection.execute(text("ALTER TABLE profiles ADD COLUMN onboarding_completed BOOLEAN NOT NULL DEFAULT FALSE"))
+        if "referral_code" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN referral_code VARCHAR"))
+            connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_profiles_referral_code ON profiles(referral_code)"))
+        if "referred_by_code" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN referred_by_code VARCHAR"))
+        if "owner_id" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN owner_id VARCHAR"))
+        if "proof_of_work_items" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN proof_of_work_items TEXT"))
         connection.execute(
             text(
                 """
@@ -270,6 +288,32 @@ def ensure_postgres_profiles_schema():
             )
         )
 
+def ensure_postgres_opportunities_schema():
+    if engine.dialect.name != "postgresql":
+        return
+
+    inspector = inspect(engine)
+    if "opportunities" not in inspector.get_table_names():
+        return
+
+    columns = {column["name"] for column in inspector.get_columns("opportunities")}
+    with engine.begin() as connection:
+        if "created_by_profile_id" not in columns:
+            connection.execute(text("ALTER TABLE opportunities ADD COLUMN created_by_profile_id VARCHAR"))
+        if "town_or_city" not in columns:
+            connection.execute(text("ALTER TABLE opportunities ADD COLUMN town_or_city VARCHAR"))
+        if "suburb_or_area" not in columns:
+            connection.execute(text("ALTER TABLE opportunities ADD COLUMN suburb_or_area VARCHAR"))
+        if "category_key" not in columns:
+            connection.execute(text("ALTER TABLE opportunities ADD COLUMN category_key VARCHAR"))
+        if "service_needed" not in columns:
+            connection.execute(text("ALTER TABLE opportunities ADD COLUMN service_needed VARCHAR"))
+        if "budget_amount" not in columns:
+            connection.execute(text("ALTER TABLE opportunities ADD COLUMN budget_amount VARCHAR"))
+        if "contact_name" not in columns:
+            connection.execute(text("ALTER TABLE opportunities ADD COLUMN contact_name VARCHAR"))
+        if "contact_phone" not in columns:
+            connection.execute(text("ALTER TABLE opportunities ADD COLUMN contact_phone VARCHAR"))
 
 def ensure_postgres_quotes_schema():
     if engine.dialect.name != "postgresql":

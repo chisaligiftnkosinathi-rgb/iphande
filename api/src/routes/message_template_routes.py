@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from src.database import SessionLocal, replay_transaction
+from src.database import SessionLocal, replay_transaction, get_db
 from src.models.message_template import MessageTemplate
 from src.schemas.message_template_schema import MessageTemplateCreate, MessageTemplateUpdate, MessageTemplateOut
 from src.services.continuity_event_service import emit_continuity_event
@@ -8,12 +8,6 @@ from datetime import datetime
 
 router = APIRouter()
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.post("/message-templates", response_model=MessageTemplateOut)
 def create_message_template(template: MessageTemplateCreate, db: Session = Depends(get_db)):

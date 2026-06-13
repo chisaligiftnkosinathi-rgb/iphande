@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from src.database import SessionLocal, replay_transaction
+from src.database import SessionLocal, replay_transaction, get_db
 from src.models.reflection import Reflection
 from src.schemas.reflection_schema import ReflectionCreate, ReflectionUpdate, ReflectionOut
 from src.services.reflection_service import create_reflection_timeline_event
@@ -9,12 +9,6 @@ from datetime import datetime
 
 router = APIRouter()
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.post("/reflections", response_model=ReflectionOut)
 def create_reflection(reflection: ReflectionCreate, db: Session = Depends(get_db)):

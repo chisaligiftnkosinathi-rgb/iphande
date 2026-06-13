@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from src.database import Base, get_db
+from src.database import get_db, Base, get_db
 from src.main import app
 from src.routers.giving_events import router as giving_router
 from src.models.giving_event import GivingEvent, GivingFlowState

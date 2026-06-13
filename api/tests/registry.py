@@ -12,6 +12,7 @@ ALL_BLUEPRINTS = [
     *REAL_ESTATE_TEMPLATES,
 ]
 
+
 def get_blueprints_for_goal(
     goal_key: str,
     business_category_key: str | None = None,
@@ -39,7 +40,8 @@ def get_blueprints_for_goal(
             "selection_reasons": {
                 "goal_match": True,
                 "business_category_match": bool(
-                    business_category_key and business_category_key in blueprint["business_categories"]
+                    business_category_key and business_category_key in blueprint[
+                        "business_categories"]
                 ),
                 "platform_match": bool(platform and platform in blueprint["platforms"]),
             },
@@ -47,6 +49,7 @@ def get_blueprints_for_goal(
 
     scored_blueprints.sort(key=lambda item: item["score"], reverse=True)
     return scored_blueprints
+
 
 def format_blueprint_replay_payload(scored_blueprint: dict, goal_key: str, platform: str | None) -> dict:
     """
