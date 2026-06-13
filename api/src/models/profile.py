@@ -31,6 +31,7 @@ class Profile(Base):
     cover_photo_url = Column(String, nullable=True)
     logo_url = Column(String, nullable=True)
     supporting_image_urls = Column(JSON, nullable=True, default=list) # Array of up to 5 URLs
+    proof_of_work_items = Column(String, nullable=True)  # JSON: [{url, title, completed_date, note}]
 
     # Business Truthfulness Layer
     provider_type = Column(String, nullable=True)
