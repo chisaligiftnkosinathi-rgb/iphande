@@ -1,8 +1,9 @@
 from datetime import datetime
 from decimal import Decimal
+from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from src.models.invoice import InvoiceStatus
 from src.models.payment_intent import PaymentIntentStatus, ProofOfPaymentStatus
@@ -14,17 +15,69 @@ class QuoteCreate(BaseModel):
     customer_request_id: str | None = None
     customer_name: str
     customer_phone: str | None = None
-    description: str
-    amount: Decimal = Field(gt=0)
+    description: str | None = None
+    service_description: str | None = None
+    amount: Decimal | None = None
+    total: Decimal | None = None
     currency: str = "ZAR"
     terms: str | None = None
+
+    # V2 fields
+    subtotal: Decimal | None = None
+    vat: Decimal | None = None
+    line_items: list[dict[str, Any]] | None = None
+    structured_terms: dict[str, Any] | list[dict[str, Any]] | None = None
+    archetype_key: str | None = None
+    business_line: str | None = None
+    quote_template_version: str = "QUOTE_V2"
+
+    @model_validator(mode='before')
+    @classmethod
+    def reconcile_v1_v2_aliases(cls, values: Any) -> Any:
+        if isinstance(values, dict):
+            if 'amount' not in values and 'total' in values:
+                values['amount'] = values['total']
+            elif 'total' not in values and 'amount' in values:
+                values['total'] = values['amount']
+
+            if 'description' not in values and 'service_description' in values:
+                values['description'] = values['service_description']
+            elif 'service_description' not in values and 'description' in values:
+                values['service_description'] = values['description']
+        return values
 
 
 class QuoteDraftFromRequestCreate(BaseModel):
-    amount: Decimal = Field(gt=0)
+    amount: Decimal | None = None
+    total: Decimal | None = None
     currency: str = "ZAR"
+    description: str | None = None
     service_description: str | None = None
     terms: str | None = None
+
+    # V2 fields
+    subtotal: Decimal | None = None
+    vat: Decimal | None = None
+    line_items: list[dict[str, Any]] | None = None
+    structured_terms: dict[str, Any] | list[dict[str, Any]] | None = None
+    archetype_key: str | None = None
+    business_line: str | None = None
+    quote_template_version: str = "QUOTE_V2"
+
+    @model_validator(mode='before')
+    @classmethod
+    def reconcile_v1_v2_aliases(cls, values: Any) -> Any:
+        if isinstance(values, dict):
+            if 'amount' not in values and 'total' in values:
+                values['amount'] = values['total']
+            elif 'total' not in values and 'amount' in values:
+                values['total'] = values['amount']
+
+            if 'description' not in values and 'service_description' in values:
+                values['description'] = values['service_description']
+            elif 'service_description' not in values and 'description' in values:
+                values['service_description'] = values['description']
+        return values
 
 
 class QuoteOut(BaseModel):
@@ -44,6 +97,15 @@ class QuoteOut(BaseModel):
     created_at: datetime
     sent_at: datetime | None = None
     accepted_at: datetime | None = None
+
+    # V2 fields
+    subtotal: Decimal | None = None
+    vat: Decimal | None = None
+    line_items: list[dict[str, Any]] | None = None
+    structured_terms: dict[str, Any] | list[dict[str, Any]] | None = None
+    archetype_key: str | None = None
+    business_line: str | None = None
+    quote_template_version: str
 
     model_config = {"from_attributes": True}
 

@@ -61,10 +61,13 @@ def create_tables():
     ensure_sqlite_replay_schema()
     ensure_sqlite_content_posts_schema()
     ensure_sqlite_quotes_schema()
+    ensure_sqlite_quotes_v2_schema()
     ensure_sqlite_payment_evidence_schema()
     ensure_sqlite_profiles_schema()
     ensure_postgres_profiles_schema()
     ensure_postgres_leads_schema()
+    ensure_postgres_quotes_schema()
+    ensure_postgres_quotes_v2_schema()
 
 
 def ensure_sqlite_content_posts_schema():
@@ -98,6 +101,31 @@ def ensure_sqlite_quotes_schema():
         if "sent_continuity_event_id" not in columns:
             connection.execute(text("ALTER TABLE quotes ADD COLUMN sent_continuity_event_id CHAR(32)"))
 
+
+def ensure_sqlite_quotes_v2_schema():
+    if engine.dialect.name != "sqlite":
+        return
+
+    inspector = inspect(engine)
+    if "quotes" not in inspector.get_table_names():
+        return
+
+    columns = {column["name"] for column in inspector.get_columns("quotes")}
+    with engine.begin() as connection:
+        if "subtotal" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN subtotal NUMERIC(12,2)"))
+        if "vat" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN vat NUMERIC(12,2)"))
+        if "line_items" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN line_items JSON"))
+        if "structured_terms" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN structured_terms JSON"))
+        if "archetype_key" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN archetype_key VARCHAR"))
+        if "business_line" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN business_line VARCHAR"))
+        if "quote_template_version" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN quote_template_version VARCHAR NOT NULL DEFAULT 'QUOTE_V1'"))
 
 def ensure_sqlite_payment_evidence_schema():
     if engine.dialect.name != "sqlite":
@@ -217,3 +245,58 @@ def ensure_postgres_profiles_schema():
                 """
             )
         )
+
+
+def ensure_postgres_quotes_schema():
+    if not DATABASE_URL or not DATABASE_URL.startswith("postgres"):
+        return
+
+    with engine.begin() as conn:
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS quotes (
+                id VARCHAR PRIMARY KEY,
+                lead_id VARCHAR,
+                owner_id VARCHAR NOT NULL,
+                customer_name VARCHAR NOT NULL,
+                customer_phone VARCHAR NOT NULL,
+                service_description TEXT,
+                labour FLOAT DEFAULT 0.0,
+                materials FLOAT DEFAULT 0.0,
+                travel FLOAT DEFAULT 0.0,
+                other FLOAT DEFAULT 0.0,
+                subtotal FLOAT DEFAULT 0.0,
+                vat FLOAT DEFAULT 0.0,
+                total FLOAT DEFAULT 0.0,
+                status VARCHAR NOT NULL DEFAULT 'draft',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """))
+        conn.execute(text("""
+            CREATE INDEX IF NOT EXISTS ix_quotes_owner_id ON quotes(owner_id)
+        """))
+
+
+def ensure_postgres_quotes_v2_schema():
+    if engine.dialect.name != "postgresql":
+        return
+
+    inspector = inspect(engine)
+    if "quotes" not in inspector.get_table_names():
+        return
+
+    columns = {column["name"] for column in inspector.get_columns("quotes")}
+    with engine.begin() as connection:
+        if "subtotal" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN subtotal NUMERIC(12,2)"))
+        if "vat" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN vat NUMERIC(12,2)"))
+        if "line_items" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN line_items JSON"))
+        if "structured_terms" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN structured_terms JSON"))
+        if "archetype_key" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN archetype_key VARCHAR"))
+        if "business_line" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN business_line VARCHAR"))
+        if "quote_template_version" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN quote_template_version VARCHAR NOT NULL DEFAULT 'QUOTE_V1'"))

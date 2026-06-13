@@ -295,6 +295,7 @@ def draft_quote_from_request(
 
     service_description = (
         payload.service_description
+        or payload.description
         or quote_request.service_needed
         or quote_request.message
         or quote_request.business_line
@@ -311,6 +312,13 @@ def draft_quote_from_request(
         currency=payload.currency,
         terms=payload.terms,
         status=QuoteStatus.quote_drafted,
+        subtotal=payload.subtotal,
+        vat=payload.vat,
+        line_items=payload.line_items,
+        structured_terms=payload.structured_terms,
+        archetype_key=payload.archetype_key,
+        business_line=payload.business_line,
+        quote_template_version=payload.quote_template_version,
     )
 
     with replay_transaction(db):
@@ -327,6 +335,15 @@ def draft_quote_from_request(
             related_entity_id=str(quote_id),
             parent_event_id=parent_event.id if parent_event else None,
             payload={
+                "quote_template_version": quote.quote_template_version,
+                "archetype_key": quote.archetype_key,
+                "business_line": quote.business_line,
+                "line_items": quote.line_items,
+                "subtotal": str(quote.subtotal) if quote.subtotal is not None else None,
+                "vat": str(quote.vat) if quote.vat is not None else None,
+                "total": str(quote.amount),
+                "service_description": quote.description,
+                "structured_terms": quote.structured_terms,
                 "quote_request_id": str(quote_request.id),
                 "quote_id": str(quote_id),
                 "previous_status": None,

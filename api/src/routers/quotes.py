@@ -49,6 +49,13 @@ def create_quote(payload: QuoteCreate, db: Session = Depends(get_db)):
         amount=payload.amount,
         currency=payload.currency,
         status=QuoteStatus.issued,
+        subtotal=payload.subtotal,
+        vat=payload.vat,
+        line_items=payload.line_items,
+        structured_terms=payload.structured_terms,
+        archetype_key=payload.archetype_key,
+        business_line=payload.business_line,
+        quote_template_version=payload.quote_template_version,
     )
     with replay_transaction(db):
         event = emit_continuity_event(
@@ -62,6 +69,15 @@ def create_quote(payload: QuoteCreate, db: Session = Depends(get_db)):
             related_entity_type="quote",
             related_entity_id=str(quote.id),
             payload={
+                "quote_template_version": quote.quote_template_version,
+                "archetype_key": quote.archetype_key,
+                "business_line": quote.business_line,
+                "line_items": quote.line_items,
+                "subtotal": str(quote.subtotal) if quote.subtotal is not None else None,
+                "vat": str(quote.vat) if quote.vat is not None else None,
+                "total": str(quote.amount),
+                "service_description": quote.description,
+                "structured_terms": quote.structured_terms,
                 "amount": str(quote.amount),
                 "currency": quote.currency,
                 "customer_name": quote.customer_name,

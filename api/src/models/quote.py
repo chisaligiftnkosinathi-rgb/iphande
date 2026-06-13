@@ -1,7 +1,7 @@
 import enum
 import uuid
 
-from sqlalchemy import Column, DateTime, Enum, Numeric, String
+from sqlalchemy import Column, DateTime, Enum, Numeric, String, JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
@@ -40,3 +40,12 @@ class Quote(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     sent_at = Column(DateTime(timezone=True), nullable=True)
     accepted_at = Column(DateTime(timezone=True), nullable=True)
+
+    # New QUOTE_V2 fields
+    subtotal = Column(Numeric(12, 2), nullable=True)
+    vat = Column(Numeric(12, 2), nullable=True)
+    line_items = Column(JSON, nullable=True)
+    structured_terms = Column(JSON, nullable=True)
+    archetype_key = Column(String, nullable=True)
+    business_line = Column(String, nullable=True)
+    quote_template_version = Column(String, nullable=False, default="QUOTE_V1")
