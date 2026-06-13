@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.error('Supabase Login Error:', error);
             throw error;
         }
-        console.log("SUPABASE JWT:", data.session?.access_token);
+        console.log("SIGN IN: session established, user:", data.session?.user?.id);
     };
 
     const signUp = async (email: string, password: string): Promise<void> => {
