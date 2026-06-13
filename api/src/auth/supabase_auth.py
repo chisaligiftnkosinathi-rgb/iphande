@@ -44,12 +44,14 @@ async def get_current_firebase_user(authorization: str | None = Header(default=N
                 options={"verify_aud": False},
             )
         else:
-            # ES256 / RS256 — use JWKS public key fetched from Supabase
+            # ES256 / RS256 — fetch the public key from Supabase JWKS and verify.
+            # Pass the PyJWK object directly so PyJWT auto-uses key.algorithm_name
+            # and does not throw "The specified alg value is not allowed".
             signing_key = _get_jwks_client().get_signing_key_from_jwt(token)
             payload = jwt.decode(
                 token,
-                signing_key.key,
-                algorithms=["ES256", "RS256"],
+                signing_key,          # PyJWK object — algorithm auto-resolved
+                algorithms=None,      # let PyJWT use key.algorithm_name
                 options={"verify_aud": False},
             )
 
