@@ -26,8 +26,7 @@ def get_current_firebase_user(
 ):
     token = credentials.credentials
 
-    print("AUTH HEADER OK")
-    print("TOKEN RECEIVED:", token[:30], "...")
+    print("AUTH HEADER RECEIVED")
 
     try:
         header = jwt.get_unverified_header(token)
