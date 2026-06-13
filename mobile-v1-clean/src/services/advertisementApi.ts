@@ -2,7 +2,7 @@ import { API_BASE_URL, fetchWithAuth } from '../config/api';
 import { AdvertisementCreate, AdvertisementOut } from '../types/advertisement';
 
 export async function createPublicAdvertisement(data: AdvertisementCreate): Promise<AdvertisementOut> {
-    const response = await fetch(`${API_BASE_URL}/api/v1/advertisements/public`, {
+    const response = await fetch(`${API_BASE_URL}/advertisements/public`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -26,7 +26,7 @@ export async function fetchActiveAdvertisements(filters?: {
     if (filters?.q) params.append('q', filters.q);
 
     const qs = params.toString();
-    const url = `${API_BASE_URL}/api/v1/advertisements/public${qs ? `?${qs}` : ''}`;
+    const url = `${API_BASE_URL}/advertisements/public${qs ? `?${qs}` : ''}`;
     
     const response = await fetch(url);
     if (!response.ok) {

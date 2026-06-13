@@ -1,6 +1,5 @@
+import { API_BASE_URL } from '../config/api';
 import { OpportunityCreate, OpportunityOut, OpportunityUpdate } from '../types/opportunity';
-
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:8000';
 
 export async function fetchOpportunities(filters?: {
   profile_id?: string;
@@ -19,7 +18,7 @@ export async function fetchOpportunities(filters?: {
   }
 
   const queryStr = params.toString() ? `?${params.toString()}` : '';
-  const response = await fetch(`${API_BASE_URL}/api/v1/opportunities${queryStr}`);
+  const response = await fetch(`${API_BASE_URL}/opportunities${queryStr}`);
   
   if (!response.ok) {
     const text = await response.text().catch(() => '');
@@ -30,7 +29,7 @@ export async function fetchOpportunities(filters?: {
 }
 
 export async function createOpportunity(data: OpportunityCreate): Promise<OpportunityOut> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/opportunities`, {
+  const response = await fetch(`${API_BASE_URL}/opportunities`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -47,7 +46,7 @@ export async function createOpportunity(data: OpportunityCreate): Promise<Opport
 }
 
 export async function updateOpportunity(id: string, update: OpportunityUpdate): Promise<OpportunityOut> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/opportunities/${id}`, {
+  const response = await fetch(`${API_BASE_URL}/opportunities/${id}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
