@@ -217,19 +217,25 @@ export default function BusinessProfileScreen() {
                 const response = await fetch(`${API_BASE_URL}/public/${slug}`);
                 if (response.ok) {
                     const data = await response.json();
+                    // Sanitize fields that may arrive as the literal string "None" from the backend
+                    const clean = (v: unknown): string | null => {
+                        if (!v || String(v).trim() === '' || String(v).trim().toLowerCase() === 'none') return null;
+                        return String(v);
+                    };
                     setProfile({
                         slug: data.slug,
                         name: data.name,
-                        category: data.business_category_key ?? null,
-                        provider_type: data.provider_type ?? null,
-                        steward_story: data.short_bio ?? data.steward_story ?? 'No story provided yet.',
-                        location_string: data.location ?? data.operating_area ?? 'Location not specified',
-                        whatsapp_number: data.whatsapp_number ?? data.phone ?? null,
-                        cover_photo_url: data.cover_photo_url ?? null,
-                        logo_url: data.logo_url ?? null,
+                        category: clean(data.business_category_key),
+                        provider_type: clean(data.provider_type),
+                        steward_story: clean(data.short_bio) ?? clean(data.steward_story) ?? 'No story provided yet.',
+                        location_string: clean(data.location) ?? clean(data.operating_area) ?? 'Location not specified',
+                        whatsapp_number: clean(data.whatsapp_number) ?? clean(data.phone),
+                        cover_photo_url: clean(data.cover_photo_url),
+                        logo_url: clean(data.logo_url),
                         supporting_images: parseSupportingImages(data.supporting_image_urls),
                         services: parseServices(data.services),
                     });
+
                 } else {
                     const errText = await response.text();
                     throw new Error(`Error ${response.status}: ${errText}`);
