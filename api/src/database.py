@@ -94,12 +94,36 @@ def ensure_sqlite_quotes_schema():
 
     columns = {column["name"] for column in inspector.get_columns("quotes")}
     with engine.begin() as connection:
+        if "business_owner_id" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN business_owner_id VARCHAR"))
+        if "customer_request_id" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN customer_request_id VARCHAR"))
+        if "customer_name" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN customer_name VARCHAR"))
+        if "customer_phone" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN customer_phone VARCHAR"))
+        if "description" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN description TEXT"))
+        if "amount" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN amount NUMERIC(12,2)"))
+        if "currency" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN currency VARCHAR DEFAULT 'ZAR'"))
         if "terms" not in columns:
             connection.execute(text("ALTER TABLE quotes ADD COLUMN terms VARCHAR"))
-        if "sent_at" not in columns:
-            connection.execute(text("ALTER TABLE quotes ADD COLUMN sent_at DATETIME"))
+        if "status" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN status VARCHAR DEFAULT 'issued'"))
+        if "continuity_event_id" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN continuity_event_id CHAR(32)"))
         if "sent_continuity_event_id" not in columns:
             connection.execute(text("ALTER TABLE quotes ADD COLUMN sent_continuity_event_id CHAR(32)"))
+        if "accepted_continuity_event_id" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN accepted_continuity_event_id CHAR(32)"))
+        if "sent_at" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN sent_at DATETIME"))
+        if "accepted_at" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN accepted_at DATETIME"))
+
+        connection.execute(text("CREATE INDEX IF NOT EXISTS ix_quotes_business_owner_id ON quotes(business_owner_id)"))
 
 
 def ensure_sqlite_quotes_v2_schema():
@@ -248,32 +272,45 @@ def ensure_postgres_profiles_schema():
 
 
 def ensure_postgres_quotes_schema():
-    if not DATABASE_URL or not DATABASE_URL.startswith("postgres"):
+    if engine.dialect.name != "postgresql":
         return
 
-    with engine.begin() as conn:
-        conn.execute(text("""
-            CREATE TABLE IF NOT EXISTS quotes (
-                id VARCHAR PRIMARY KEY,
-                lead_id VARCHAR,
-                owner_id VARCHAR NOT NULL,
-                customer_name VARCHAR NOT NULL,
-                customer_phone VARCHAR NOT NULL,
-                service_description TEXT,
-                labour FLOAT DEFAULT 0.0,
-                materials FLOAT DEFAULT 0.0,
-                travel FLOAT DEFAULT 0.0,
-                other FLOAT DEFAULT 0.0,
-                subtotal FLOAT DEFAULT 0.0,
-                vat FLOAT DEFAULT 0.0,
-                total FLOAT DEFAULT 0.0,
-                status VARCHAR NOT NULL DEFAULT 'draft',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """))
-        conn.execute(text("""
-            CREATE INDEX IF NOT EXISTS ix_quotes_owner_id ON quotes(owner_id)
-        """))
+    inspector = inspect(engine)
+    if "quotes" not in inspector.get_table_names():
+        return
+
+    columns = {column["name"] for column in inspector.get_columns("quotes")}
+    with engine.begin() as connection:
+        if "business_owner_id" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN business_owner_id VARCHAR"))
+        if "customer_request_id" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN customer_request_id VARCHAR"))
+        if "customer_name" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN customer_name VARCHAR"))
+        if "customer_phone" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN customer_phone VARCHAR"))
+        if "description" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN description TEXT"))
+        if "amount" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN amount NUMERIC(12,2)"))
+        if "currency" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN currency VARCHAR DEFAULT 'ZAR'"))
+        if "terms" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN terms VARCHAR"))
+        if "status" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN status VARCHAR DEFAULT 'issued'"))
+        if "continuity_event_id" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN continuity_event_id UUID"))
+        if "sent_continuity_event_id" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN sent_continuity_event_id UUID"))
+        if "accepted_continuity_event_id" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN accepted_continuity_event_id UUID"))
+        if "sent_at" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN sent_at TIMESTAMP"))
+        if "accepted_at" not in columns:
+            connection.execute(text("ALTER TABLE quotes ADD COLUMN accepted_at TIMESTAMP"))
+
+        connection.execute(text("CREATE INDEX IF NOT EXISTS ix_quotes_business_owner_id ON quotes(business_owner_id)"))
 
 
 def ensure_postgres_quotes_v2_schema():
