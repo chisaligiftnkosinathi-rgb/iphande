@@ -23,3 +23,4 @@ class Advertisement(Base):
     
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     expires_at = Column(DateTime(timezone=True), nullable=False)
+    image_url = Column(String, nullable=True)

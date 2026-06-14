@@ -72,6 +72,7 @@ def create_tables():
     ensure_postgres_quotes_schema()
     ensure_postgres_quotes_v2_schema()
     ensure_postgres_opportunities_schema()
+    ensure_postgres_advertisements_schema()
 
 
 def ensure_sqlite_content_posts_schema():
@@ -400,3 +401,16 @@ def ensure_postgres_quotes_v2_schema():
             connection.execute(text("ALTER TABLE quotes ADD COLUMN business_line VARCHAR"))
         if "quote_template_version" not in columns:
             connection.execute(text("ALTER TABLE quotes ADD COLUMN quote_template_version VARCHAR NOT NULL DEFAULT 'QUOTE_V1'"))
+
+def ensure_postgres_advertisements_schema():
+    if engine.dialect.name != "postgresql":
+        return
+
+    inspector = inspect(engine)
+    if "advertisements" not in inspector.get_table_names():
+        return
+
+    columns = {column["name"] for column in inspector.get_columns("advertisements")}
+    with engine.begin() as connection:
+        if "image_url" not in columns:
+            connection.execute(text("ALTER TABLE advertisements ADD COLUMN image_url VARCHAR"))

@@ -14,7 +14,8 @@ ALLOWED_BUCKETS = {
     "business-documents",
     "proof-of-work",
     "payment-proofs",
-    "opportunity-images"
+    "opportunity-images",
+    "advertisement-images"
 }
 
 @router.post("/media/evidence", response_model=MediaOut)

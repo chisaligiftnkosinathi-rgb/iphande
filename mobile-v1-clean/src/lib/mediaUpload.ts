@@ -2,7 +2,7 @@ import { supabase } from './supabase';
 import * as FileSystem from 'expo-file-system';
 import { decode } from 'base64-arraybuffer';
 
-export type BucketName = 'profile-logos' | 'business-documents' | 'proof-of-work' | 'payment-proofs' | 'opportunity-images';
+export type BucketName = 'profile-logos' | 'business-documents' | 'proof-of-work' | 'payment-proofs' | 'opportunity-images' | 'advertisement-images';
 
 export interface UploadOptions {
     bucketName: BucketName;

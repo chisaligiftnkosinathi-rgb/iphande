@@ -14,6 +14,7 @@ class AdvertisementCreate(BaseModel):
     contact_whatsapp: str
     price_or_budget: Optional[str] = None
     expires_at: Optional[datetime] = None
+    image_url: Optional[str] = None
 
 class AdvertisementOut(BaseModel):
     id: UUID
@@ -31,5 +32,6 @@ class AdvertisementOut(BaseModel):
     payment_reference: Optional[str] = None
     created_at: datetime
     expires_at: datetime
+    image_url: Optional[str] = None
 
     model_config = {"from_attributes": True}
