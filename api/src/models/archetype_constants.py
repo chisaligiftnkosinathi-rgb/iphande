@@ -36,3 +36,13 @@ SEEDED_OPPORTUNITY_CATEGORIES = [
     "Automation",
     "Database"
 ]
+
+ARCHETYPES = {
+    TECH_DIGITAL_ARCHETYPE_V1: {
+        "archetype_key": TECH_DIGITAL_ARCHETYPE_V1,
+        "display_name": "Technology & Digital Services",
+        "service_templates": SEEDED_SERVICE_TEMPLATES,
+        "document_templates": SEEDED_DOCUMENT_TEMPLATES,
+        "opportunity_categories": SEEDED_OPPORTUNITY_CATEGORIES
+    }
+}

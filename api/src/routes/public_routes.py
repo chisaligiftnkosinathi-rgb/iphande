@@ -6,9 +6,30 @@ from src.database import get_db
 from src.models.opportunity import Opportunity
 from src.models.profile import Profile
 from src.models.enums import OpportunityArchetype
+from src.models.archetype_constants import ARCHETYPES
 from src.services.verification_service import require_verified_steward
 
 router = APIRouter(prefix="/public", tags=["Public Visibility"])
+
+@router.get("/archetypes")
+def list_archetypes():
+    return list(ARCHETYPES.values())
+
+@router.get("/archetypes/{archetype_key}")
+def get_archetype(archetype_key: str):
+    if archetype_key not in ARCHETYPES:
+        raise HTTPException(status_code=404, detail="Archetype not found")
+    return ARCHETYPES[archetype_key]
+
+@router.get("/archetypes/{archetype_key}/templates")
+def get_archetype_templates(archetype_key: str):
+    if archetype_key not in ARCHETYPES:
+        raise HTTPException(status_code=404, detail="Archetype not found")
+    arch = ARCHETYPES[archetype_key]
+    return {
+        "service_templates": arch["service_templates"],
+        "document_templates": arch["document_templates"]
+    }
 
 @router.get("/opportunities")
 def get_public_opportunities(
