@@ -164,9 +164,20 @@ def bootstrap_profile(db: Session = Depends(get_db), current_user: dict = Depend
     uid = current_user.get("uid")
     email = current_user.get("email")
 
+    # Primary lookup: by current Supabase UID
     existing_profile = db.query(Profile).filter(Profile.owner_id == uid).first()
     if existing_profile:
         return ProfileOut.from_orm_with_privacy(existing_profile)
+
+    # Fallback: adopt orphaned profile by email (covers auth migration / UID mismatch)
+    if email:
+        orphaned = db.query(Profile).filter(Profile.email == email).first()
+        if orphaned:
+            print(f"BOOTSTRAP: Adopting orphaned profile {orphaned.id} for uid={uid} email={email}")
+            orphaned.owner_id = uid
+            db.commit()
+            db.refresh(orphaned)
+            return ProfileOut.from_orm_with_privacy(orphaned)
 
     with replay_transaction(db):
         db_profile = Profile(
@@ -211,9 +222,23 @@ def bootstrap_profile(db: Session = Depends(get_db), current_user: dict = Depend
 @router.get("/profiles/me", response_model=ProfileOut)
 def get_my_profile(db: Session = Depends(get_db), current_user: dict = Depends(get_current_firebase_user)):
     uid = current_user.get("uid")
+    email = current_user.get("email")
+
+    # Primary lookup: by current Supabase UID
     profile = db.query(Profile).filter(Profile.owner_id == uid).first()
+
+    # Self-heal: if UID miss, find orphaned profile by email and re-link
+    if not profile and email:
+        profile = db.query(Profile).filter(Profile.email == email).first()
+        if profile:
+            print(f"PROFILE/ME: Re-linking orphaned profile {profile.id} to uid={uid} (was owner_id={profile.owner_id})")
+            profile.owner_id = uid
+            db.commit()
+            db.refresh(profile)
+
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
+
     return ProfileOut.from_orm_with_privacy(profile)
 
 
