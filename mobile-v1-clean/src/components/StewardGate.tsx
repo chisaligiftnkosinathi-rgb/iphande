@@ -4,10 +4,11 @@ import { useAuth } from '../context/AuthContext';
 import { useSteward } from '../context/StewardContext';
 
 /**
- * Activation blocks ONLY public verified benefits (Opportunities, Leads, Visibility).
- * Private system tools (Home, Profile, Timeline, tools, expenses) are always accessible.
+ * R120 Verification Gate.
+ * Blocks access to Opportunities, Leads, Visibility, and premium tools until the R120 setup fee is approved.
  */
 const PUBLIC_BENEFIT_TABS = ['index', 'leads', 'visibility'];
+const PREMIUM_TOOLS = ['calculator', 'quotes', 'invoices', 'proof-of-work'];
 
 export function StewardGate({ children }: { children: React.ReactNode }) {
     const { user, isLoading: isAuthLoading } = useAuth();
@@ -22,6 +23,7 @@ export function StewardGate({ children }: { children: React.ReactNode }) {
         const inAuthGroup = segmentsArray[0] === 'auth';
         const isRoot = segmentsArray.length === 0 || segmentsArray[0] === 'index';
         const inActivation = segmentsArray[0] === 'activation';
+        const inPaymentVerification = segmentsArray[0] === 'payment-verification';
         const inOnboarding = segmentsArray[0] === 'onboarding';
         const inPublic = segmentsArray[0] === 'public';
         const inTabs = segmentsArray[0] === 'tabs';
@@ -44,10 +46,7 @@ export function StewardGate({ children }: { children: React.ReactNode }) {
             return;
         }
 
-        const isSetupFeeApproved =
-            profile.setup_fee_status === "approved" ||
-            profile.setup_fee_status === "paid" ||
-            profile.setup_fee_status === "waived";
+        const isSetupFeeApproved = profile.setup_fee_status === "approved" && profile.is_verified === true;
 
         const onboardingComplete =
             profile.onboarding_completed === true ||
@@ -59,25 +58,28 @@ export function StewardGate({ children }: { children: React.ReactNode }) {
             return;
         }
 
-        // 4. Onboarded, but setup fee not approved → block ONLY public benefit tabs
+        // 4. Onboarded, but setup fee not approved → block premium features
         if (!isSetupFeeApproved) {
-            // If they're trying to access a public-benefit tab, redirect to activation
-            if (inTabs && PUBLIC_BENEFIT_TABS.includes(segmentsArray[1])) {
-                router.replace('/activation');
+            if (segmentsArray[0] === 'tools' && PREMIUM_TOOLS.includes(segmentsArray[1])) {
+                router.replace('/payment-verification');
                 return;
             }
-            // If they're on auth/root, send them to home (not activation)
+            // If they are on old activation screen, send them to payment verification
+            if (inActivation) {
+                router.replace('/payment-verification');
+                return;
+            }
+            // If they're on auth/root, send them to home
             if (inAuthGroup || isRoot) {
                 router.replace('/tabs/home');
                 return;
             }
-            // Otherwise let them stay (home, profile, timeline, tools, expenses, activation)
             return;
         }
 
         // 5. Fully Activated and Onboarded
-        // Keep them OUT of Auth, Welcome, and Activation
-        if (inAuthGroup || isRoot || inActivation) {
+        // Keep them OUT of Auth, Welcome, old Activation, and Payment Verification
+        if (inAuthGroup || isRoot || inActivation || inPaymentVerification) {
             router.replace('/tabs/home');
         }
 

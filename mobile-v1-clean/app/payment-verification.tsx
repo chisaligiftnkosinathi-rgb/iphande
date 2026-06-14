@@ -80,10 +80,10 @@ export default function PaymentVerificationScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <Text style={styles.title}>Activate Your Account</Text>
+      <Text style={styles.title}>Become a Verified Steward</Text>
       <Text style={styles.description}>
-        To unlock all premium business tools like Quotes, Invoices, Opportunities, and Public Profile Visibility,
-        a once-off lifetime activation fee of R120 is required.
+        To unlock Trust Verification, Quotes, Invoices, Proof of Work, and your official Business Timeline,
+        a once-off lifetime verification fee of R120 is required.
       </Text>
 
       <View style={styles.statusBox}>
