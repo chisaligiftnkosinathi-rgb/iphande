@@ -477,3 +477,56 @@ def review_setup_fee(profile_id: str, payload: SetupFeeReview, db: Session = Dep
     db.refresh(profile)
 
     return ProfileOut.from_orm_with_privacy(profile)
+
+class SetupFeeReview(BaseModel):
+    setup_fee_status: str
+    setup_fee_review_note: Optional[str] = None
+
+@router.patch("/profiles/{profile_id}/setup-fee", response_model=ProfileOut)
+def review_setup_fee(profile_id: str, payload: SetupFeeReview, db: Session = Depends(get_db)):
+    profile = db.query(Profile).filter(Profile.id == profile_id).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    profile.setup_fee_status = payload.setup_fee_status
+    profile.setup_fee_review_note = payload.setup_fee_review_note
+
+    if payload.setup_fee_status in ["approved", "paid", "waived"]:
+        profile.setup_fee_paid_at = datetime.utcnow()
+
+    db.commit()
+    db.refresh(profile)
+
+    return ProfileOut.from_orm_with_privacy(profile)
+
+class PaymentProofCreate(BaseModel):
+    proof_url: str
+
+@router.post("/profiles/me/payment-proof")
+def submit_payment_proof(payload: PaymentProofCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    uid = current_user.get("uid")
+    profile = db.query(Profile).filter(Profile.owner_id == uid).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    profile.setup_fee_status = "pending_review"
+    profile.setup_fee_proof_url = payload.proof_url
+    db.commit()
+    db.refresh(profile)
+
+    return {"status": "success", "setup_fee_status": profile.setup_fee_status}
+
+@router.get("/profiles/me/payment-status")
+def get_payment_status(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    uid = current_user.get("uid")
+    profile = db.query(Profile).filter(Profile.owner_id == uid).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    return {
+        "setup_fee_status": profile.setup_fee_status,
+        "is_verified": profile.is_verified,
+        "setup_fee_review_note": profile.setup_fee_review_note,
+        "setup_fee_proof_url": profile.setup_fee_proof_url,
+        "activated_at": profile.activated_at
+    }
