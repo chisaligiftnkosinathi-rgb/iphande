@@ -1,0 +1,3 @@
+# Suno Style Prompt — IPH-004
+
+Cinematic African memorial storytelling track with warm documentary atmosphere. Soft piano, restrained African percussion, ambient construction and community textures, emotional choir layers, reflective spoken-word narration, and grounded emotional pacing. The song should feel hopeful, reverent, steady, and deeply human. Themes of ordinary labor, quiet dignity, faithfulness, responsibility, and human continuity. No aggressive drums. No commercial motivational energy. No exaggerated triumph. Preserve warmth, breathing room, sincerity, humility, and cinematic realism. The emotional feeling should be: civilization surviving because ordinary people keep building quietly every day.

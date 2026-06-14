@@ -1,0 +1,13 @@
+ToolKey,ToolLabel,Purpose,SheetName,Status,RequiredForReadiness,GovernanceBoundary
+TS001,Profile,Establish governed business identity.,Profile,active,TRUE,Identity is required before continuity.
+TS002,Media,Ingest and manage context media.,Media,active,TRUE,Upload is not verification.
+TS003,InventoryLedger,Track stock velocity and intake.,InventoryLedger,planned,FALSE,Stock changes require replay continuity.
+TS004,QuoteRequests,Receive and respond to customer quotes.,QuoteRequests,active,TRUE,Quotes are not revenue.
+TS005,Opportunities,Track and follow up on emerging intent.,Opportunities,active,TRUE,Follow-ups must link to prior continuity.
+TS006,CommissionLedger,Track expected and paid commissions.,CommissionLedger,planned,FALSE,Expected commission is not available cash.
+TS007,LeadQuoteCapture,Capture field sales intent.,LeadQuoteCapture,planned,FALSE,Leads are not revenue.
+TS008,PaymentReview,Review and verify payment evidence.,PaymentReview,active,TRUE,Evidence supports verification but does not verify itself.
+TS009,Campaigns,Structure goal-based communication.,Campaigns,planned,FALSE,Communication must not manufacture fake urgency.
+TS010,GivingSupport,Manage voluntary community support.,GivingSupport,planned,FALSE,Giving is voluntary and never blocks access.
+TS011,StewardshipLedger,Reflect on and record stewardship decisions.,StewardshipLedger,planned,FALSE,Interpretation must not overwrite continuity.
+TS012,BusinessHome,Provide a public continuity profile.,BusinessHome,active,TRUE,Show what is proven without hiding uncertainty.

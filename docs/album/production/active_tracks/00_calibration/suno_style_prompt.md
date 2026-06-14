@@ -1,0 +1,3 @@
+# Suno Style Prompt — Track 00
+
+Cinematic African spiritual calibration track, spoken-word documentary atmosphere, soft piano, warm ambient pads, restrained cinematic bass, subtle African choir textures, deep emotional realism, sacred and humble tone, not robotic, not cold sci-fi. The track should feel like a truthful system aligning itself before speaking to the world. Blend child innocence, reflective narration, spiritual reverence, and memorial atmosphere. No trap drums. No commercial pop energy. No hype. No exaggerated cinematic aggression. Preserve silence, breathing room, warmth, memory, dignity, and continuity. The emotional feeling should be: technology kneeling before truth.

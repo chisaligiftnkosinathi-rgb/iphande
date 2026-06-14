@@ -1,0 +1,3 @@
+# Suno Style Prompt — IPH-008
+
+Warm cinematic African restoration track with hopeful documentary atmosphere. Soft piano, gentle African percussion, warm choir textures, ambient dawn sounds, reflective spoken-word narration, and emotionally healing pacing. The song should feel restorative, reverent, deeply human, and spiritually grounded. Themes of restored dignity, truthful visibility, ordinary humanity, healing systems, gentleness, and remembrance. No commercial pop energy. No dramatic overproduction. No ego-centered triumph. Preserve warmth, breathing room, emotional sincerity, softness, and cinematic realism. The emotional feeling should be: hidden humanity slowly becoming visible again in a truthful and healing way.

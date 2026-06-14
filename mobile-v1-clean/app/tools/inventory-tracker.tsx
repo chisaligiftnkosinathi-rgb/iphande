@@ -4,10 +4,11 @@ import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View,
 import { fetchWithAuth } from '../../src/config/api';
 import { useSteward } from '../../src/context/StewardContext';
 import { PageHeader } from '../../src/components/PageHeader';
+import { FeatureLockedCard } from '../../src/components/FeatureLockedCard';
 
 export default function InventoryTrackerScreen() {
     const router = useRouter();
-    const { profile } = useSteward();
+    const { profile, canAccess } = useSteward();
     const [loading, setLoading] = useState(false);
 
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -80,6 +81,25 @@ export default function InventoryTrackerScreen() {
             setLoading(false);
         }
     };
+
+    if (!canAccess("inventory")) {
+        return (
+            <ScrollView style={styles.container}>
+                <PageHeader 
+                    eyebrow="Steward Tools" 
+                    title="Inventory Tracker" 
+                    subtitle="Record materials, stock, and costs securely." 
+                />
+                <View style={styles.subcontent}>
+                    <FeatureLockedCard 
+                        featureName="Inventory & Expenses" 
+                        description="Track your material costs and keep perfect records for tax season."
+                        packName="Business Pack" 
+                    />
+                </View>
+            </ScrollView>
+        );
+    }
 
     return (
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>

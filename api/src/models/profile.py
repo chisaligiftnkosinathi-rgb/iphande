@@ -30,6 +30,7 @@ class Profile(Base):
     facebook_page_url = Column(String, nullable=True)
     cover_photo_url = Column(String, nullable=True)
     logo_url = Column(String, nullable=True)
+    company_logo_url = Column(String, nullable=True)
     supporting_image_urls = Column(JSON, nullable=True, default=list) # Array of up to 5 URLs
     proof_of_work_items = Column(String, nullable=True)  # JSON: [{url, title, completed_date, note}]
 
@@ -52,11 +53,20 @@ class Profile(Base):
 
     # V1 Onboarding & Setup Fee
     setup_fee_required = Column(Float, default=120.0, nullable=True)
-    setup_fee_status = Column(String, default="pending", nullable=True)
+    setup_fee_status = Column(String, default="not_submitted", nullable=True)
     setup_fee_proof_url = Column(String, nullable=True)
     setup_fee_paid_at = Column(DateTime, nullable=True)
     setup_fee_review_note = Column(String, nullable=True)
+    is_verified = Column(Boolean, default=False, nullable=False)
+    activated_at = Column(DateTime, nullable=True)
     onboarding_completed = Column(Boolean, default=False, nullable=False)
+
+    # V1 Freemium Architecture
+    plan_code = Column(String, default="free", nullable=False)
+    subscription_active = Column(Boolean, default=True, nullable=False)
+    
+    # Platform Authority Layer
+    role = Column(String, default="steward", nullable=False)
 
     # Referral Program V1
     referral_code = Column(String, unique=True, nullable=True)

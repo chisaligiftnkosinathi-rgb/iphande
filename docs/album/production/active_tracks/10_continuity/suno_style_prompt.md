@@ -1,0 +1,3 @@
+# Suno Style Prompt — IPH-010
+
+Expansive cinematic African memorial track with timeless spiritual atmosphere. Soft piano, warm choir textures, restrained African percussion, ambient wind and tape textures, reflective spoken-word narration, and emotionally spacious pacing. The song should feel sacred, reflective, hopeful, and deeply human. Themes of stewardship, generational inheritance, truthful preservation, continuity, memory, wisdom, and future responsibility. No commercial anthem energy. No dramatic overproduction. No ego-centered triumph. Preserve silence, warmth, breathing room, humility, emotional sincerity, and documentary realism. The emotional feeling should be: carrying human truth carefully across generations.

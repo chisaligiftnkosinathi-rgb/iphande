@@ -6,8 +6,9 @@ from src.database import SessionLocal, replay_transaction, get_db
 from src.models.lead import Lead
 from src.models.profile import Profile
 from src.schemas.lead_schema import LeadCreate, LeadUpdate, LeadOut
-from src.auth.supabase_auth import get_current_firebase_user
+from src.auth.supabase_auth import get_current_user
 from src.services.continuity_event_service import emit_continuity_event
+from src.services.verification_service import require_verified_steward
 
 router = APIRouter()
 
@@ -17,6 +18,7 @@ def create_lead(lead_in: LeadCreate, db: Session = Depends(get_db)):
     profile = db.query(Profile).filter(Profile.slug == lead_in.profile_slug).first()
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
+    require_verified_steward(profile)
 
     with replay_transaction(db):
         db_lead = Lead(
@@ -56,13 +58,17 @@ def create_lead(lead_in: LeadCreate, db: Session = Depends(get_db)):
     return db_lead
 
 @router.get("/leads/me", response_model=List[LeadOut])
-def get_my_leads(db: Session = Depends(get_db), current_user: dict = Depends(get_current_firebase_user)):
+def get_my_leads(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     uid = current_user.get("uid")
+    profile = db.query(Profile).filter(Profile.owner_id == uid).first()
+    if profile:
+        require_verified_steward(profile)
+        
     leads = db.query(Lead).filter(Lead.owner_id == uid).order_by(Lead.created_at.desc()).all()
     return leads
 
 @router.patch("/leads/{lead_id}", response_model=LeadOut)
-def update_lead_status(lead_id: str, lead_update: LeadUpdate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_firebase_user)):
+def update_lead_status(lead_id: str, lead_update: LeadUpdate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     uid = current_user.get("uid")
     lead = db.query(Lead).filter(Lead.id == lead_id, Lead.owner_id == uid).first()
     if not lead:

@@ -32,7 +32,6 @@ def setup_db():
     app.dependency_overrides[get_db] = override_get_db
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
-    from src.database import get_db
     return db
 
 

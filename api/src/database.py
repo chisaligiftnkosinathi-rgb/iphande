@@ -190,6 +190,13 @@ def ensure_sqlite_profiles_schema():
             connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_profiles_referral_code ON profiles(referral_code)"))
         if "referred_by_code" not in columns:
             connection.execute(text("ALTER TABLE profiles ADD COLUMN referred_by_code VARCHAR"))
+        if "is_verified" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN is_verified BOOLEAN NOT NULL DEFAULT 0"))
+        if "activated_at" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN activated_at DATETIME"))
+        if "company_logo_url" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN company_logo_url VARCHAR"))
+
 
 def ensure_sqlite_replay_schema():
     if engine.dialect.name != "sqlite":
@@ -278,6 +285,12 @@ def ensure_postgres_profiles_schema():
             connection.execute(text("ALTER TABLE profiles ADD COLUMN owner_id VARCHAR"))
         if "proof_of_work_items" not in columns:
             connection.execute(text("ALTER TABLE profiles ADD COLUMN proof_of_work_items TEXT"))
+        if "is_verified" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN is_verified BOOLEAN NOT NULL DEFAULT FALSE"))
+        if "activated_at" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN activated_at TIMESTAMP"))
+        if "company_logo_url" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN company_logo_url VARCHAR"))
         connection.execute(
             text(
                 """

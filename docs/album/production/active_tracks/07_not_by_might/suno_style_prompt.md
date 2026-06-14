@@ -1,0 +1,3 @@
+# Suno Style Prompt — IPH-007
+
+Sacred cinematic African spiritual surrender track with prayerful atmosphere. Soft piano, warm ambient choir textures, restrained emotional pacing, gentle wind ambience, reflective spoken-word narration, and deep spiritual humility. The song should feel healing, reverent, emotionally vulnerable, and grounded in surrender rather than domination. Themes of humility, spiritual dependence, truth, pressure, alignment, and returning to wisdom. No aggressive drums. No commercial worship-pop energy. No performance-driven vocal delivery. Preserve silence, breathing room, emotional sincerity, softness, and spiritual reverence. The emotional feeling should be: surrendering pressure and returning to truth through humility.

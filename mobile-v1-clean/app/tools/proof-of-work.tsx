@@ -4,10 +4,11 @@ import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View,
 import { fetchWithAuth } from '../../src/config/api';
 import { useSteward } from '../../src/context/StewardContext';
 import { PageHeader } from '../../src/components/PageHeader';
+import { FeatureLockedCard } from '../../src/components/FeatureLockedCard';
 
 export default function ProofOfWorkScreen() {
     const router = useRouter();
-    const { profile } = useSteward();
+    const { profile, canAccess } = useSteward();
 
     const [customerName, setCustomerName] = useState('');
     const [relatedQuote, setRelatedQuote] = useState('');
@@ -86,6 +87,25 @@ export default function ProofOfWorkScreen() {
             setLoading(false);
         }
     };
+
+    if (!canAccess("proof_of_work")) {
+        return (
+            <ScrollView style={styles.container}>
+                <PageHeader 
+                    eyebrow="Steward Tools" 
+                    title="Proof of Work" 
+                    subtitle="Record completed work and customer outcomes." 
+                />
+                <View style={styles.subcontent}>
+                    <FeatureLockedCard 
+                        featureName="Proof of Work" 
+                        description="Capture and prove your work history to anyone. Build an undeniable timeline of your success."
+                        packName="Continuity Pack" 
+                    />
+                </View>
+            </ScrollView>
+        );
+    }
 
     return (
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>

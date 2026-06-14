@@ -9,8 +9,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+
+from src.database import Base, get_db, register_models, engine as prod_engine
 from src.main import app
-from src.database import Base, engine as prod_engine
 from src.models.profile import Profile
 from src.models.opportunity import Opportunity
 from src.models.quote import Quote
@@ -35,7 +36,6 @@ def setup_db():
     app.dependency_overrides[get_db] = override_get_db
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
-    from src.database import get_db
     return db
 
 

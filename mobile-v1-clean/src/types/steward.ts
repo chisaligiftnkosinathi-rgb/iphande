@@ -51,6 +51,7 @@ export interface StewardProfile {
 
     // Media
     logo_url?: string;
+    company_logo_url?: string;
     cover_photo_url?: string;
     supporting_image_urls?: string | string[];
 
@@ -63,6 +64,8 @@ export interface StewardProfile {
     setupFeeProofUrl?: string;
     setup_fee_status?: string;
     setup_fee_proof_url?: string;
+    setup_fee_review_note?: string;
+    is_verified?: boolean;
     onboarding_completed?: boolean;
     is_public?: boolean;
     created_at?: string;
@@ -70,6 +73,12 @@ export interface StewardProfile {
     // Referral Program
     referral_code?: string;
     referred_by_code?: string;
+
+    // Freemium Architecture
+    plan_code?: string;
+    subscription_active?: boolean;
+    role?: string;
+    allowed_features?: string[];
 }
 
 export interface Referral {

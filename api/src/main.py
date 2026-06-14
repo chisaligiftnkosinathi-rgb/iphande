@@ -12,7 +12,7 @@ from src.routes import (
     media_routes, reflection_routes, campaign_routes, message_template_routes, scripture_reflection_routes, content_post_routes,
     business_categories, business_content_rules, quote_request_routes, giving_routes,
     steward_timeline_routes, steward_annotations, referral_routes, public_routes,
-    advertisement_routes, expense_routes, share_routes
+    advertisement_routes, expense_routes, share_routes, admin_routes, document_routes, steward_console_routes
 )
 from src.routers.handshake import router as handshake_router
 from src.routers.financial_events import router as financial_events_router
@@ -90,6 +90,8 @@ app.include_router(advertisement_routes.router, prefix="/api/v1")
 app.include_router(timeline_routes.router, prefix="/api/v1")
 app.include_router(followup_routes.router, prefix="/api/v1")
 app.include_router(lead_router, prefix="/api/v1", tags=["leads"])
+app.include_router(admin_routes.router)
+app.include_router(admin_routes.admin_router)
 
 app.include_router(business_categories.router)
 app.include_router(business_content_rules.router)
@@ -105,8 +107,10 @@ app.include_router(steward_timeline_routes.router)
 app.include_router(steward_annotations.router, prefix="/api/v1", tags=["steward-annotations"])
 app.include_router(expense_routes.router)
 app.include_router(share_routes.router)
+app.include_router(document_routes.router)
 app.include_router(continuity_event_router, prefix="/api/v1/continuity-events", tags=["continuity-events"])
 app.include_router(continuity_capture_router, prefix="/api/v1/continuity-captures", tags=["continuity-captures"])
+app.include_router(steward_console_routes.router)
 
 # Clean 404 handler
 @app.exception_handler(404)

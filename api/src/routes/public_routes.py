@@ -6,6 +6,7 @@ from src.database import get_db
 from src.models.opportunity import Opportunity
 from src.models.profile import Profile
 from src.models.enums import OpportunityArchetype
+from src.services.verification_service import require_verified_steward
 
 router = APIRouter(prefix="/public", tags=["Public Visibility"])
 
@@ -68,6 +69,9 @@ def get_public_business_profile(slug: str, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=403, detail=f"Profile '{slug}' found, but it is not public. The 'is_public' flag is False."
         )
+
+    # Check verification status
+    require_verified_steward(profile)
 
     opportunities = db.query(Opportunity).filter(
         Opportunity.profile_id == profile.id,

@@ -286,7 +286,7 @@ export default function OpportunitiesScreen() {
                     
                     <TouchableOpacity style={styles.secondaryActionButton} onPress={() => router.push('/public/advertise')}>
                         <Ionicons name="megaphone-outline" size={20} color={theme.colors.navy} />
-                        <Text style={styles.secondaryActionText}>Advertise Community Need (R2.50)</Text>
+                        <Text style={styles.secondaryActionText}>Post Work Opportunity (R2.50) - Help someone find a provider</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -341,11 +341,15 @@ export default function OpportunitiesScreen() {
                         <Text style={styles.metaText}>{opp.town_or_city}, {opp.province} {opp.suburb_or_area ? `(${opp.suburb_or_area})` : ''}</Text>
                     </View>
                     <View style={styles.metaRow}>
-                        <Ionicons name="construct-outline" size={14} color={theme.colors.textMuted} />
-                        <Text style={styles.metaText}>{opp.service_needed || opp.category_key}</Text>
+                        <Ionicons name="time-outline" size={14} color={theme.colors.textMuted} />
+                        <Text style={styles.metaText}>Posted {new Date(opp.created_at || '').toLocaleDateString('en-ZA', { month: 'short', day: 'numeric' })}</Text>
                     </View>
 
-                    {opp.budget_amount ? <Text style={styles.budget}>Budget: R{opp.budget_amount}</Text> : null}
+                    <View style={styles.serviceNeedsBox}>
+                        <Text style={styles.serviceNeedsLabel}>Customer wants:</Text>
+                        <Text style={styles.serviceNeedsText}>{opp.service_needed || opp.category_key}</Text>
+                        {opp.budget_amount ? <Text style={styles.budget}>Budget: R{opp.budget_amount}</Text> : null}
+                    </View>
                     
                     <Text style={styles.contactName}>Contact: {opp.contact_name}</Text>
 
@@ -353,7 +357,7 @@ export default function OpportunitiesScreen() {
                         <View style={styles.cardActionsRow}>
                             <TouchableOpacity style={styles.actionBtnOutline} onPress={() => handleContact(opp)}>
                                 <Ionicons name="logo-whatsapp" size={16} color={theme.colors.navy} />
-                                <Text style={styles.actionBtnOutlineText}>WhatsApp</Text>
+                                <Text style={styles.actionBtnOutlineText}>WhatsApp Customer</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.actionBtnSolid} onPress={() => handleCreateQuote(opp)}>
                                 <Ionicons name="document-text-outline" size={16} color="#fff" />
@@ -561,10 +565,13 @@ const styles = StyleSheet.create({
     cardTitle: { fontSize: 18, fontWeight: '700', color: theme.colors.textPrimary, marginBottom: 8 },
     metaRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6, gap: 6 },
     metaText: { fontSize: 14, color: theme.colors.textMuted },
-    budget: { fontSize: 14, fontWeight: '600', color: theme.colors.trustGreen, marginTop: 4, marginBottom: 8 },
-    contactName: { fontSize: 14, color: theme.colors.textPrimary, fontWeight: '500', marginBottom: 16 },
+    serviceNeedsBox: { backgroundColor: '#F8FAFC', padding: 12, borderRadius: 8, marginTop: 12, marginBottom: 12, borderWidth: 1, borderColor: '#E2E8F0' },
+    serviceNeedsLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', marginBottom: 4 },
+    serviceNeedsText: { fontSize: 15, color: '#0F172A', fontWeight: '500' },
+    budget: { fontSize: 14, fontWeight: '600', color: theme.colors.trustGreen, marginTop: 8 },
+    contactName: { fontSize: 14, color: theme.colors.textPrimary, fontWeight: '500', marginBottom: 4 },
 
-    cardActionsRow: { flexDirection: 'row', gap: 12, marginTop: 8 },
+    cardActionsRow: { flexDirection: 'row', gap: 12, marginTop: 16 },
     actionBtnOutline: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: theme.colors.border, borderRadius: 8, paddingVertical: 10, gap: 6 },
     actionBtnOutlineText: { color: theme.colors.navy, fontWeight: '600', fontSize: 14 },
     actionBtnSolid: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.navy, borderRadius: 8, paddingVertical: 10, gap: 6 },

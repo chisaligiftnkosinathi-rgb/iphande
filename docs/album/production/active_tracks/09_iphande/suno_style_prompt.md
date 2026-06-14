@@ -1,0 +1,3 @@
+# Suno Style Prompt — IPH-009
+
+Expansive, cinematic African identity revelation track with reverent, hopeful atmosphere. Warm piano, rising choir, ambient wind and community textures, reflective spoken-word narration, and emotionally meaningful pacing. The song should feel like the emotional thesis statement of the album — the hidden purpose finally becoming visible. Themes of naming, memory, dignity, healing, hope, and continuity. No commercial pop energy. No branding or product marketing. No ego-driven performance. Preserve expansiveness, reverence, emotional sincerity, humility, and cinematic realism. The emotional feeling should be: the revelation of why iPhande exists and what it seeks to heal and protect.

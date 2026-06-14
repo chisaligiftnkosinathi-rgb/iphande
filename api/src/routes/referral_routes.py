@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from src.database import SessionLocal, replay_transaction, get_db
-from src.auth.supabase_auth import get_current_firebase_user
+from src.auth.supabase_auth import get_current_user
 from src.models.profile import Profile
 from src.models.referral import Referral
 from pydantic import BaseModel, ConfigDict
@@ -31,7 +31,7 @@ class ReferralMeResponse(BaseModel):
     referrals: List[ReferralOut]
 
 @router.get("/referrals/me", response_model=ReferralMeResponse)
-def get_my_referrals(db: Session = Depends(get_db), current_user: dict = Depends(get_current_firebase_user)):
+def get_my_referrals(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     uid = current_user.get("uid")
     profile = db.query(Profile).filter(Profile.owner_id == uid).first()
     if not profile:
@@ -50,7 +50,7 @@ def get_my_referrals(db: Session = Depends(get_db), current_user: dict = Depends
     )
 
 @router.get("/admin/referrals/pending", response_model=List[ReferralOut])
-def get_pending_referrals(db: Session = Depends(get_db), current_user: dict = Depends(get_current_firebase_user)):
+def get_pending_referrals(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     if current_user.get("email") != "glegacey97@gmail.com":
         raise HTTPException(status_code=403, detail="Forbidden")
 
@@ -58,7 +58,7 @@ def get_pending_referrals(db: Session = Depends(get_db), current_user: dict = De
     return [ReferralOut.model_validate(r) for r in referrals]
 
 @router.patch("/admin/referrals/{referral_id}/pay", response_model=ReferralOut)
-def mark_referral_paid(referral_id: str, db: Session = Depends(get_db), current_user: dict = Depends(get_current_firebase_user)):
+def mark_referral_paid(referral_id: str, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     if current_user.get("email") != "glegacey97@gmail.com":
         raise HTTPException(status_code=403, detail="Forbidden")
 
@@ -75,7 +75,7 @@ def mark_referral_paid(referral_id: str, db: Session = Depends(get_db), current_
     return ReferralOut.model_validate(referral)
 
 @router.patch("/admin/referrals/{referral_id}/reject", response_model=ReferralOut)
-def reject_referral(referral_id: str, db: Session = Depends(get_db), current_user: dict = Depends(get_current_firebase_user)):
+def reject_referral(referral_id: str, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     if current_user.get("email") != "glegacey97@gmail.com":
         raise HTTPException(status_code=403, detail="Forbidden")
 

@@ -58,12 +58,9 @@ export function StewardGate({ children }: { children: React.ReactNode }) {
             return;
         }
 
-        // 4. Onboarded, but setup fee not approved → block premium features
+        // 4. Onboarded, but setup fee not approved → route appropriately
         if (!isSetupFeeApproved) {
-            if (segmentsArray[0] === 'tools' && PREMIUM_TOOLS.includes(segmentsArray[1])) {
-                router.replace('/payment-verification');
-                return;
-            }
+            // Note: Premium tools are now gated at the component level using FeatureLockedCard.
             // If they are on old activation screen, send them to payment verification
             if (inActivation) {
                 router.replace('/payment-verification');

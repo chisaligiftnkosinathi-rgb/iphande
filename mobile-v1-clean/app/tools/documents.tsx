@@ -6,6 +6,7 @@ import { useSteward } from '../../src/context/StewardContext';
 import { ShareButton } from '../../src/components/ShareButton';
 import { shareQuote } from '../../src/services/shareApi';
 import { PageHeader } from '../../src/components/PageHeader';
+import { FeatureLockedCard } from '../../src/components/FeatureLockedCard';
 
 interface QuoteDocument {
     id: string;
@@ -18,21 +19,24 @@ interface QuoteDocument {
 }
 
 export default function DocumentsScreen() {
-    const { profile } = useSteward();
+    const { profile, canAccess } = useSteward();
     const router = useRouter();
     const [quotes, setQuotes] = useState<QuoteDocument[]>([]);
     const [loading, setLoading] = useState(true);
+    const [fetchError, setFetchError] = useState(false);
 
     const fetchDocuments = async () => {
         setLoading(true);
+        if (!profile) return;
         try {
-            const data = await fetchWithAuth('/quotes/me');
+            const data = await fetchWithAuth(`/quotes/business/${profile.id}`);
             const sortedQuotes = (data || []).sort((a: QuoteDocument, b: QuoteDocument) =>
                 new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
             );
             setQuotes(sortedQuotes);
         } catch (error) {
             console.error("Fetch quotes error:", error);
+            setFetchError(true);
         } finally {
             setLoading(false);
         }
@@ -62,12 +66,25 @@ export default function DocumentsScreen() {
     };
 
     const getStatusTextStyle = (status: string) => {
-        switch (status) {
-            case 'accepted': return styles.badgeTextAccepted;
-            case 'sent': return styles.badgeTextSent;
-            default: return styles.badgeTextDraft;
-        }
+        if (status === 'draft') return styles.badgeTextDraft;
+        if (status === 'sent') return styles.badgeTextSent;
+        return styles.badgeTextAccepted;
     };
+
+    if (!canAccess("quotes")) {
+        return (
+            <ScrollView style={styles.container}>
+                <PageHeader title="Quotes & Invoices" subtitle="Professional Business Documents" />
+                <View style={styles.subcontent}>
+                    <FeatureLockedCard 
+                        featureName="Documents" 
+                        description="Send professional quotes, invoices, and receipts to customers. Download branded PDFs."
+                        packName="Documents Pack" 
+                    />
+                </View>
+            </ScrollView>
+        );
+    }
 
     return (
         <ScrollView
@@ -87,6 +104,13 @@ export default function DocumentsScreen() {
 
                 {loading && quotes.length === 0 ? (
                     <ActivityIndicator size="large" color="#111827" style={{ marginVertical: 40 }} />
+                ) : fetchError ? (
+                    <View style={styles.emptyState}>
+                        <Text style={styles.emptyText}>Unable to load documents.</Text>
+                        <TouchableOpacity style={styles.retryButton} onPress={fetchDocuments}>
+                            <Text style={styles.retryButtonText}>Retry</Text>
+                        </TouchableOpacity>
+                    </View>
                 ) : quotes.length === 0 ? (
                     <View style={styles.emptyState}>
                         <Text style={styles.emptyText}>No documents yet.</Text>
@@ -148,6 +172,8 @@ const styles = StyleSheet.create({
     emptyState: { padding: 32, backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB', alignItems: 'center' },
     emptyText: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 4 },
     emptySubtext: { fontSize: 14, color: '#6B7280', textAlign: 'center' },
+    retryButton: { marginTop: 12, backgroundColor: '#111827', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 8 },
+    retryButtonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
 
     card: { backgroundColor: '#FFFFFF', padding: 20, borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB', marginBottom: 16 },
     cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },

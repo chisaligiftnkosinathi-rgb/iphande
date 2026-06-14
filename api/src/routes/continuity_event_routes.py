@@ -9,13 +9,19 @@ from src.schemas.continuity_event_schema import (
     ContinuityEventResponse,
 )
 from src.models.continuity_event_model import ContinuityEvent
+from src.models.profile import Profile
 from src.database import get_db
 from src.services.continuity_event_service import emit_continuity_event
+from src.services.verification_service import require_verified_steward
 
 router = APIRouter()
 
 @router.post("/", response_model=ContinuityEventResponse)
 def create_event(event: ContinuityEventCreate, db: Session = Depends(get_db)):
+    if event.business_owner_id:
+        profile = db.query(Profile).filter(Profile.id == event.business_owner_id).first()
+        require_verified_steward(profile)
+
     db_event = emit_continuity_event(
         db,
         business_owner_id=event.business_owner_id,
@@ -138,6 +144,9 @@ def get_events_for_entity(entity_id: str, db: Session = Depends(get_db)):
 
 @router.get("/business/{business_owner_id}", response_model=List[ContinuityEventResponse])
 def get_events_for_business(business_owner_id: str, db: Session = Depends(get_db)):
+    profile = db.query(Profile).filter(Profile.id == business_owner_id).first()
+    require_verified_steward(profile)
+
     events = db.query(ContinuityEvent).filter(ContinuityEvent.business_owner_id == business_owner_id).order_by(ContinuityEvent.lineage_sequence.asc()).all()
     return events
 

@@ -3,9 +3,11 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { fetchWithAuth } from '../../src/config/api';
+import { fetchWithAuth, API_BASE_URL } from '../../src/config/api';
 import { validateDocumentData } from '../../src/config/documentTemplates';
 import { useSteward } from '../../src/context/StewardContext';
+import * as FileSystem from 'expo-file-system';
+import { supabase } from '../../src/lib/supabase';
 
 interface LineItem {
     name: string;
@@ -68,174 +70,45 @@ export default function QuoteDetailScreen() {
 
     const generateAndSharePDF = async () => {
         if (!quote) return;
-
-        // Enforce the Template Law: Ensure the Truth satisfies the requirements
-        const templateKey = quote.quote_template_version === 'QUOTE_V2' ? 'QUOTE_V2' : 'QUOTE_V1';
-        const missingFields = validateDocumentData(templateKey, quote);
-        if (missingFields.length > 0) {
-            Alert.alert("Incomplete Data", `Cannot generate document. Missing required fields: ${missingFields.join(', ')}`);
-            return;
-        }
-
-        const businessName = profile?.businessName || profile?.name || 'iPhande Steward';
-
-        let tableRowsHtml = '';
-        if (quote.quote_template_version === 'QUOTE_V2' && quote.line_items && quote.line_items.length > 0) {
-            tableRowsHtml = `
-                <thead>
-                    <tr>
-                        <th style="padding: 12px; background-color: #F9FAFB; color: #4B5563; font-weight: 700; font-size: 12px; text-transform: uppercase;">Item</th>
-                        <th style="padding: 12px; background-color: #F9FAFB; color: #4B5563; font-weight: 700; font-size: 12px; text-transform: uppercase;">Category</th>
-                        <th style="padding: 12px; background-color: #F9FAFB; color: #4B5563; font-weight: 700; font-size: 12px; text-transform: uppercase; text-align: right;">Qty</th>
-                        <th style="padding: 12px; background-color: #F9FAFB; color: #4B5563; font-weight: 700; font-size: 12px; text-transform: uppercase;">Unit</th>
-                        <th style="padding: 12px; background-color: #F9FAFB; color: #4B5563; font-weight: 700; font-size: 12px; text-transform: uppercase; text-align: right;">Price</th>
-                        <th style="padding: 12px; background-color: #F9FAFB; color: #4B5563; font-weight: 700; font-size: 12px; text-transform: uppercase; text-align: right;">Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${quote.line_items.map(item => `
-                        <tr>
-                            <td style="padding: 12px; border-bottom: 1px solid #E5E7EB;">
-                                <div style="font-weight: 600; font-size: 14px;">${item.name}</div>
-                                ${item.description ? `<div style="font-size: 11px; color: #6B7280; margin-top: 2px;">${item.description}</div>` : ''}
-                            </td>
-                            <td style="padding: 12px; border-bottom: 1px solid #E5E7EB; text-transform: capitalize; font-size: 13px; color: #4B5563;">${item.category}</td>
-                            <td style="padding: 12px; border-bottom: 1px solid #E5E7EB; text-align: right; font-size: 13px;">${item.quantity}</td>
-                            <td style="padding: 12px; border-bottom: 1px solid #E5E7EB; font-size: 13px; color: #6B7280;">${item.unit}</td>
-                            <td style="padding: 12px; border-bottom: 1px solid #E5E7EB; text-align: right; font-size: 13px;">R ${item.unit_price.toFixed(2)}</td>
-                            <td style="padding: 12px; border-bottom: 1px solid #E5E7EB; text-align: right; font-weight: 600; font-size: 13px;">R ${item.line_total.toFixed(2)}</td>
-                        </tr>
-                    `).join('')}
-                    <tr><td colspan="6" style="border-bottom: none; height: 20px;"></td></tr>
-                    <tr>
-                        <td colspan="4" style="border: none; padding: 8px 12px;"></td>
-                        <td style="border: none; padding: 8px 12px; font-weight: 600;">Subtotal</td>
-                        <td style="border: none; padding: 8px 12px; text-align: right; font-weight: 600;">R ${quote.subtotal.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                        <td colspan="4" style="border: none; padding: 8px 12px;"></td>
-                        <td style="border: none; padding: 8px 12px; color: #4B5563;">VAT (15%)</td>
-                        <td style="border: none; padding: 8px 12px; text-align: right; color: #4B5563;">R ${quote.vat.toFixed(2)}</td>
-                    </tr>
-                    <tr class="total-row">
-                        <td colspan="4" style="border: none; padding: 8px 12px;"></td>
-                        <td style="border-top: 2px solid #111827; padding: 12px; font-weight: 800; font-size: 18px;">TOTAL</td>
-                        <td style="border-top: 2px solid #111827; padding: 12px; text-align: right; font-weight: 800; font-size: 18px; color: #10B981;">R ${quote.total.toFixed(2)}</td>
-                    </tr>
-                </tbody>
-            `;
-        } else {
-            tableRowsHtml = `
-                <thead>
-                    <tr>
-                        <th style="padding: 12px; background-color: #F9FAFB; color: #4B5563; font-weight: 700;">Description</th>
-                        <th style="padding: 12px; background-color: #F9FAFB; color: #4B5563; font-weight: 700; text-align: right;">Amount (ZAR)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td style="padding: 12px; border-bottom: 1px solid #E5E7EB;">Labour / Service Fee</td><td style="padding: 12px; border-bottom: 1px solid #E5E7EB; text-align: right;">R ${quote.labour.toFixed(2)}</td></tr>
-                    <tr><td style="padding: 12px; border-bottom: 1px solid #E5E7EB;">Materials / Parts</td><td style="padding: 12px; border-bottom: 1px solid #E5E7EB; text-align: right;">R ${quote.materials.toFixed(2)}</td></tr>
-                    <tr><td style="padding: 12px; border-bottom: 1px solid #E5E7EB;">Travel / Call-out</td><td style="padding: 12px; border-bottom: 1px solid #E5E7EB; text-align: right;">R ${quote.travel.toFixed(2)}</td></tr>
-                    <tr><td style="padding: 12px; border-bottom: 1px solid #E5E7EB;">Other Expenses</td><td style="padding: 12px; border-bottom: 1px solid #E5E7EB; text-align: right;">R ${quote.other.toFixed(2)}</td></tr>
-                    <tr><td colspan="2" style="border-bottom: none; height: 20px;"></td></tr>
-                    <tr>
-                        <td style="border: none; padding: 8px 12px; font-weight: 600;">Subtotal</td>
-                        <td style="border: none; padding: 8px 12px; text-align: right; font-weight: 600;">R ${quote.subtotal.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                        <td style="border: none; padding: 8px 12px; color: #4B5563;">VAT (15%)</td>
-                        <td style="border: none; padding: 8px 12px; text-align: right; color: #4B5563;">R ${quote.vat.toFixed(2)}</td>
-                    </tr>
-                    <tr class="total-row">
-                        <td style="border-top: 2px solid #111827; padding: 12px; font-weight: 800; font-size: 18px;">TOTAL</td>
-                        <td style="border-top: 2px solid #111827; padding: 12px; text-align: right; font-weight: 800; font-size: 18px; color: #10B981;">R ${quote.total.toFixed(2)}</td>
-                    </tr>
-                </tbody>
-            `;
-        }
-
-        const html = `
-            <html>
-                <head>
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
-                    <style>
-                        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 40px; color: #111827; }
-                        .header { text-align: center; margin-bottom: 40px; }
-                        .kicker { font-size: 14px; color: #6B7280; letter-spacing: 1px; text-transform: uppercase; font-weight: bold; }
-                        .title { font-size: 32px; font-weight: 800; margin: 8px 0; }
-                        .info-row { margin-bottom: 8px; font-size: 16px; }
-                        .table { width: 100%; border-collapse: collapse; margin-top: 30px; }
-                        .table th, .table td { text-align: left; }
-                        .footer { margin-top: 60px; text-align: center; color: #9CA3AF; font-size: 14px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <div class="kicker">${businessName}</div>
-                        <div class="title">IPH-${quote.id.split('-')[0].toUpperCase()}</div>
-                        <div style="color: #6B7280;">Date: ${new Date(quote.created_at).toLocaleDateString()}</div>
-                    </div>
-
-                    <div class="info-row"><strong>Customer:</strong> ${quote.customer_name}</div>
-                    <div class="info-row"><strong>Phone:</strong> ${quote.customer_phone}</div>
-                    <div class="info-row"><strong>Service:</strong> ${quote.service_description}</div>
-
-                    <table class="table">
-                        ${tableRowsHtml}
-                    </table>
-
-                    ${(() => {
-                        const planning = quote.structured_terms?.planning || {};
-                        const hasPlanning = 
-                            (planning.expected_labour_hours !== null && planning.expected_labour_hours !== undefined && planning.expected_labour_hours !== '') ||
-                            (planning.expected_travel_km !== null && planning.expected_travel_km !== undefined && planning.expected_travel_km !== '') ||
-                            (planning.expected_material_cost !== null && planning.expected_material_cost !== undefined && planning.expected_material_cost !== '') ||
-                            (planning.expected_notes !== null && planning.expected_notes !== undefined && planning.expected_notes !== '');
-
-                        if (!hasPlanning) return '';
-
-                        return `
-                            <div style="margin-top: 40px; padding: 20px; background-color: #F9FAFB; border-radius: 12px; border: 1px solid #E5E7EB;">
-                                <div style="font-weight: 800; font-size: 16px; margin-bottom: 12px; color: #111827; text-transform: uppercase; letter-spacing: 0.5px;">Planning & Scope Summary</div>
-                                <ul style="padding-left: 20px; margin: 0; color: #4B5563; font-size: 14px; line-height: 20px;">
-                                    ${planning.expected_labour_hours !== null && planning.expected_labour_hours !== undefined && planning.expected_labour_hours !== '' ? `<li><strong>Expected Labour:</strong> ${planning.expected_labour_hours} hours</li>` : ''}
-                                    ${planning.expected_travel_km !== null && planning.expected_travel_km !== undefined && planning.expected_travel_km !== '' ? `<li><strong>Expected Travel:</strong> ${planning.expected_travel_km} km</li>` : ''}
-                                    ${planning.expected_material_cost !== null && planning.expected_material_cost !== undefined && planning.expected_material_cost !== '' ? `<li><strong>Expected Material Cost:</strong> R ${Number(planning.expected_material_cost).toFixed(2)}</li>` : ''}
-                                </ul>
-                                ${planning.expected_notes ? `
-                                    <div style="margin-top: 12px; font-size: 13px; color: #6B7280; font-style: italic; border-top: 1px solid #E5E7EB; padding-top: 8px;">
-                                        <strong>Planning Notes:</strong><br/>
-                                        ${planning.expected_notes}
-                                    </div>
-                                ` : ''}
-                            </div>
-                        `;
-                    })()}
-
-                    <div class="footer">
-                        Generated securely via iPhande Steward Operating System.<br/>
-                        Valid for 30 days from date of issue.
-                    </div>
-                </body>
-            </html>
-        `;
-
         try {
-            const printResult = await Print.printToFileAsync({ html });
-            const uri = printResult?.uri;
-            if (!uri) {
-                Alert.alert("PDF Unavailable", "PDF preview is not available on this platform. Please test PDF export on Android.");
-                return;
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
+            if (!token) throw new Error("No auth token available");
+
+            // @ts-ignore
+            const fileUri = FileSystem.documentDirectory + `Quote_IPH-${quote.id.split('-')[0].toUpperCase()}.pdf`;
+            
+            const downloadRes = await FileSystem.downloadAsync(
+                `${API_BASE_URL}/documents/quotes/${quote.id}/pdf`,
+                fileUri,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            if (downloadRes.status !== 200) {
+                 throw new Error("Could not download PDF from server");
             }
+
             const isSharingAvailable = await Sharing.isAvailableAsync();
             if (isSharingAvailable) {
-                await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
+                await Sharing.shareAsync(downloadRes.uri, { UTI: '.pdf', mimeType: 'application/pdf' });
             } else {
                 Alert.alert("Sharing unavailable", "PDF generated successfully, but sharing is not supported on this device/browser.");
             }
         } catch (error) {
             console.error('Error generating PDF:', error);
             Alert.alert('Error', 'Could not generate the PDF.');
+        }
+    };
+
+    const handleConvertToInvoice = async () => {
+        if (!quote) return;
+        try {
+            const res = await fetchWithAuth(`/invoices/from-quote/${quote.id}`, { method: 'POST' });
+            Alert.alert("Success", "Invoice created successfully.");
+            router.push('/steward-console'); // or wherever they should go
+        } catch (error: any) {
+            console.error('Error converting to invoice:', error);
+            Alert.alert('Error', error.message || 'Could not convert quote to invoice.');
         }
     };
 
@@ -361,6 +234,12 @@ export default function QuoteDetailScreen() {
                     {quote.status !== 'accepted' && (
                         <TouchableOpacity style={styles.successButton} onPress={handleStartWork}>
                             <Text style={styles.successButtonText}>Accept Quote & Start Work</Text>
+                        </TouchableOpacity>
+                    )}
+
+                    {quote.status === 'accepted' && (
+                        <TouchableOpacity style={styles.secondaryButton} onPress={handleConvertToInvoice}>
+                            <Text style={styles.secondaryButtonText}>Convert to Invoice</Text>
                         </TouchableOpacity>
                     )}
                 </View>

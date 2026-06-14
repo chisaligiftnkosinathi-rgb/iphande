@@ -17,6 +17,8 @@ from src.schemas.quote_to_cash_schema import (
 )
 from src.services.continuity_event_service import emit_continuity_event
 from src.services.transition_audit_service import audit_transition
+from src.services.verification_service import require_verified_steward
+from src.models.profile import Profile
 
 
 router = APIRouter(prefix="/api/v1/quotes", tags=["quotes"])
@@ -24,6 +26,9 @@ router = APIRouter(prefix="/api/v1/quotes", tags=["quotes"])
 
 @router.post("", response_model=QuoteOut)
 def create_quote(payload: QuoteCreate, db: Session = Depends(get_db)):
+    profile = db.query(Profile).filter(Profile.id == payload.business_owner_id).first()
+    require_verified_steward(profile)
+
     quote_id = uuid.uuid4()
 
     try:
@@ -117,6 +122,9 @@ def create_quote(payload: QuoteCreate, db: Session = Depends(get_db)):
 
 @router.get("/business/{business_owner_id}", response_model=list[QuoteOut])
 def list_quotes_for_business(business_owner_id: str, db: Session = Depends(get_db)):
+    profile = db.query(Profile).filter(Profile.id == business_owner_id).first()
+    require_verified_steward(profile)
+
     return (
         db.query(Quote)
         .filter(Quote.business_owner_id == business_owner_id)

@@ -15,6 +15,7 @@ export default function AccountSettingsScreen() {
     const [phone, setPhone] = useState(profile?.phone || '');
     const [whatsapp, setWhatsapp] = useState(profile?.whatsapp_number || profile?.whatsapp || '');
     const [location, setLocation] = useState(profile?.operating_area || profile?.location || '');
+    const [companyLogoUrl, setCompanyLogoUrl] = useState(profile?.company_logo_url || profile?.logo_url || '');
     const [saving, setSaving] = useState(false);
 
     const handleSave = async () => {
@@ -28,7 +29,8 @@ export default function AccountSettingsScreen() {
                 name: name.trim(), 
                 phone: phone.trim(),
                 whatsapp_number: whatsapp.trim(),
-                operating_area: location.trim()
+                operating_area: location.trim(),
+                company_logo_url: companyLogoUrl.trim()
             });
             await refreshProfile();
             Alert.alert("Success", "Profile updated successfully.", [
@@ -98,6 +100,18 @@ export default function AccountSettingsScreen() {
                             onChangeText={setWhatsapp}
                             placeholder="e.g. +27821234567"
                             keyboardType="phone-pad"
+                        />
+                    </View>
+
+                    <View style={styles.fieldGroup}>
+                        <Text style={styles.label}>Company Logo URL (optional)</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={companyLogoUrl}
+                            onChangeText={setCompanyLogoUrl}
+                            placeholder="https://example.com/logo.png"
+                            autoCapitalize="none"
+                            keyboardType="url"
                         />
                     </View>
 

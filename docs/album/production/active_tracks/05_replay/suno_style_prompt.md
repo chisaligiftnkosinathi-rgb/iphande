@@ -1,0 +1,3 @@
+# Suno Style Prompt — IPH-005
+
+Sacred cinematic African memorial track with reflective spoken-word atmosphere. Slow ambient piano, soft tape textures, restrained choir layers, distant wind ambience, emotional breathing room, and documentary realism. The song should feel deeply reflective, reverent, and emotionally spacious. Themes of memory, continuity, truthful archives, preserved journeys, and human remembrance. No commercial energy. No dramatic percussion. No motivational performance style. Preserve silence, restraint, warmth, humility, and sacred emotional pacing. The emotional feeling should be: walking carefully through preserved human memory.

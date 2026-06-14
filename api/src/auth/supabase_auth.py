@@ -17,7 +17,7 @@ def _get_jwks_client() -> PyJWKClient:
     return _jwks_client
 
 
-async def get_current_firebase_user(authorization: str | None = Header(default=None)):
+async def get_current_user(authorization: str | None = Header(default=None)):
     """
     Validates the Supabase JWT.
     Supports ES256 (ECDSA via JWKS) and HS256 (symmetric secret).
@@ -80,3 +80,6 @@ async def get_current_firebase_user(authorization: str | None = Header(default=N
     except Exception as e:
         print(f"AUTH FAIL (unexpected): {type(e).__name__}: {e}")
         raise HTTPException(status_code=401, detail="Authentication failed")
+
+# Temporary alias for backward compatibility until all routes are updated
+get_current_firebase_user = get_current_user

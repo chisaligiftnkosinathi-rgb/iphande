@@ -1,0 +1,3 @@
+# Suno Style Prompt — IPH-006
+
+Restrained, prayerful, and tense cinematic African memorial track. Minimal piano, soft heartbeat textures, quiet wind, subtle choir layers, and emotionally honest spoken-word narration. The song should feel vulnerable, spiritually honest, and quietly tense. Themes of internal drift, moral pressure, exhaustion, compromise, and the cost of protecting truth. No dramatic percussion. No cinematic explosion. No rage or collapse. Preserve restraint, silence, warmth, humility, and prayerful tension. The emotional feeling should be: someone trying carefully not to lose themselves under pressure.

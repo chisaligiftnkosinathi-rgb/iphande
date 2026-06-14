@@ -4,10 +4,11 @@ import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View,
 import { fetchWithAuth } from '../../src/config/api';
 import { useSteward } from '../../src/context/StewardContext';
 import { PageHeader } from '../../src/components/PageHeader';
+import { FeatureLockedCard } from '../../src/components/FeatureLockedCard';
 
 export default function KMTrackerScreen() {
     const router = useRouter();
-    const { profile } = useSteward();
+    const { profile, canAccess } = useSteward();
     const [loading, setLoading] = useState(false);
 
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -83,6 +84,25 @@ export default function KMTrackerScreen() {
             setLoading(false);
         }
     };
+
+    if (!canAccess("expenses")) {
+        return (
+            <ScrollView style={styles.container}>
+                <PageHeader 
+                    eyebrow="Steward Tools" 
+                    title="KM Tracker" 
+                    subtitle="Track business trips and travel evidence securely." 
+                />
+                <View style={styles.content}>
+                    <FeatureLockedCard 
+                        featureName="Travel & Expenses" 
+                        description="Log travel kilometers for tax deductions and accurate job costing."
+                        packName="Business Pack" 
+                    />
+                </View>
+            </ScrollView>
+        );
+    }
 
     return (
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>

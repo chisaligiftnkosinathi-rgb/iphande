@@ -13,6 +13,7 @@ export default function ExpensesScreen() {
     const [expenses, setExpenses] = useState<ExpenseOut[]>([]);
     const [summary, setSummary] = useState<ExpenseSummaryOut | null>(null);
     const [loading, setLoading] = useState(true);
+    const [fetchError, setFetchError] = useState(false);
 
     const loadData = async () => {
         if (!session?.user?.id) return;
@@ -24,8 +25,10 @@ export default function ExpensesScreen() {
             ]);
             setExpenses(exps);
             setSummary(summ);
+            setFetchError(false);
         } catch (error) {
             console.error(error);
+            setFetchError(true);
         } finally {
             setLoading(false);
         }
@@ -52,6 +55,13 @@ export default function ExpensesScreen() {
             
             {loading ? (
                 <ActivityIndicator size="large" color="#000" style={{ marginTop: 50 }} />
+            ) : fetchError ? (
+                <View style={styles.errorContainer}>
+                    <Text style={styles.errorText}>Unable to load expenses.</Text>
+                    <TouchableOpacity style={styles.retryButton} onPress={loadData}>
+                        <Text style={styles.retryButtonText}>Retry</Text>
+                    </TouchableOpacity>
+                </View>
             ) : (
                 <>
                     {summary && (
@@ -127,5 +137,9 @@ const styles = StyleSheet.create({
     expenseAmount: { fontSize: 16, fontWeight: "bold", color: "#D32F2F" },
     expenseDesc: { fontSize: 14, color: "#666", marginBottom: 8 },
     expenseDate: { fontSize: 12, color: "#999" },
-    emptyText: { textAlign: "center", color: "#666", marginTop: 20 }
+    emptyText: { textAlign: "center", color: "#666", marginTop: 20 },
+    errorContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+    errorText: { fontSize: 16, fontWeight: "bold", color: "#333", marginBottom: 12 },
+    retryButton: { backgroundColor: "#000", paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
+    retryButtonText: { color: "#fff", fontWeight: "bold" },
 });

@@ -2,11 +2,14 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../../src/context/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function RegisterScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
 
@@ -30,15 +33,19 @@ export default function RegisterScreen() {
             await signUp(email, password);
             router.replace('/activation');
         } catch (error: any) {
-            console.error("Firebase Registration Error:", error);
+            console.error("Supabase Registration Error:", error);
 
             let friendlyMessage = "An unexpected error occurred. Please try again.";
-            if (error.code === 'auth/email-already-in-use') {
+            
+            // Handle Supabase error codes or messages
+            if (error.message?.includes('already registered') || error.code === 'user_already_exists') {
                 friendlyMessage = "This email already belongs to a steward. Please sign in instead.";
-            } else if (error.code === 'auth/invalid-email') {
+            } else if (error.message?.includes('invalid email') || error.message?.includes('email format')) {
                 friendlyMessage = "Please enter a valid email address.";
-            } else if (error.code === 'auth/weak-password') {
+            } else if (error.message?.includes('password') || error.code === 'weak_password') {
                 friendlyMessage = "Your password must be at least 6 characters long.";
+            } else if (error.message) {
+                friendlyMessage = error.message; // Let the actual Supabase message show (e.g., Database error saving new user)
             }
             setErrorMessage(friendlyMessage);
         } finally {
@@ -54,8 +61,34 @@ export default function RegisterScreen() {
 
             <View style={styles.form}>
                 <TextInput style={styles.input} placeholder="Email Address" placeholderTextColor="#9CA3AF" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
-                <TextInput style={styles.input} placeholder="Password" placeholderTextColor="#9CA3AF" value={password} onChangeText={setPassword} secureTextEntry />
-                <TextInput style={styles.input} placeholder="Confirm Password" placeholderTextColor="#9CA3AF" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry />
+                
+                <View style={styles.passwordContainer}>
+                    <TextInput 
+                        style={styles.passwordInput} 
+                        placeholder="Password" 
+                        placeholderTextColor="#9CA3AF" 
+                        value={password} 
+                        onChangeText={setPassword} 
+                        secureTextEntry={!showPassword} 
+                    />
+                    <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+                        <Ionicons name={showPassword ? "eye-off" : "eye"} size={24} color="#9CA3AF" />
+                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.passwordContainer}>
+                    <TextInput 
+                        style={styles.passwordInput} 
+                        placeholder="Confirm Password" 
+                        placeholderTextColor="#9CA3AF" 
+                        value={confirmPassword} 
+                        onChangeText={setConfirmPassword} 
+                        secureTextEntry={!showConfirmPassword} 
+                    />
+                    <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={styles.eyeIcon}>
+                        <Ionicons name={showConfirmPassword ? "eye-off" : "eye"} size={24} color="#9CA3AF" />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
@@ -67,6 +100,15 @@ export default function RegisterScreen() {
             >
                 <Text style={styles.primaryButtonText}>
                     {loading ? "Creating Account..." : "Create Account"}
+                </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+                style={styles.switchButton} 
+                onPress={() => router.push('/auth/login')}
+            >
+                <Text style={styles.switchButtonText}>
+                    Already have an account? <Text style={styles.switchButtonTextBold}>Login</Text>
                 </Text>
             </TouchableOpacity>
         </View>
@@ -128,5 +170,34 @@ const styles = StyleSheet.create({
     },
     buttonDisabled: {
         opacity: 0.7,
+    },
+    switchButton: {
+        marginTop: 24,
+        alignItems: 'center',
+    },
+    switchButtonText: {
+        color: '#4B5563',
+        fontSize: 14,
+    },
+    switchButtonTextBold: {
+        color: '#111827',
+        fontWeight: '700',
+    },
+    passwordContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F9FAFB',
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        borderRadius: 8,
+    },
+    passwordInput: {
+        flex: 1,
+        padding: 16,
+        fontSize: 16,
+        color: '#111827',
+    },
+    eyeIcon: {
+        padding: 16,
     },
 });

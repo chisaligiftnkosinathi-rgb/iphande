@@ -1,0 +1,3 @@
+# Suno Style Prompt — IPH-001
+
+Cinematic African storytelling ballad with spiritual documentary atmosphere. Emotional and deeply human. Soft piano intro, distant township ambience, subtle African percussion, warm ambient textures, restrained cinematic bass, emotional choir layers, spoken-word realism, child voice innocence blended with mature reflective narration. The song should feel like memory, pressure, survival, hope, and destiny awakening slowly. No trap-heavy drums. No commercial pop hype. No exaggerated vocal flexing. Preserve breathing room, sincerity, warmth, emotional realism, and grounded African atmosphere. The emotional feeling should be: carrying dreams larger than your environment while remaining humble and human.

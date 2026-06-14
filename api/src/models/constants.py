@@ -45,3 +45,11 @@ class ContinuityEventType(str, Enum):
     ENTITY_CREATED = "entity_created"
     ENTITY_UPDATED = "entity_updated"
     ENTITY_DELETED = "entity_deleted"
+
+PLAN_FEATURES = {
+    "free": ["profile", "visibility", "leads", "opportunities"],
+    "verified_once_off": ["verified_badge"],
+    "documents": ["quotes", "invoices", "receipts", "pdf_downloads"],
+    "continuity": ["proof_of_work", "timeline_evidence", "replay"],
+    "business": ["verified_badge", "quotes", "invoices", "receipts", "proof_of_work", "expenses", "inventory", "reports", "export"]
+}

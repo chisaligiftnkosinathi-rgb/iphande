@@ -16,7 +16,7 @@ export default function TimelineScreen() {
         try {
             const data = await fetchWithAuth(`/continuity-events/business/${profile?.id}`);
             const captureEvents = (data || [])
-                .filter((event: any) => event.related_entity_type === "continuity_capture" || event.related_entity_type === "quote")
+                .filter((event: any) => !['system_event'].includes(event.event_type)) // filter out noise
                 .sort((a: any, b: any) =>
                     new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
                 );
@@ -45,15 +45,23 @@ export default function TimelineScreen() {
         });
     };
 
-    const getDotStyle = (type: string) => {
-        if (type === 'Work Completed') return styles.timelineDotCompleted;
-        if (type === 'Observation') return styles.timelineDotObservation;
-        return styles.timelineDotNeutral;
+    const getDotStyle = (eventType: string, entityType: string) => {
+        if (entityType === 'quote') return styles.timelineDotQuote; // Orange
+        if (entityType === 'expense') return styles.timelineDotExpense; // Purple
+        if (entityType === 'opportunity') return styles.timelineDotOpportunity; // Pink
+        if (entityType === 'quote_request') return styles.timelineDotRequest; // Blue
+        if (eventType === 'Work Completed' || eventType === 'proof_of_work') return styles.timelineDotCompleted; // Green
+        if (eventType === 'Observation') return styles.timelineDotObservation; // Light Blue
+        return styles.timelineDotNeutral; // Gray
     };
 
     const visibleEvents = events.filter(
         (event) => !hiddenEventIds.includes(event.id)
     );
+
+    const quotesCount = events.filter(e => e.related_entity_type === 'quote').length;
+    const completedCount = events.filter(e => e.payload_json?.capture_type === 'Work Completed' || e.event_type === 'work_completed').length;
+    const expensesCount = events.filter(e => e.related_entity_type === 'expense').length;
 
     return (
         <ScrollView
@@ -67,6 +75,30 @@ export default function TimelineScreen() {
             </View>
 
             <View style={styles.section}>
+                {!loading && events.length > 0 && (
+                    <View style={styles.summaryCard}>
+                        <Text style={styles.summaryTitle}>Work Remembered</Text>
+                        <View style={styles.summaryGrid}>
+                            <View style={styles.summaryItem}>
+                                <Text style={styles.summaryValue}>{events.length}</Text>
+                                <Text style={styles.summaryLabel}>Entries</Text>
+                            </View>
+                            <View style={styles.summaryItem}>
+                                <Text style={styles.summaryValue}>{quotesCount}</Text>
+                                <Text style={styles.summaryLabel}>Quotes</Text>
+                            </View>
+                            <View style={styles.summaryItem}>
+                                <Text style={styles.summaryValue}>{completedCount}</Text>
+                                <Text style={styles.summaryLabel}>Completed</Text>
+                            </View>
+                            <View style={styles.summaryItem}>
+                                <Text style={styles.summaryValue}>{expensesCount}</Text>
+                                <Text style={styles.summaryLabel}>Expenses</Text>
+                            </View>
+                        </View>
+                    </View>
+                )}
+
                 {loading && events.length === 0 ? (
                     <ActivityIndicator size="large" color="#111827" style={{ marginTop: 40 }} />
                 ) : visibleEvents.length === 0 ? (
@@ -89,15 +121,17 @@ export default function TimelineScreen() {
                             return (
                                 <View key={event.id || index} style={styles.timelineItem}>
                                     {!isLast && <View style={styles.timelineLine} />}
-                                    <View style={styles.timelineDotQuote} />
+                                    <View style={getDotStyle(event.event_type, event.related_entity_type)} />
                                     <View style={styles.timelineContent}>
                                         <Text style={styles.dateText}>{formatDate(event.created_at)}</Text>
-                                        <Text style={styles.eventTitle}>Quote Issued</Text>
+                                        <Text style={styles.eventTitle}>{event.event_type === 'quote_issued' ? 'Quote Issued' : 'Quote Drafted'}</Text>
                                         
-                                        <View style={styles.quoteDetailsContainer}>
-                                            <Text style={styles.quoteDetailLabel}>Customer:</Text>
-                                            <Text style={styles.quoteDetailValue}>{payload.customer_name || 'Unknown'}</Text>
-                                        </View>
+                                        {payload.customer_name && payload.customer_name !== 'Unknown' && (
+                                            <View style={styles.quoteDetailsContainer}>
+                                                <Text style={styles.quoteDetailLabel}>Customer:</Text>
+                                                <Text style={styles.quoteDetailValue}>{payload.customer_name}</Text>
+                                            </View>
+                                        )}
                                         
                                         {payload.service_description ? (
                                             <View style={styles.quoteDetailsContainer}>
@@ -135,9 +169,11 @@ export default function TimelineScreen() {
                                              );
                                          })()}
 
-                                        <View style={styles.quoteSummaryRow}>
-                                            <Text style={styles.quoteSummaryText}>{itemsSummary}</Text>
-                                        </View>
+                                        {totalAmount > 0 && (
+                                            <View style={styles.quoteSummaryRow}>
+                                                <Text style={styles.quoteSummaryText}>{itemsSummary}</Text>
+                                            </View>
+                                        )}
 
                                         <TouchableOpacity
                                             style={styles.hideButton}
@@ -150,21 +186,30 @@ export default function TimelineScreen() {
                             );
                         }
 
-                        const captureType = payload.capture_type || "Event";
+                        const captureType = payload.capture_type || 'Event';
+                        let title = captureType !== "Event" ? `${captureType}: ${payload.title || "Untitled"}` : "Timeline Event";
+                        let description = payload.description || "";
+
+                        if (event.event_type === "expense_recorded") {
+                            title = "Expense Recorded";
+                            description = `${payload.category} • R${payload.amount}\n${payload.description || ''}`;
+                        } else if (event.event_type === "opportunity_quoted") {
+                            title = "Replied to Opportunity";
+                            description = "You submitted a quote for this opportunity.";
+                        } else if (event.event_type === "quote_request_received") {
+                            title = "Lead Received";
+                            description = `${payload.customer_name} requested a quote for ${payload.service_needed}`;
+                        }
 
                         return (
                             <View key={event.id || index} style={styles.timelineItem}>
                                 {!isLast && <View style={styles.timelineLine} />}
-                                <View style={getDotStyle(captureType)} />
+                                <View style={getDotStyle(event.event_type || captureType, event.related_entity_type)} />
                                 <View style={styles.timelineContent}>
                                     <Text style={styles.dateText}>{formatDate(event.created_at)}</Text>
-                                    <Text style={styles.eventTitle}>
-                                        {captureType}: {payload.title || "Untitled"}
-                                    </Text>
-                                    {payload.description ? (
-                                        <Text style={styles.eventDescription}>
-                                            {payload.description}
-                                        </Text>
+                                    <Text style={styles.eventTitle}>{title}</Text>
+                                    {description ? (
+                                        <Text style={styles.eventDescription}>{description}</Text>
                                     ) : null}
 
                                     <View style={styles.actionRow}>
@@ -239,34 +284,32 @@ const styles = StyleSheet.create({
         backgroundColor: '#E5E7EB',
     },
     timelineDotCompleted: {
-        width: 16,
-        height: 16,
-        borderRadius: 8,
-        backgroundColor: '#10B981', // Green for completed/success
-        marginTop: 4,
-        marginRight: 16,
-        borderWidth: 3,
-        borderColor: '#D1FAE5',
+        width: 16, height: 16, borderRadius: 8, marginTop: 4, marginRight: 16, borderWidth: 3,
+        backgroundColor: '#10B981', borderColor: '#D1FAE5',
     },
     timelineDotNeutral: {
-        width: 16,
-        height: 16,
-        borderRadius: 8,
-        backgroundColor: '#9CA3AF', // Gray for standard events
-        marginTop: 4,
-        marginRight: 16,
-        borderWidth: 3,
-        borderColor: '#F3F4F6',
+        width: 16, height: 16, borderRadius: 8, marginTop: 4, marginRight: 16, borderWidth: 3,
+        backgroundColor: '#9CA3AF', borderColor: '#F3F4F6',
     },
     timelineDotObservation: {
-        width: 16,
-        height: 16,
-        borderRadius: 8,
-        backgroundColor: '#3B82F6', // Blue for observation
-        marginTop: 4,
-        marginRight: 16,
-        borderWidth: 3,
-        borderColor: '#DBEAFE',
+        width: 16, height: 16, borderRadius: 8, marginTop: 4, marginRight: 16, borderWidth: 3,
+        backgroundColor: '#3B82F6', borderColor: '#DBEAFE',
+    },
+    timelineDotQuote: {
+        width: 16, height: 16, borderRadius: 8, marginTop: 4, marginRight: 16, borderWidth: 3,
+        backgroundColor: '#F59E0B', borderColor: '#FEF3C7', // Orange
+    },
+    timelineDotExpense: {
+        width: 16, height: 16, borderRadius: 8, marginTop: 4, marginRight: 16, borderWidth: 3,
+        backgroundColor: '#8B5CF6', borderColor: '#EDE9FE', // Purple
+    },
+    timelineDotOpportunity: {
+        width: 16, height: 16, borderRadius: 8, marginTop: 4, marginRight: 16, borderWidth: 3,
+        backgroundColor: '#EC4899', borderColor: '#FCE7F3', // Pink
+    },
+    timelineDotRequest: {
+        width: 16, height: 16, borderRadius: 8, marginTop: 4, marginRight: 16, borderWidth: 3,
+        backgroundColor: '#06B6D4', borderColor: '#CFFAFE', // Cyan
     },
     timelineContent: {
         flex: 1,
@@ -318,16 +361,7 @@ const styles = StyleSheet.create({
         color: '#6B7280',
         marginTop: 40,
     },
-    timelineDotQuote: {
-        width: 16,
-        height: 16,
-        borderRadius: 8,
-        backgroundColor: '#10B981',
-        marginTop: 4,
-        marginRight: 16,
-        borderWidth: 3,
-        borderColor: '#D1FAE5',
-    },
+
     quoteDetailsContainer: {
         flexDirection: 'row',
         marginBottom: 4,
@@ -381,5 +415,39 @@ const styles = StyleSheet.create({
         fontSize: 13,
         color: '#4B5563',
         lineHeight: 18,
+    },
+    summaryCard: {
+        backgroundColor: '#FFFFFF',
+        padding: 20,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        marginBottom: 32,
+    },
+    summaryTitle: {
+        fontSize: 14,
+        fontWeight: '800',
+        color: '#9CA3AF',
+        textTransform: 'uppercase',
+        letterSpacing: 1.2,
+        marginBottom: 16,
+    },
+    summaryGrid: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    summaryItem: {
+        alignItems: 'center',
+    },
+    summaryValue: {
+        fontSize: 24,
+        fontWeight: '800',
+        color: '#111827',
+        marginBottom: 4,
+    },
+    summaryLabel: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#6B7280',
     },
 });

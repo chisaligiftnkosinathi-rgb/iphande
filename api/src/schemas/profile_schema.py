@@ -28,6 +28,7 @@ class ProfileCreate(BaseModel):
     languages: Optional[str] = None
     trust_posture: Optional[str] = None
     logo_url: Optional[str] = None
+    company_logo_url: Optional[str] = None
     cover_photo_url: Optional[str] = None
     supporting_image_urls: Optional[Union[List[str], str]] = None
     proof_of_work_items: Optional[str] = None
@@ -67,6 +68,7 @@ class ProfileUpdate(BaseModel):
     trust_posture: Optional[str] = None
     is_public: Optional[bool] = None
     logo_url: Optional[str] = None
+    company_logo_url: Optional[str] = None
     cover_photo_url: Optional[str] = None
     supporting_image_urls: Optional[Union[List[str], str]] = None
     proof_of_work_items: Optional[str] = None
@@ -104,6 +106,7 @@ class ProfileOut(BaseModel):
     languages: Optional[str] = None
     trust_posture: Optional[str] = None
     logo_url: Optional[str] = None
+    company_logo_url: Optional[str] = None
     cover_photo_url: Optional[str] = None
     supporting_image_urls: Optional[Union[List[str], str]] = None
     proof_of_work_items: Optional[str] = None
@@ -118,13 +121,21 @@ class ProfileOut(BaseModel):
     referral_code: Optional[str] = None
     referred_by_code: Optional[str] = None
 
+    plan_code: Optional[str] = "free"
+    subscription_active: Optional[bool] = True
+    role: Optional[str] = "steward"
+    allowed_features: Optional[List[str]] = []
+
     model_config = ConfigDict(from_attributes=True)
 
     @classmethod
     def from_orm_with_privacy(cls, obj):
         # Only expose lat/lon if location_is_public
-        base = cls.from_orm(obj)
+        base = cls.model_validate(obj) if hasattr(cls, 'model_validate') else cls.from_orm(obj)
         if not getattr(obj, "location_is_public", False):
             base.latitude = None
             base.longitude = None
+        
+        from src.models.constants import PLAN_FEATURES
+        base.allowed_features = PLAN_FEATURES.get(getattr(obj, "plan_code", "free"), [])
         return base

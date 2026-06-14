@@ -9,6 +9,8 @@ from src.models.quote import Quote, QuoteStatus
 from src.schemas.quote_to_cash_schema import InvoiceOut
 from src.services.continuity_event_service import emit_continuity_event
 from src.services.transition_audit_service import audit_transition
+from src.services.verification_service import require_verified_steward
+from src.models.profile import Profile
 
 
 router = APIRouter(prefix="/api/v1/invoices", tags=["invoices"])
@@ -19,6 +21,10 @@ def create_invoice_from_quote(quote_id: UUID, db: Session = Depends(get_db)):
     quote = db.query(Quote).filter(Quote.id == quote_id).first()
     if not quote:
         raise HTTPException(status_code=404, detail="Quote not found")
+        
+    profile = db.query(Profile).filter(Profile.id == quote.business_owner_id).first()
+    require_verified_steward(profile)
+
     if quote.status != QuoteStatus.accepted:
         raise HTTPException(status_code=409, detail="Only accepted quotes can become invoices")
 

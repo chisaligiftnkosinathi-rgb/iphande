@@ -1,0 +1,31 @@
+Observation date: 2026-06-01
+Search scope: mobile/** (application boundary)
+Pattern: \\?\\. | \\?\\?
+Tool: workspace regex search
+
+Result summary:
+- 133 matches found (tool output capped).
+- Matches exist across app code and UI/theme code.
+
+Representative evidence paths:
+- mobile/src/config/api.ts
+- mobile/src/auth/AuthContext.tsx
+- mobile/src/services/apiClient.ts
+- mobile/screens/GraphReplayScreen.tsx
+- mobile/screens/MoreScreen.tsx
+- mobile/screens/OnboardingScreen.tsx
+- mobile/screens/ProfileScreen.tsx
+- mobile/components/ui/ContinuityMeta.tsx
+- mobile/components/ui/WisdomCard.tsx
+- mobile/components/ui/TruthCard.tsx
+
+Representative evidence lines:
+- mobile/src/config/api.ts:8 -> (Constants.expoConfig?.extra as ExtraConfig) || {}
+- mobile/src/config/api.ts:11 -> extra.apiBaseUrl?.trim() ||
+- mobile/screens/MoreScreen.tsx:90 -> backendCapabilities ??
+- mobile/screens/MoreScreen.tsx:91 -> capabilitiesByBusinessType[...] ??
+- mobile/src/services/apiClient.ts:77 -> Array.isArray(errorJson?.detail)
+
+Interpretation boundary:
+- Presence of optional chaining/nullish syntax is confirmed.
+- Presence alone does not prove root cause; runtime path evidence is still required.

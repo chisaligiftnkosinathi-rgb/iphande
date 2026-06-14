@@ -1,0 +1,3 @@
+tsc_exit_code=0
+---
+No TypeScript compile errors emitted.

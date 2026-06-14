@@ -1,0 +1,3 @@
+# Suno Style Prompt — IPH-003
+
+Cinematic African spiritual documentary track with reflective spoken-word atmosphere. Soft piano, restrained ambient electronics, warm choir textures, distant city ambience, subtle typing and digital textures blended with deeply human emotional realism. The song should feel mournful yet compassionate, exploring the tension between human dignity and algorithmic visibility. Preserve warmth, breathing room, emotional sincerity, humility, and documentary realism. No aggressive trap drums. No commercial motivational energy. No futuristic domination aesthetics. The emotional feeling should be: realizing that systems measured attention but failed to measure love, sacrifice, and ordinary human dignity.

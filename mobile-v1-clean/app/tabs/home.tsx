@@ -124,10 +124,12 @@ export default function HomeScreen() {
                             <Link key={idx} href={action.route as any} asChild>
                                 <TouchableOpacity style={StyleSheet.flatten([styles.planActionRow, idx < finalPlan.length - 1 && styles.planActionDivider])}>
                                     <View style={styles.planActionLeft}>
-                                        <Text style={styles.planActionNumber}>{idx + 1}.</Text>
+                                        <View style={styles.planActionNumberContainer}>
+                                            <Text style={styles.planActionNumber}>{idx + 1}</Text>
+                                        </View>
                                         <Text style={styles.planActionTitle}>{action.title}</Text>
                                     </View>
-                                    <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+                                    <Ionicons name="arrow-forward" size={18} color="#9CA3AF" />
                                 </TouchableOpacity>
                             </Link>
                         ))}
@@ -163,28 +165,35 @@ export default function HomeScreen() {
                 </View>
             </View>
 
-            {/* Steward Tools Groups */}
+            {/* Steward Console Grid */}
             <View style={styles.section}>
-                {renderToolGroup("Capture Truth", [
-                    { name: "Continuity Ledger", desc: "Record what happened before it gets lost", icon: "book-outline", route: "/tools/notebook" },
-                    { name: "Proof of Work", desc: "Record completed work and customer outcomes", icon: "checkmark-circle-outline", route: "/tools/proof-of-work" }
-                ])}
-                
-                {renderToolGroup("Plan Work", [
-                    { name: "Quote Builder", desc: "Prepare quick service quotes", icon: "calculator-outline", route: "/tools/calculator" },
-                    { name: "KM Tracker", desc: "Track business trips and travel evidence", icon: "car-outline", route: "/tools/km-tracker" },
-                    { name: "Inventory Tracker", desc: "Record materials, stock, and costs", icon: "cube-outline", route: "/tools/inventory-tracker" },
-                    { name: "Expense Tracker", desc: "Track business expenses and view summaries", icon: "receipt-outline", route: "/expenses" }
-                ])}
-
-                {renderToolGroup("Preserve Documents", [
-                    { name: "Documents Tracker", desc: "View saved quotes and business documents", icon: "folder-outline", route: "/tools/documents" }
-                ])}
-
-                {renderToolGroup("Grow & Share", [
-                    { name: "Opportunities", desc: "Find work and community ads", icon: "megaphone-outline", route: "/tabs/index" },
-                    { name: "Referral Program", desc: "Invite stewards and earn rewards", icon: "gift-outline", route: "/tools/referrals" }
-                ])}
+                <View style={styles.groupContainer}>
+                    <Text style={styles.groupTitle}>Steward Console</Text>
+                    <View style={[styles.grid, isWide && styles.gridWide]}>
+                        {[
+                            { name: "Today", desc: "Your business summary", icon: "today-outline", route: "/tabs/index" },
+                            { name: "Leads", desc: "New and active requests", icon: "people-outline", route: "/tabs/leads" },
+                            { name: "Quotes", desc: "Draft and sent proposals", icon: "calculator-outline", route: "/tools/calculator" },
+                            { name: "Invoices", desc: "Awaiting payment", icon: "receipt-outline", route: "/tools/documents" },
+                            { name: "Receipts", desc: "Payment evidence", icon: "checkmark-done-outline", route: "/tools/documents" },
+                            { name: "Expenses", desc: "Business spending", icon: "wallet-outline", route: "/expenses" },
+                            { name: "Inventory", desc: "Materials and stock", icon: "cube-outline", route: "/tools/inventory-tracker" },
+                            { name: "Proof of Work", desc: "Completed jobs", icon: "camera-outline", route: "/tools/proof-of-work" },
+                            { name: "Documents", desc: "All PDFs and records", icon: "folder-outline", route: "/tools/documents" },
+                            { name: "Timeline", desc: "Activity memory ledger", icon: "list-outline", route: "/tabs/timeline" }
+                        ].map((tool, idx) => (
+                            <Link key={idx} href={tool.route as any} asChild>
+                                <TouchableOpacity style={StyleSheet.flatten([styles.toolCard, isWide && styles.toolCardWide])}>
+                                    <Ionicons name={tool.icon as any} size={22} color="#6B7280" style={styles.toolIcon} />
+                                    <View style={styles.toolTextContent}>
+                                        <Text style={styles.toolTitle}>{tool.name}</Text>
+                                        <Text style={styles.toolDescription}>{tool.desc}</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            </Link>
+                        ))}
+                    </View>
+                </View>
             </View>
         </ScrollView>
     );
@@ -231,24 +240,20 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     planBox: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#111827',
         padding: 20,
         borderRadius: 16,
-        borderWidth: 1,
-        borderColor: '#F3F4F6',
-        borderLeftWidth: 4,
-        borderLeftColor: '#111827',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.03,
-        shadowRadius: 3,
-        elevation: 1,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 3,
     },
     planLabel: {
-        fontSize: 11,
+        fontSize: 12,
         fontWeight: '800',
         color: '#9CA3AF',
-        marginBottom: 12,
+        marginBottom: 16,
         letterSpacing: 1.5,
         textTransform: 'uppercase',
     },
@@ -259,28 +264,35 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingVertical: 12,
+        paddingVertical: 14,
     },
     planActionDivider: {
         borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
+        borderBottomColor: '#374151',
     },
     planActionLeft: {
         flexDirection: 'row',
         alignItems: 'center',
         flex: 1,
     },
-    planActionNumber: {
-        fontSize: 16,
-        fontWeight: '800',
-        color: '#9CA3AF',
+    planActionNumberContainer: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: '#F59E0B',
+        alignItems: 'center',
+        justifyContent: 'center',
         marginRight: 12,
-        width: 16,
+    },
+    planActionNumber: {
+        fontSize: 12,
+        fontWeight: '800',
+        color: '#111827',
     },
     planActionTitle: {
         fontSize: 16,
         fontWeight: '700',
-        color: '#111827',
+        color: '#FFFFFF',
         flex: 1,
     },
     snapshotGrid: {

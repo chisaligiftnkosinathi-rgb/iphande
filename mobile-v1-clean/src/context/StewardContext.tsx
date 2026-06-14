@@ -7,6 +7,7 @@ interface StewardContextType {
     profile: StewardProfile | null;
     isLoadingProfile: boolean;
     refreshProfile: () => Promise<void>;
+    canAccess: (feature: string) => boolean;
 }
 
 const StewardContext = createContext<StewardContextType | undefined>(undefined);
@@ -48,8 +49,15 @@ export function StewardProvider({ children }: { children: ReactNode }) {
         if (!isAuthLoading) fetchProfile();
     }, [user, isAuthLoading]);
 
+    const canAccess = (feature: string): boolean => {
+        if (!profile) return false;
+        if (profile.role === 'system_admin') return true;
+        if (!profile.allowed_features) return false;
+        return profile.allowed_features.includes(feature);
+    };
+
     return (
-        <StewardContext.Provider value={{ profile, isLoadingProfile, refreshProfile: fetchProfile }}>
+        <StewardContext.Provider value={{ profile, isLoadingProfile, refreshProfile: fetchProfile, canAccess }}>
             {children}
         </StewardContext.Provider>
     );
