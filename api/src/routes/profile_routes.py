@@ -503,7 +503,7 @@ class PaymentProofCreate(BaseModel):
     proof_url: str
 
 @router.post("/profiles/me/payment-proof")
-def submit_payment_proof(payload: PaymentProofCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+def submit_payment_proof(payload: PaymentProofCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_firebase_user)):
     uid = current_user.get("uid")
     profile = db.query(Profile).filter(Profile.owner_id == uid).first()
     if not profile:
@@ -517,7 +517,7 @@ def submit_payment_proof(payload: PaymentProofCreate, db: Session = Depends(get_
     return {"status": "success", "setup_fee_status": profile.setup_fee_status}
 
 @router.get("/profiles/me/payment-status")
-def get_payment_status(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+def get_payment_status(db: Session = Depends(get_db), current_user: dict = Depends(get_current_firebase_user)):
     uid = current_user.get("uid")
     profile = db.query(Profile).filter(Profile.owner_id == uid).first()
     if not profile:
