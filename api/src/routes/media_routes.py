@@ -1,74 +1,65 @@
-
-
-
-from fastapi import APIRouter, HTTPException, UploadFile, File
-from fastapi.responses import FileResponse
-from src.schemas.media_schema import MediaUploadOut
-from src.services.media_service import save_media_file, get_media_file_info
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
+from src.database import get_db, replay_transaction
+from src.auth.supabase_auth import get_current_user
+from src.schemas.media_schema import EvidenceUploadIn, MediaOut
+from src.models.media import Media
+from src.services.continuity_event_service import emit_continuity_event
 import os
 
 router = APIRouter()
 
-ALLOWED_TYPES = {
-    "image/jpeg": ".jpg",
-    "image/png": ".png",
-    "image/webp": ".webp",
+ALLOWED_BUCKETS = {
+    "profile-logos",
+    "business-documents",
+    "proof-of-work",
+    "payment-proofs"
 }
 
+@router.post("/media/evidence", response_model=MediaOut)
+def record_evidence(
+    payload: EvidenceUploadIn, 
+    db: Session = Depends(get_db), 
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Strict evidence preservation endpoint.
+    Frontend uploads to Supabase Storage, then sends the URL here.
+    """
+    if payload.bucket_name not in ALLOWED_BUCKETS:
+        raise HTTPException(status_code=400, detail=f"Invalid bucket. Allowed: {ALLOWED_BUCKETS}")
 
-@router.post("/media/upload", response_model=MediaUploadOut)
-async def upload_media(file: UploadFile = File(...)):
-    if file.content_type not in ALLOWED_TYPES:
-        raise HTTPException(status_code=415, detail="Unsupported media type")
-    media_info = await save_media_file(file)
-    return media_info
+    uid = current_user.get("uid")
 
+    with replay_transaction(db):
+        # Create Media DB record
+        db_media = Media(
+            owner_profile_id=payload.profile_id,
+            title=f"{payload.purpose} Evidence",
+            media_type=payload.bucket_name,
+            file_url=payload.public_url,
+            storage_provider="supabase",
+            storage_origin="human_device",
+            is_public=(payload.bucket_name == "profile-logos" or payload.bucket_name == "proof-of-work")
+        )
+        db.add(db_media)
+        db.flush()
 
-# Minimal media replay endpoint
-@router.get("/media/{media_id}")
-def get_media(media_id: str):
-    file_info = get_media_file_info(media_id)
-    if not file_info or not os.path.exists(file_info["path"]):
-        raise HTTPException(status_code=404, detail="Media not found")
-    return FileResponse(
-        file_info["path"],
-        media_type=file_info["content_type"],
-        filename=file_info["filename"]
-    )
+        # Emit ContinuityEvent for strict evidence
+        if payload.bucket_name in ["proof-of-work", "business-documents", "payment-proofs"]:
+            emit_continuity_event(
+                db=db,
+                business_owner_id=payload.profile_id,
+                business_category_key=None,
+                business_line=None,
+                event_type="evidence_captured",
+                actor_type="business_owner",
+                actor_id=payload.profile_id,
+                related_entity_type="media",
+                related_entity_id=db_media.id,
+                description=f"Captured {payload.purpose}",
+                opportunity_id=payload.opportunity_id,
+                quote_id=payload.quote_id
+            )
 
-# @router.post("/media/ingest", response_model=MediaOut)
-# async def ingest_media(
-#     file: UploadFile = File(...),
-#     owner_profile_id: str = Form(...),
-#     media_type: str = Form(...),
-#     source: str = Form("human_device"),
-#     allow_exif_processing: bool = Form(False),
-#     allow_location_extraction: bool = Form(False),
-#     db: Session = Depends(get_db)
-# ):
-#     with replay_transaction(db):
-#         db_media = Media(
-#             owner_profile_id=owner_profile_id,
-#             title=file.filename,
-#             media_type=media_type,
-#             file_url=f"/local/{file.filename}", # Placeholder for actual cloud storage path
-#             local_file_path=file.filename,
-#             storage_origin=source,
-#             storage_provider="local",
-#             allow_exif_processing=allow_exif_processing,
-#             allow_location_extraction=allow_location_extraction
-#         )
-#         db.add(db_media)
-#         db.flush()
-#
-#         event = emit_continuity_event(
-#             db,
-#             business_owner_id=owner_profile_id,
-#             business_category_key=None,
-#             business_line=None,
-#             event_type="media_ingested",
-#             actor_type="business_owner",
-#             actor_id=owner_profile_id,
-#             related_entity_type="media",
-
-#                 "surface": "media",
+        return db_media

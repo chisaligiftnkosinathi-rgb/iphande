@@ -13,6 +13,14 @@ from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
 
+class EvidenceUploadIn(BaseModel):
+    bucket_name: str
+    public_url: str
+    purpose: str
+    profile_id: str
+    opportunity_id: Optional[str] = None
+    quote_id: Optional[str] = None
+
 class MediaCreate(BaseModel):
     owner_profile_id: str
     title: str
