@@ -68,6 +68,70 @@ def handle_referral(db: Session, new_profile: Profile, referred_by_code: str):
     db.add(referral)
     db.flush()
 
+# ─── System Creator: permanent emergency key ─────────────────────────────────
+SYSTEM_CREATOR_EMAIL = "glegacey97@gmail.com"
+
+
+def _bootstrap_profile_internal(db: Session, uid: str, email: str) -> "Profile":
+    """Create a brand-new profile for an authenticated user who has none."""
+    from src.services.continuity_event_service import emit_continuity_event as _emit
+
+    with replay_transaction(db):
+        profile = Profile(
+            owner_id=uid,
+            email=email,
+            name=email.split("@")[0] if email else "Steward",
+            slug=uid,
+            setup_fee_status="pending",
+            is_public=False,
+        )
+        db.add(profile)
+        db.flush()
+
+        event = _emit(
+            db,
+            business_owner_id=str(profile.id),
+            business_category_key=profile.business_category_key,
+            business_line=profile.business_line,
+            event_type="profile_created",
+            actor_type="business_owner",
+            actor_id=str(profile.id),
+            related_entity_type="profile",
+            related_entity_id=str(profile.id),
+            parent_event_id=None,
+            payload={
+                "surface": "profile_self_heal",
+                "action": "created",
+                "profile_name": profile.name,
+                "profile_slug": profile.slug,
+                "summary_available": True,
+            },
+            auto_commit=False,
+        )
+        profile.continuity_event_id = str(event.id)
+        profile.referral_code = generate_referral_code(db, profile.slug)
+        db.flush()
+        db.refresh(profile)
+    return profile
+
+
+def _apply_system_creator_override(db: Session, profile: "Profile", email: str) -> None:
+    """If the email is the system creator, force approved / unblockable state."""
+    if email != SYSTEM_CREATOR_EMAIL:
+        return
+    needs_save = (
+        profile.setup_fee_status != "approved"
+        or profile.setup_fee_required != 0
+        or profile.trust_posture != "system_creator"
+    )
+    if needs_save:
+        profile.setup_fee_status = "approved"
+        profile.setup_fee_required = 0
+        profile.trust_posture = "system_creator"
+        db.commit()
+        db.refresh(profile)
+
+
 router = APIRouter()
 
 
@@ -165,58 +229,26 @@ def bootstrap_profile(db: Session = Depends(get_db), current_user: dict = Depend
     email = current_user.get("email")
 
     # Primary lookup: by current Supabase UID
-    existing_profile = db.query(Profile).filter(Profile.owner_id == uid).first()
-    if existing_profile:
-        return ProfileOut.from_orm_with_privacy(existing_profile)
+    profile = db.query(Profile).filter(Profile.owner_id == uid).first()
 
     # Fallback: adopt orphaned profile by email (covers auth migration / UID mismatch)
-    if email:
-        orphaned = db.query(Profile).filter(Profile.email == email).first()
-        if orphaned:
-            print(f"BOOTSTRAP: Adopting orphaned profile {orphaned.id} for uid={uid} email={email}")
-            orphaned.owner_id = uid
+    if not profile and email:
+        profile = db.query(Profile).filter(Profile.email == email).first()
+        if profile:
+            print(f"BOOTSTRAP: Adopting orphaned profile {profile.id} for uid={uid} email={email}")
+            profile.owner_id = uid
             db.commit()
-            db.refresh(orphaned)
-            return ProfileOut.from_orm_with_privacy(orphaned)
+            db.refresh(profile)
 
-    with replay_transaction(db):
-        db_profile = Profile(
-            owner_id=uid,
-            email=email,
-            name=email.split("@")[0] if email else "Steward",
-            slug=uid,  # Use UID as a safe, temporary unique slug
-            setup_fee_status="pending",
-            is_public=False
-        )
-        db.add(db_profile)
-        db.flush()
+    # Still missing? Create from scratch
+    if not profile:
+        print(f"BOOTSTRAP: Creating new profile for uid={uid} email={email}")
+        profile = _bootstrap_profile_internal(db, uid, email)
 
-        event = emit_continuity_event(
-            db,
-            business_owner_id=str(db_profile.id),
-            business_category_key=db_profile.business_category_key,
-            business_line=db_profile.business_line,
-            event_type="profile_created",
-            actor_type="business_owner",
-            actor_id=str(db_profile.id),
-            related_entity_type="profile",
-            related_entity_id=str(db_profile.id),
-            parent_event_id=None,
-            payload={
-                "surface": "profile_bootstrap",
-                "action": "created",
-                "profile_name": db_profile.name,
-                "profile_slug": db_profile.slug,
-                "summary_available": True,
-            },
-            auto_commit=False,
-        )
-        db_profile.continuity_event_id = str(event.id)
-        db_profile.referral_code = generate_referral_code(db, db_profile.slug)
-        db.flush()
-        db.refresh(db_profile)
+    # System creator override
+    _apply_system_creator_override(db, profile, email)
 
-    return ProfileOut.from_orm_with_privacy(db_profile)
+    return ProfileOut.from_orm_with_privacy(profile)
 
 
 @router.get("/profiles/me", response_model=ProfileOut)
@@ -224,10 +256,10 @@ def get_my_profile(db: Session = Depends(get_db), current_user: dict = Depends(g
     uid = current_user.get("uid")
     email = current_user.get("email")
 
-    # Primary lookup: by current Supabase UID
+    # 1. Primary lookup: by current Supabase UID
     profile = db.query(Profile).filter(Profile.owner_id == uid).first()
 
-    # Self-heal: if UID miss, find orphaned profile by email and re-link
+    # 2. Self-heal: adopt orphaned profile by email and re-link
     if not profile and email:
         profile = db.query(Profile).filter(Profile.email == email).first()
         if profile:
@@ -236,8 +268,13 @@ def get_my_profile(db: Session = Depends(get_db), current_user: dict = Depends(g
             db.commit()
             db.refresh(profile)
 
+    # 3. Still missing? Inline bootstrap — never return 404 to an authenticated user
     if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
+        print(f"PROFILE/ME: No profile found, bootstrapping for uid={uid} email={email}")
+        profile = _bootstrap_profile_internal(db, uid, email)
+
+    # 4. System creator override — always unblocked
+    _apply_system_creator_override(db, profile, email)
 
     return ProfileOut.from_orm_with_privacy(profile)
 
@@ -247,10 +284,10 @@ def update_my_profile(data: ProfileUpdate, db: Session = Depends(get_db), curren
     uid = current_user.get("uid")
     email = current_user.get("email")
 
-    # Primary lookup: by current Supabase UID
+    # 1. Primary lookup: by current Supabase UID
     profile = db.query(Profile).filter(Profile.owner_id == uid).first()
 
-    # Self-heal: if UID miss, find orphaned profile by email and re-link
+    # 2. Self-heal: adopt orphaned profile by email and re-link
     if not profile and email:
         profile = db.query(Profile).filter(Profile.email == email).first()
         if profile:
@@ -259,8 +296,10 @@ def update_my_profile(data: ProfileUpdate, db: Session = Depends(get_db), curren
             db.commit()
             db.refresh(profile)
 
+    # 3. Still missing? Inline bootstrap before applying updates
     if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
+        print(f"PROFILE/ME PATCH: No profile found, bootstrapping for uid={uid} email={email}")
+        profile = _bootstrap_profile_internal(db, uid, email)
 
     update_data = data.model_dump(exclude_unset=True) if hasattr(data, 'model_dump') else data.dict(exclude_unset=True)
 

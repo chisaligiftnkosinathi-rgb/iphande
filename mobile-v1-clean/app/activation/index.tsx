@@ -1,12 +1,14 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useAuth } from '../../src/context/AuthContext';
 import { useSteward } from '../../src/context/StewardContext';
 import { uploadPaymentProof } from '../../src/services/paymentProofUploadService';
 import { updateMe } from '../../src/services/stewardApi';
 
 export default function ActivationScreen() {
+    const router = useRouter();
     const { user } = useAuth();
     const { profile, refreshProfile } = useSteward();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -133,6 +135,13 @@ export default function ActivationScreen() {
             </View>
 
             {isPendingReview ? renderPendingReview() : renderForm()}
+
+            <TouchableOpacity
+                style={styles.dashboardButton}
+                onPress={() => router.replace('/tabs/home')}
+            >
+                <Text style={styles.dashboardButtonText}>Go to Dashboard →</Text>
+            </TouchableOpacity>
         </ScrollView>
     );
 }
@@ -193,5 +202,15 @@ const styles = StyleSheet.create({
     },
     secondaryButtonText: { color: '#111827', fontWeight: '700', fontSize: 16 },
     buttonDisabled: { opacity: 0.7 },
+    dashboardButton: {
+        padding: 16,
+        borderRadius: 12,
+        backgroundColor: '#FFFFFF',
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        alignItems: 'center',
+        marginTop: 24,
+    },
+    dashboardButtonText: { color: '#6B7280', fontWeight: '600', fontSize: 15 },
     bold: { fontWeight: '700', color: '#111827' },
 });
