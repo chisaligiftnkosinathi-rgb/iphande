@@ -81,5 +81,3 @@ async def get_current_user(authorization: str | None = Header(default=None)):
         print(f"AUTH FAIL (unexpected): {type(e).__name__}: {e}")
         raise HTTPException(status_code=401, detail="Authentication failed")
 
-# Temporary alias for backward compatibility until all routes are updated
-get_current_firebase_user = get_current_user

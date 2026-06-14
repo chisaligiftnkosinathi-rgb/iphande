@@ -10,7 +10,7 @@ from src.schemas.profile_schema import ProfileCreate, ProfileOut, ProfileUpdate
 from src.schemas.public_profile_schema import PublicProfileOut
 from src.schemas.profile_location_schema import ProfileLocationUpdate
 from src.services.continuity_event_service import emit_continuity_event
-from src.auth.supabase_auth import get_current_firebase_user
+from src.auth.supabase_auth import get_current_user
 from src.models.referral import Referral
 import string
 import random
@@ -503,7 +503,7 @@ class PaymentProofCreate(BaseModel):
     proof_url: str
 
 @router.post("/profiles/me/payment-proof")
-def submit_payment_proof(payload: PaymentProofCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_firebase_user)):
+def submit_payment_proof(payload: PaymentProofCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     uid = current_user.get("uid")
     profile = db.query(Profile).filter(Profile.owner_id == uid).first()
     if not profile:
@@ -517,7 +517,7 @@ def submit_payment_proof(payload: PaymentProofCreate, db: Session = Depends(get_
     return {"status": "success", "setup_fee_status": profile.setup_fee_status}
 
 @router.get("/profiles/me/payment-status")
-def get_payment_status(db: Session = Depends(get_db), current_user: dict = Depends(get_current_firebase_user)):
+def get_payment_status(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     uid = current_user.get("uid")
     profile = db.query(Profile).filter(Profile.owner_id == uid).first()
     if not profile:
