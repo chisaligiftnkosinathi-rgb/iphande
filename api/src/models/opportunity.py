@@ -23,4 +23,8 @@ class Opportunity(Base):
     contact_name = Column(String, nullable=True)
     contact_phone = Column(String, nullable=True)
 
+    image_url_1 = Column(String, nullable=True)
+    image_url_2 = Column(String, nullable=True)
+    expiry_date = Column(DateTime, nullable=True)
+
     created_at = Column(DateTime, default=datetime.utcnow)

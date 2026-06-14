@@ -327,6 +327,12 @@ def ensure_postgres_opportunities_schema():
             connection.execute(text("ALTER TABLE opportunities ADD COLUMN contact_name VARCHAR"))
         if "contact_phone" not in columns:
             connection.execute(text("ALTER TABLE opportunities ADD COLUMN contact_phone VARCHAR"))
+        if "image_url_1" not in columns:
+            connection.execute(text("ALTER TABLE opportunities ADD COLUMN image_url_1 VARCHAR"))
+        if "image_url_2" not in columns:
+            connection.execute(text("ALTER TABLE opportunities ADD COLUMN image_url_2 VARCHAR"))
+        if "expiry_date" not in columns:
+            connection.execute(text("ALTER TABLE opportunities ADD COLUMN expiry_date TIMESTAMP"))
 
 def ensure_postgres_quotes_schema():
     if engine.dialect.name != "postgresql":

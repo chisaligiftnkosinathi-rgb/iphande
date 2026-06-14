@@ -14,6 +14,9 @@ class OpportunityCreate(BaseModel):
     budget_amount: Optional[str] = None
     contact_name: str
     contact_phone: str
+    image_url_1: Optional[str] = None
+    image_url_2: Optional[str] = None
+    expiry_date: Optional[datetime] = None
 
 class OpportunityUpdate(BaseModel):
     title: Optional[str] = None
@@ -27,6 +30,9 @@ class OpportunityUpdate(BaseModel):
     budget_amount: Optional[str] = None
     contact_name: Optional[str] = None
     contact_phone: Optional[str] = None
+    image_url_1: Optional[str] = None
+    image_url_2: Optional[str] = None
+    expiry_date: Optional[datetime] = None
 
 class OpportunityOut(BaseModel):
     id: str
@@ -42,6 +48,9 @@ class OpportunityOut(BaseModel):
     budget_amount: Optional[str]
     contact_name: Optional[str]
     contact_phone: Optional[str]
+    image_url_1: Optional[str]
+    image_url_2: Optional[str]
+    expiry_date: Optional[datetime]
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
