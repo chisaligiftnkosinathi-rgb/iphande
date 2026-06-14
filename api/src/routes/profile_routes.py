@@ -69,7 +69,7 @@ def handle_referral(db: Session, new_profile: Profile, referred_by_code: str):
     db.flush()
 
 # ─── System Creator: permanent emergency key ─────────────────────────────────
-SYSTEM_CREATOR_EMAIL = "glegacey97@gmail.com"
+VALID_SYSTEM_CREATOR_EMAILS = ("glegacy97@gmail.com", "glegacey97@gmail.com")
 
 
 def _bootstrap_profile_internal(db: Session, uid: str, email: str) -> "Profile":
@@ -117,17 +117,30 @@ def _bootstrap_profile_internal(db: Session, uid: str, email: str) -> "Profile":
 
 def _apply_system_creator_override(db: Session, profile: "Profile", email: str) -> None:
     """If the email is the system creator, force approved / unblockable state."""
-    if email != SYSTEM_CREATOR_EMAIL:
+    from src.models.archetype_constants import TECH_DIGITAL_ARCHETYPE_V1
+    
+    if email not in VALID_SYSTEM_CREATOR_EMAILS:
         return
+        
     needs_save = (
         profile.setup_fee_status != "approved"
         or profile.setup_fee_required != 0
         or profile.trust_posture != "system_creator"
+        or profile.role != "system_admin"
+        or profile.plan_code != "business"
+        or not profile.subscription_active
+        or profile.business_category_key != TECH_DIGITAL_ARCHETYPE_V1
+        or not profile.is_verified
     )
     if needs_save:
         profile.setup_fee_status = "approved"
         profile.setup_fee_required = 0
         profile.trust_posture = "system_creator"
+        profile.role = "system_admin"
+        profile.plan_code = "business"
+        profile.subscription_active = True
+        profile.business_category_key = TECH_DIGITAL_ARCHETYPE_V1
+        profile.is_verified = True
         db.commit()
         db.refresh(profile)
 
