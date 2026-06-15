@@ -20,8 +20,8 @@ ALLOWED_BUCKETS = {
 
 @router.post("/media/evidence", response_model=MediaOut)
 def record_evidence(
-    payload: EvidenceUploadIn, 
-    db: Session = Depends(get_db), 
+    payload: EvidenceUploadIn,
+    db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
     """
@@ -59,9 +59,11 @@ def record_evidence(
                 actor_id=payload.profile_id,
                 related_entity_type="media",
                 related_entity_id=db_media.id,
-                description=f"Captured {payload.purpose}",
-                opportunity_id=payload.opportunity_id,
-                quote_id=payload.quote_id
+                payload={
+                    "description": f"Captured {payload.purpose}",
+                    "opportunity_id": payload.opportunity_id,
+                    "quote_id": payload.quote_id
+                }
             )
 
         return db_media

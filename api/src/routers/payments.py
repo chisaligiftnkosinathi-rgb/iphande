@@ -464,4 +464,94 @@ def issue_receipt(payment_id: UUID, db: Session = Depends(get_db)):
 
 @router.post("/{payment_id}/confirm-demo", response_model=PaymentIntentOut)
 def confirm_demo_payment(payment_id: UUID, db: Session = Depends(get_db)):
-    raise HTTPException(status_code=501, detail="Demo payments are disabled in production.")
+    from src.config import ENVIRONMENT
+
+    if ENVIRONMENT == "production":
+        raise HTTPException(status_code=501, detail="Demo payments are disabled in production.")
+
+    payment = db.query(PaymentIntent).filter(PaymentIntent.id == payment_id).first()
+    if not payment:
+        raise HTTPException(status_code=404, detail="Payment intent not found")
+
+    if payment.status == PaymentIntentStatus.confirmed:
+        return payment
+
+    with replay_transaction(db):
+        event = emit_continuity_event(
+            db=db,
+            business_owner_id=payment.business_owner_id,
+            business_category_key=None,
+            business_line=None,
+            event_type="payment_confirmed",
+            actor_type="system",
+            actor_id="demo_payment_confirmer",
+            related_entity_type="payment_intent",
+            related_entity_id=str(payment.id),
+            parent_event_id=latest_payment_event(db, payment.id).id,
+            payload={
+                "payment_intent_id": str(payment.id),
+                "quote_id": str(payment.quote_id),
+                "invoice_id": str(payment.invoice_id) if payment.invoice_id else None,
+                "amount": str(payment.amount),
+                "currency": payment.currency,
+                "provider_name": payment.provider_name,
+                "payment_reference": payment.payment_reference,
+            },
+            auto_commit=False,
+        )
+
+        financial_event_id = uuid.uuid4()
+
+        income_event = emit_continuity_event(
+            db=db,
+            business_owner_id=payment.business_owner_id,
+            business_category_key=None,
+            business_line=None,
+            event_type="income_received",
+            actor_type="system",
+            actor_id="demo_payment_confirmer",
+            related_entity_type="financial_event",
+            related_entity_id=str(financial_event_id),
+            parent_event_id=event.id,
+            payload={
+                "financial_event_id": str(financial_event_id),
+                "amount": str(payment.amount),
+                "currency": payment.currency,
+                "provider_name": payment.provider_name,
+                "payment_reference": payment.payment_reference,
+            },
+            auto_commit=False,
+        )
+
+        financial_event = FinancialEvent(
+            id=financial_event_id,
+            business_owner_id=payment.business_owner_id,
+            event_type=FinancialEventType.income_received,
+            amount=payment.amount,
+            currency=payment.currency,
+            description=f"Payment confirmed for quote {payment.quote_id}",
+            occurred_at=datetime.now(timezone.utc),
+            accounting_category=AccountingCategory.income,
+            cash_direction=CashDirection.inflow,
+            source_actor="demo_payment_confirmer",
+            counterparty=payment.payer_reference,
+            creates_obligation=False,
+            continuity_event_id=income_event.id,
+        )
+        db.add(financial_event)
+        db.flush()
+
+        payment.status = PaymentIntentStatus.confirmed
+        payment.confirmed_at = datetime.now(timezone.utc)
+        payment.confirmed_continuity_event_id = event.id
+        payment.financial_event_id = financial_event.id
+
+        if payment.invoice_id:
+            invoice = db.query(Invoice).filter(Invoice.id == payment.invoice_id).first()
+            if invoice:
+                invoice.status = InvoiceStatus.paid
+
+        db.flush()
+        db.refresh(payment)
+
+    return payment

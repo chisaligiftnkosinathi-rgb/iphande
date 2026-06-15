@@ -57,7 +57,7 @@ def test_unverified_steward_gets_403_on_leads():
     app.dependency_overrides[get_current_user] = lambda: {"uid": "uid-123", "email": "unverified@example.com"}
 
     # Access leads endpoint
-    response = client.get("/api/v1/leads?business_owner_id=unverified-123")
+    response = client.get("/api/v1/leads/me")
     assert response.status_code == 403
     assert "Steward verification required" in response.json()["detail"]
 
@@ -86,7 +86,7 @@ def test_system_creator_bypasses_verification():
     app.dependency_overrides[get_current_user] = lambda: {"uid": "uid-creator", "email": "glegacey97@gmail.com"}
 
     # Access leads endpoint - should NOT get 403
-    response = client.get("/api/v1/leads?business_owner_id=creator-123")
+    response = client.get("/api/v1/leads/me")
     assert response.status_code == 200
 
     app.dependency_overrides.pop(get_current_user, None)
