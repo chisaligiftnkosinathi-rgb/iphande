@@ -46,7 +46,8 @@ export function StewardGate({ children }: { children: React.ReactNode }) {
             return;
         }
 
-        const isSetupFeeApproved = profile.setup_fee_status === "approved" && profile.is_verified === true;
+        const isAdmin = profile.role === 'admin' || profile.role === 'system_admin' || profile.platform_identity === 'SYSTEM_CREATOR' || profile.platform_identity === 'SYSTEM_ADMIN';
+        const isSetupFeeApproved = isAdmin || (profile.setup_fee_status === "approved" && profile.is_verified === true);
 
         const onboardingComplete =
             profile.onboarding_completed === true ||

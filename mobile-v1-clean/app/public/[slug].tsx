@@ -190,7 +190,7 @@ function ProofGallery({ items }: { items: ProofOfWorkItem[] }) {
             {items.length === 0 && (
                 <View style={sc.powEmpty}>
                     <Text style={sc.powEmptyIcon}>📷</Text>
-                    <Text style={sc.powEmptyText}>Proof of Work coming soon.</Text>
+                    <Text style={sc.powEmptyText}>No proof of work uploaded yet.</Text>
                     <Text style={sc.powEmptyHint}>This steward is building their public portfolio.</Text>
                 </View>
             )}
@@ -519,21 +519,19 @@ export default function BusinessProfileScreen() {
                             <Text style={styles.trustSub}>{joinDate}</Text>
                         </View>
                     ) : null}
-                    <View style={styles.trustItem}>
-                        <Text style={styles.trustValue}>—</Text>
-                        <Text style={styles.trustLabel}>Quotes Issued</Text>
-                        <Text style={styles.trustSub}>Coming soon</Text>
-                    </View>
-                    <View style={styles.trustItem}>
-                        <Text style={styles.trustValue}>—</Text>
-                        <Text style={styles.trustLabel}>Jobs Completed</Text>
-                        <Text style={styles.trustSub}>Coming soon</Text>
-                    </View>
-                    <View style={styles.trustItem}>
-                        <Text style={styles.trustValue}>—</Text>
-                        <Text style={styles.trustLabel}>Customer Requests</Text>
-                        <Text style={styles.trustSub}>Coming soon</Text>
-                    </View>
+                    {profile.proof_items.length > 0 ? (
+                        <View style={styles.trustItem}>
+                            <Text style={styles.trustValue}>{profile.proof_items.length}</Text>
+                            <Text style={styles.trustLabel}>Proof Uploads</Text>
+                            <Text style={styles.trustSub}>Verified past jobs</Text>
+                        </View>
+                    ) : (
+                        <View style={styles.trustItem}>
+                            <Text style={styles.trustValue}>—</Text>
+                            <Text style={styles.trustLabel}>Proof Uploads</Text>
+                            <Text style={styles.trustSub}>Building portfolio</Text>
+                        </View>
+                    )}
                 </View>
             </View>
 

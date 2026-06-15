@@ -10,6 +10,14 @@ export const theme = {
         attentionAmber: '#F59E0B',
         errorRed: '#EF4444',
         navy: '#111827',
+        primary: '#111827',
+        // iPhande Brand Identity Colors
+        brandDarkGreen: '#24352F',
+        brandLightGreen: '#5D7A5A',
+        brandWarmBg: '#F7F3EA',
+        brandWarmBorder: '#E8DFD0',
+        brandWarmCard: '#FFFDF8',
+        brandTextMuted: '#6F7D75',
     },
     styles: {
         card: {

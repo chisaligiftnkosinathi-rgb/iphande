@@ -45,6 +45,8 @@ export interface StewardProfile {
     service_radius_km?: number;
     service_area_notes?: string;
     location_is_public?: boolean;
+    latitude?: number | null;
+    longitude?: number | null;
 
     // Availability
     availability?: string;
@@ -79,7 +81,11 @@ export interface StewardProfile {
     subscription_active?: boolean;
     role?: string;
     allowed_features?: string[];
+    platform_identity?: PlatformIdentity;
 }
+
+export type PlatformIdentity = 'SYSTEM_CREATOR' | 'SYSTEM_ADMIN' | 'STEWARD' | 'CUSTOMER' | 'PUBLIC_VISITOR';
+
 
 export interface Referral {
     id: string;

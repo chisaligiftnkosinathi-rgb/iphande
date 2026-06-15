@@ -5,6 +5,8 @@ import { useSteward } from '../../src/context/StewardContext';
 import { updateMe } from '../../src/services/stewardApi';
 import { useAuth } from '../../src/context/AuthContext';
 import { Link } from 'expo-router';
+import * as Location from 'expo-location';
+import { Ionicons } from '@expo/vector-icons';
 import { PageHeader } from '../../src/components/PageHeader';
 
 export default function AccountSettingsScreen() {
@@ -15,8 +17,32 @@ export default function AccountSettingsScreen() {
     const [phone, setPhone] = useState(profile?.phone || '');
     const [whatsapp, setWhatsapp] = useState(profile?.whatsapp_number || profile?.whatsapp || '');
     const [location, setLocation] = useState(profile?.operating_area || profile?.location || '');
+    const [latitude, setLatitude] = useState<number | null>(profile?.latitude || null);
+    const [longitude, setLongitude] = useState<number | null>(profile?.longitude || null);
+    const [locationLoading, setLocationLoading] = useState(false);
     const [companyLogoUrl, setCompanyLogoUrl] = useState(profile?.company_logo_url || profile?.logo_url || '');
     const [saving, setSaving] = useState(false);
+
+    const dropPin = async () => {
+        setLocationLoading(true);
+        try {
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permission Denied', 'Permission to access location was denied.');
+                setLocationLoading(false);
+                return;
+            }
+
+            let loc = await Location.getCurrentPositionAsync({});
+            setLatitude(loc.coords.latitude);
+            setLongitude(loc.coords.longitude);
+            Alert.alert('Success', 'Business location pin set successfully! Remember to save changes.');
+        } catch (err) {
+            Alert.alert('Error', 'Could not fetch location. Please try again.');
+        } finally {
+            setLocationLoading(false);
+        }
+    };
 
     const handleSave = async () => {
         if (!name.trim()) {
@@ -30,7 +56,9 @@ export default function AccountSettingsScreen() {
                 phone: phone.trim(),
                 whatsapp_number: whatsapp.trim(),
                 operating_area: location.trim(),
-                company_logo_url: companyLogoUrl.trim()
+                company_logo_url: companyLogoUrl.trim(),
+                latitude,
+                longitude
             });
             await refreshProfile();
             Alert.alert("Success", "Profile updated successfully.", [
@@ -125,6 +153,30 @@ export default function AccountSettingsScreen() {
                         />
                     </View>
 
+                    <View style={styles.fieldGroup}>
+                        <Text style={styles.label}>Business Location Pin (Optional)</Text>
+                        {latitude && longitude ? (
+                            <View style={styles.pinSuccess}>
+                                <Ionicons name="checkmark-circle" size={20} color="#059669" />
+                                <Text style={styles.pinSuccessText}>Pin Set ({latitude.toFixed(2)}, {longitude.toFixed(2)})</Text>
+                            </View>
+                        ) : (
+                            <TouchableOpacity style={styles.pinButton} onPress={dropPin} disabled={locationLoading}>
+                                {locationLoading ? (
+                                    <ActivityIndicator color="#111827" size="small" />
+                                ) : (
+                                    <>
+                                        <Ionicons name="location-outline" size={20} color="#111827" />
+                                        <Text style={styles.pinButtonText}>Set GPS Pin for customers</Text>
+                                    </>
+                                )}
+                            </TouchableOpacity>
+                        )}
+                        <Text style={{ fontSize: 12, color: '#6B7280', marginTop: 4 }}>
+                            Helps customers see how far away your business is.
+                        </Text>
+                    </View>
+
                     <TouchableOpacity 
                         style={[styles.primaryButton, saving && styles.buttonDisabled]} 
                         onPress={handleSave}
@@ -195,5 +247,9 @@ const styles = StyleSheet.create({
     row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
     value: { fontSize: 14, color: '#111827', fontWeight: '500' },
     dangerButton: { backgroundColor: '#FEF2F2', paddingVertical: 16, borderRadius: 12, borderWidth: 1, borderColor: '#FECACA', alignItems: 'center' },
-    dangerButtonText: { color: '#DC2626', fontWeight: '800', fontSize: 15 }
+    dangerButtonText: { color: '#DC2626', fontWeight: '800', fontSize: 15 },
+    pinButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F3F4F6', borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 12, padding: 14, gap: 8 },
+    pinButtonText: { color: '#111827', fontSize: 15, fontWeight: '600' },
+    pinSuccess: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#D1FAE5', padding: 14, borderRadius: 12, gap: 8 },
+    pinSuccessText: { color: '#065F46', fontSize: 15, fontWeight: '600' }
 });

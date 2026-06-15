@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, SectionList, TouchableOpacity, TextInput, Modal, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, SectionList, TouchableOpacity, TextInput, Modal, ScrollView, Alert, KeyboardAvoidingView, Platform, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/context/AuthContext';
 import { useSteward } from '../../src/context/StewardContext';
@@ -12,6 +12,7 @@ import { Picker } from '@react-native-picker/picker';
 import { PROVINCES, TOWNS_BY_PROVINCE, ARCHETYPES } from '../../src/data/southAfricaLocations';
 import { PageHeader } from '../../src/components/PageHeader';
 import { theme } from '../../src/config/theme';
+import { calculateDistanceKm } from '../../src/lib/location';
 
 type FeedItem = 
     | { type: 'opportunity'; data: OpportunityOut }
@@ -322,8 +323,19 @@ export default function OpportunitiesScreen() {
         if (item.type === 'opportunity') {
             const opp = item.data;
             const isOpen = opp.status === 'open';
+            
+            let distanceText = '';
+            if (opp.latitude && opp.longitude && profile?.latitude && profile?.longitude) {
+                const distance = calculateDistanceKm(profile.latitude, profile.longitude, opp.latitude, opp.longitude);
+                distanceText = `${distance} km away`;
+            }
+
             return (
-                <View style={[theme.styles.card, styles.feedCard, !isOpen && { opacity: 0.7 }]} key={`opp-${opp.id}`}>
+                <TouchableOpacity 
+                    style={[theme.styles.card, styles.feedCard, !isOpen && { opacity: 0.7 }]} 
+                    key={`opp-${opp.id}`}
+                    onPress={() => router.push(`/opportunities/${opp.id}` as any)}
+                >
                     <View style={styles.cardHeader}>
                         <View style={styles.badgeSteward}>
                             <Text style={styles.badgeStewardText}>Steward Opportunity</Text>
@@ -339,6 +351,12 @@ export default function OpportunitiesScreen() {
                     <View style={styles.metaRow}>
                         <Ionicons name="location-outline" size={14} color={theme.colors.textMuted} />
                         <Text style={styles.metaText}>{opp.town_or_city}, {opp.province} {opp.suburb_or_area ? `(${opp.suburb_or_area})` : ''}</Text>
+                        {distanceText ? (
+                            <>
+                                <Text style={styles.metaText}>•</Text>
+                                <Text style={styles.metaDistance}>{distanceText}</Text>
+                            </>
+                        ) : null}
                     </View>
                     <View style={styles.metaRow}>
                         <Ionicons name="time-outline" size={14} color={theme.colors.textMuted} />
@@ -365,7 +383,13 @@ export default function OpportunitiesScreen() {
                             </TouchableOpacity>
                         </View>
                     )}
-                </View>
+                    {opp.latitude && opp.longitude && (
+                        <TouchableOpacity style={styles.mapsButton} onPress={() => Linking.openURL(`https://maps.google.com/?q=${opp.latitude},${opp.longitude}`)}>
+                            <Ionicons name="map-outline" size={16} color={theme.colors.trustGreen} />
+                            <Text style={styles.mapsButtonText}>Open in Maps</Text>
+                        </TouchableOpacity>
+                    )}
+                </TouchableOpacity>
             );
         } else {
             const ad = item.data;
@@ -565,6 +589,7 @@ const styles = StyleSheet.create({
     cardTitle: { fontSize: 18, fontWeight: '700', color: theme.colors.textPrimary, marginBottom: 8 },
     metaRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6, gap: 6 },
     metaText: { fontSize: 14, color: theme.colors.textMuted },
+    metaDistance: { fontSize: 14, color: theme.colors.trustGreen, fontWeight: '600' },
     serviceNeedsBox: { backgroundColor: '#F8FAFC', padding: 12, borderRadius: 8, marginTop: 12, marginBottom: 12, borderWidth: 1, borderColor: '#E2E8F0' },
     serviceNeedsLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', marginBottom: 4 },
     serviceNeedsText: { fontSize: 15, color: '#0F172A', fontWeight: '500' },
@@ -576,6 +601,8 @@ const styles = StyleSheet.create({
     actionBtnOutlineText: { color: theme.colors.navy, fontWeight: '600', fontSize: 14 },
     actionBtnSolid: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.navy, borderRadius: 8, paddingVertical: 10, gap: 6 },
     actionBtnSolidText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+    mapsButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#DEF7EC', borderRadius: 8, paddingVertical: 10, gap: 6, marginTop: 12 },
+    mapsButtonText: { color: theme.colors.trustGreen, fontWeight: '600', fontSize: 14 },
 
     // Footer & Empty
     toggleClosedBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 16, backgroundColor: theme.colors.borderSoft, borderRadius: 12 },

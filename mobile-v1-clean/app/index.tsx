@@ -14,7 +14,7 @@ export default function WelcomeScreen() {
                     </Text>
 
                     <View style={styles.ctaContainer}>
-                        <Link href="/explore" style={styles.primaryButton}>
+                        <Link href="/public/explore" style={styles.primaryButton}>
                             Find Local Services
                         </Link>
                         <Link href="/opportunities/new" style={styles.secondaryButton}>
@@ -34,7 +34,7 @@ export default function WelcomeScreen() {
                     <Text style={styles.sectionTitle}>What iPhande Does</Text>
                     <View style={styles.card}>
                         <Text style={styles.cardTitle}>Be Seen</Text>
-                        <Text style={styles.cardText}>Create a free business profile and let the community find your services.</Text>
+                        <Text style={styles.cardText}>Create your business profile and let the community find your services.</Text>
                     </View>
                     <View style={styles.card}>
                         <Text style={styles.cardTitle}>Find Work</Text>
@@ -42,7 +42,7 @@ export default function WelcomeScreen() {
                     </View>
                     <View style={styles.card}>
                         <Text style={styles.cardTitle}>Preserve Proof</Text>
-                        <Text style={styles.cardText}>Automate quotes, invoices, and timeline evidence to build a trusted portfolio.</Text>
+                        <Text style={styles.cardText}>Automate quotes, progress updates, and timeline evidence to build a trusted portfolio.</Text>
                     </View>
                 </View>
 
@@ -51,7 +51,7 @@ export default function WelcomeScreen() {
                     <Text style={styles.sectionTitle}>How It Works</Text>
                     <View style={styles.step}>
                         <Text style={styles.stepNumber}>1</Text>
-                        <Text style={styles.stepText}>Register for free and set up your Archetype and Profile.</Text>
+                        <Text style={styles.stepText}>Register and set up your Archetype and Profile.</Text>
                     </View>
                     <View style={styles.step}>
                         <Text style={styles.stepNumber}>2</Text>
@@ -59,12 +59,18 @@ export default function WelcomeScreen() {
                     </View>
                     <View style={styles.step}>
                         <Text style={styles.stepNumber}>3</Text>
-                        <Text style={styles.stepText}>Start quoting, invoicing, and capturing proof of work seamlessly.</Text>
+                        <Text style={styles.stepText}>Start quoting, updating progress, and capturing proof of work seamlessly.</Text>
                     </View>
                 </View>
                 
                 <View style={styles.footer}>
-                    <Text style={styles.footerText}>© 2026 iPhande. All rights reserved.</Text>
+                    <Text style={styles.footerText}>© 2026 iPhande.</Text>
+                    <Text style={styles.footerBrand}>Powered by Global IT and Business Solutions</Text>
+                    <View style={styles.footerLinks}>
+                        <Link href="/public/about" style={styles.footerLink}>About</Link>
+                        <Link href="/support" style={styles.footerLink}>Support</Link>
+                        <Link href="/legal" style={styles.footerLink}>Legal</Link>
+                    </View>
                 </View>
             </ScrollView>
         </SafeAreaView>
@@ -208,5 +214,21 @@ const styles = StyleSheet.create({
     footerText: {
         color: '#9CA3AF',
         fontSize: 14,
+        marginBottom: 4,
+    },
+    footerBrand: {
+        color: '#4B5563',
+        fontSize: 12,
+        fontWeight: '700',
+        marginBottom: 16,
+    },
+    footerLinks: {
+        flexDirection: 'row',
+        gap: 16,
+    },
+    footerLink: {
+        color: '#3B82F6',
+        fontSize: 14,
+        fontWeight: '500',
     }
 });

@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { fetchWithAuth } from '../src/config/api';
+import { useSteward } from '../src/context/StewardContext';
 
 export default function PaymentVerificationScreen() {
   const router = useRouter();
+  const { refreshProfile } = useSteward();
   const [status, setStatus] = useState<string | null>(null);
   const [isVerified, setIsVerified] = useState(false);
   const [reviewNote, setReviewNote] = useState<string | null>(null);
@@ -48,6 +50,7 @@ export default function PaymentVerificationScreen() {
           method: 'POST',
           body: JSON.stringify({ proof_url: proofUrl })
       });
+      await refreshProfile();
       Alert.alert('Success', 'Proof of payment submitted. Waiting for admin approval.');
       await fetchStatus();
     } catch (err) {
@@ -135,21 +138,21 @@ export default function PaymentVerificationScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#111' },
-  scrollContainer: { padding: 20, backgroundColor: '#111', flexGrow: 1, justifyContent: 'center' },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#fff', marginBottom: 15, textAlign: 'center' },
-  description: { fontSize: 16, color: '#aaa', marginBottom: 20, textAlign: 'center', lineHeight: 24 },
-  statusBox: { backgroundColor: '#222', padding: 15, borderRadius: 8, marginBottom: 20 },
-  statusLabel: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#F9FAFB' },
+  scrollContainer: { padding: 24, backgroundColor: '#F9FAFB', flexGrow: 1, justifyContent: 'center' },
+  title: { fontSize: 28, fontWeight: '800', color: '#111827', marginBottom: 15, textAlign: 'center' },
+  description: { fontSize: 16, color: '#4B5563', marginBottom: 24, textAlign: 'center', lineHeight: 24 },
+  statusBox: { backgroundColor: '#FFFFFF', padding: 16, borderRadius: 12, marginBottom: 20, borderWidth: 1, borderColor: '#E5E7EB' },
+  statusLabel: { color: '#111827', fontSize: 16, fontWeight: '700' },
   errorText: { color: '#ef4444', marginTop: 8, fontSize: 14 },
-  bankDetails: { backgroundColor: '#1a1a1a', padding: 15, borderRadius: 8, marginBottom: 20, borderWidth: 1, borderColor: '#333' },
-  bankTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
-  text: { color: '#ccc', fontSize: 16, marginBottom: 5 },
+  bankDetails: { backgroundColor: '#FFFFFF', padding: 20, borderRadius: 12, marginBottom: 20, borderWidth: 1, borderColor: '#E5E7EB' },
+  bankTitle: { color: '#111827', fontSize: 18, fontWeight: '800', marginBottom: 12 },
+  text: { color: '#4B5563', fontSize: 16, marginBottom: 6 },
   form: { marginBottom: 20 },
-  label: { color: '#fff', fontSize: 14, marginBottom: 8, fontWeight: '500' },
-  input: { backgroundColor: '#222', color: '#fff', padding: 15, borderRadius: 8, marginBottom: 15, borderWidth: 1, borderColor: '#444' },
-  button: { backgroundColor: '#ef4444', padding: 15, borderRadius: 8, alignItems: 'center' },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  outlineButton: { padding: 15, borderRadius: 8, alignItems: 'center', borderWidth: 1, borderColor: '#444', marginTop: 10 },
-  outlineButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  label: { color: '#374151', fontSize: 14, marginBottom: 8, fontWeight: '600' },
+  input: { backgroundColor: '#FFFFFF', color: '#111827', padding: 14, borderRadius: 12, marginBottom: 15, borderWidth: 1, borderColor: '#D1D5DB' },
+  button: { backgroundColor: '#111827', padding: 16, borderRadius: 12, alignItems: 'center' },
+  buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+  outlineButton: { padding: 16, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: '#D1D5DB', marginTop: 10 },
+  outlineButtonText: { color: '#4B5563', fontSize: 16, fontWeight: '700' },
 });

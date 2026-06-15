@@ -7,6 +7,8 @@ export interface OpportunityCreate {
     province: string;
     town_or_city: string;
     suburb_or_area?: string;
+    latitude?: number | null;
+    longitude?: number | null;
     category_key: string;
     service_needed: string;
     budget_amount?: string;
@@ -21,6 +23,8 @@ export interface OpportunityUpdate {
     province?: string;
     town_or_city?: string;
     suburb_or_area?: string;
+    latitude?: number | null;
+    longitude?: number | null;
     category_key?: string;
     service_needed?: string;
     budget_amount?: string;
@@ -37,6 +41,8 @@ export interface OpportunityOut {
     province?: string;
     town_or_city?: string;
     suburb_or_area?: string;
+    latitude?: number | null;
+    longitude?: number | null;
     category_key?: string;
     service_needed?: string;
     budget_amount?: string;

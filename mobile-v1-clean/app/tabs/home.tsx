@@ -1,22 +1,28 @@
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { fetchWithAuth } from '../../src/config/api';
 import { useSteward } from '../../src/context/StewardContext';
 import { computeVisibilityScore } from './visibility';
+import { getAdminDashboard, DashboardStats } from '../../src/services/adminApi';
 
 export default function HomeScreen() {
     const { profile, refreshProfile } = useSteward();
     const { width } = useWindowDimensions();
+    const router = useRouter();
     
     const [leadsCount, setLeadsCount] = useState<number | null>(null);
     const [openOpportunities, setOpenOpportunities] = useState<number | null>(null);
-    const [draftQuotesCount, setDraftQuotesCount] = useState<number | null>(null);
+    const [proofUploadsCount, setProofUploadsCount] = useState<number | null>(null);
     const [timelineActivityCount, setTimelineActivityCount] = useState<number | null>(null);
+    const [adminStats, setAdminStats] = useState<DashboardStats | null>(null);
     
     const [refreshing, setRefreshing] = useState(false);
 
+    const isAdmin = profile?.role === 'admin' || profile?.role === 'system_admin' || profile?.trust_posture === 'system_creator';
+    const isCreator = profile?.trust_posture === 'system_creator';
+    
     const { score: visibilityScore } = computeVisibilityScore(profile as Record<string, unknown> | null);
 
     const fetchData = async () => {
@@ -38,17 +44,25 @@ export default function HomeScreen() {
         } catch { setOpenOpportunities(null); }
 
         try {
-            const quotesData = await fetchWithAuth(`/quotes/business/${profile.id}`);
-            const quotes = quotesData || [];
-            const drafts = quotes.filter((q: any) => q.status === 'issued' || q.status === 'quote_drafted');
-            setDraftQuotesCount(drafts.length);
-        } catch { setDraftQuotesCount(null); }
-
-        try {
             const eventsData = await fetchWithAuth(`/continuity-events/business/${profile.id}`);
             const events = eventsData || [];
             setTimelineActivityCount(events.length);
-        } catch { setTimelineActivityCount(null); }
+            
+            const proofEvents = events.filter((e: any) => e.event_type === 'evidence_captured');
+            setProofUploadsCount(proofEvents.length);
+        } catch { 
+            setTimelineActivityCount(null); 
+            setProofUploadsCount(null);
+        }
+
+        if (isAdmin) {
+            try {
+                const statsData = await getAdminDashboard();
+                setAdminStats(statsData);
+            } catch (err) {
+                console.warn("Failed to fetch admin dashboard stats:", err);
+            }
+        }
     };
 
     useEffect(() => {
@@ -62,47 +76,20 @@ export default function HomeScreen() {
         setRefreshing(false);
     };
 
-    // Determine Today's Steward Plan
-    const stewardPlan = [];
-
-    if (visibilityScore < 80) {
-        stewardPlan.push({ title: "Complete Visibility", route: "/tabs/visibility" });
+    const isActivationApproved = profile?.setup_fee_status === "approved" && profile?.is_verified;
+    const isPaymentPending = profile?.setup_fee_status === "pending" || profile?.setup_fee_status === "proof_uploaded";
+    
+    let activationStatusText = "Pending Activation";
+    let activationStatusColor = "#D97706"; // Amber
+    if (isActivationApproved || isAdmin) {
+        activationStatusText = "Active Profile";
+        activationStatusColor = "#059669"; // Green
+    } else if (profile?.setup_fee_status === "none" || !profile?.setup_fee_status) {
+        activationStatusText = "Awaiting Payment Proof";
+        activationStatusColor = "#DC2626"; // Red
     }
-    if ((leadsCount || 0) > 0) {
-        stewardPlan.push({ title: "Respond to Leads", route: "/tabs/leads" });
-    }
-    if ((draftQuotesCount || 0) > 0) {
-        stewardPlan.push({ title: "Review Documents", route: "/tools/documents" });
-    }
-    if (timelineActivityCount === null || timelineActivityCount === 0) {
-        stewardPlan.push({ title: "Record Today's Work", route: "/tools/notebook" });
-    }
-    if (stewardPlan.length < 3) {
-        stewardPlan.push({ title: "Find / Create Opportunity", route: "/tabs/index" });
-    }
-
-    const finalPlan = stewardPlan.slice(0, 3);
 
     const isWide = width > 768;
-
-    const renderToolGroup = (title: string, tools: any[]) => (
-        <View style={styles.groupContainer} key={title}>
-            <Text style={styles.groupTitle}>{title}</Text>
-            <View style={[styles.grid, isWide && styles.gridWide]}>
-                {tools.map((tool, idx) => (
-                    <Link key={idx} href={tool.route as any} asChild>
-                        <TouchableOpacity style={StyleSheet.flatten([styles.toolCard, isWide && styles.toolCardWide])}>
-                            <Ionicons name={tool.icon} size={22} color="#6B7280" style={styles.toolIcon} />
-                            <View style={styles.toolTextContent}>
-                                <Text style={styles.toolTitle}>{tool.name}</Text>
-                                <Text style={styles.toolDescription}>{tool.desc}</Text>
-                            </View>
-                        </TouchableOpacity>
-                    </Link>
-                ))}
-            </View>
-        </View>
-    );
 
     return (
         <ScrollView 
@@ -111,76 +98,136 @@ export default function HomeScreen() {
         >
             <View style={styles.header}>
                 <Text style={styles.kicker}>Home</Text>
-                <Text style={styles.title}>Steward Planner</Text>
-                <Text style={styles.subtitle}>Your business, ordered mathematically.</Text>
+                <Text style={styles.title}>{isCreator ? "System Creator" : "Today's Summary"}</Text>
+                <Text style={styles.subtitle}>{isCreator ? "Platform management & owner console." : "Your business at a glance."}</Text>
             </View>
 
-            {/* Today's Steward Plan */}
+            {/* Profile Status Banner */}
             <View style={styles.section}>
-                <View style={styles.planBox}>
-                    <Text style={styles.planLabel}>TODAY’S STEWARD PLAN</Text>
-                    <View style={styles.planList}>
-                        {finalPlan.map((action, idx) => (
-                            <Link key={idx} href={action.route as any} asChild>
-                                <TouchableOpacity style={StyleSheet.flatten([styles.planActionRow, idx < finalPlan.length - 1 && styles.planActionDivider])}>
-                                    <View style={styles.planActionLeft}>
-                                        <View style={styles.planActionNumberContainer}>
-                                            <Text style={styles.planActionNumber}>{idx + 1}</Text>
-                                        </View>
-                                        <Text style={styles.planActionTitle}>{action.title}</Text>
-                                    </View>
-                                    <Ionicons name="arrow-forward" size={18} color="#9CA3AF" />
+                {isCreator ? (
+                    <View style={[styles.statusBanner, { borderLeftColor: "#10B981" }]}>
+                        <View style={styles.statusBannerContent}>
+                            <Ionicons name="key" size={24} color="#10B981" />
+                            <View style={{ marginLeft: 12, flex: 1 }}>
+                                <Text style={styles.statusTitle}>Platform Owner</Text>
+                                <Text style={styles.statusDesc}>Global IT and Business Solutions</Text>
+                                <Text style={[styles.statusDesc, { fontWeight: '700', color: '#111827', marginTop: 2 }]}>
+                                    Full Access Enabled • Bootstrap Administration Active
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
+                ) : (
+                    <View style={[styles.statusBanner, { borderLeftColor: activationStatusColor }]}>
+                        <View style={styles.statusBannerContent}>
+                            <Ionicons 
+                                name={isActivationApproved ? "checkmark-circle" : "time"} 
+                                size={24} 
+                                color={activationStatusColor} 
+                            />
+                            <View style={{ marginLeft: 12 }}>
+                                <Text style={styles.statusTitle}>{activationStatusText}</Text>
+                                {!isActivationApproved && (
+                                    <Text style={styles.statusDesc}>
+                                        {isPaymentPending 
+                                            ? "Your R120 payment proof is being reviewed." 
+                                            : "Please upload your R120 payment proof to activate your business profile."}
+                                    </Text>
+                                )}
+                            </View>
+                        </View>
+                        {!isActivationApproved && !isPaymentPending && (
+                            <Link href="/payment-verification" asChild>
+                                <TouchableOpacity style={styles.uploadProofBtn}>
+                                    <Text style={styles.uploadProofBtnText}>Upload Proof</Text>
                                 </TouchableOpacity>
                             </Link>
-                        ))}
+                        )}
                     </View>
-                </View>
+                )}
             </View>
 
-            {/* My Business Today */}
+            {/* My Business Today / Platform Overview */}
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>My Business Today</Text>
-                <View style={styles.snapshotGrid}>
-                    <View style={styles.snapshotItem}>
-                        <Text style={styles.snapshotLabel}>Visibility</Text>
-                        <Text style={styles.snapshotValue}>{visibilityScore}%</Text>
+                {isAdmin && (
+                    <TouchableOpacity 
+                        style={styles.adminPortalButton}
+                        onPress={() => router.push('/admin')}
+                    >
+                        <Ionicons name="shield-checkmark" size={20} color="#FFFFFF" />
+                        <Text style={styles.adminPortalText}>Admin Portal</Text>
+                        <Ionicons name="chevron-forward" size={16} color="#FFFFFF" style={{ marginLeft: 'auto' }} />
+                    </TouchableOpacity>
+                )}
+
+                <Text style={styles.sectionTitle}>{isCreator ? "Platform Overview" : "My Business Today"}</Text>
+                {isCreator ? (
+                    <View style={styles.snapshotGrid}>
+                        <View style={styles.snapshotItem}>
+                            <Text style={styles.snapshotLabel}>Total Stewards</Text>
+                            <Text style={styles.snapshotValue}>{adminStats?.total_profiles !== undefined ? adminStats.total_profiles : '—'}</Text>
+                        </View>
+                        <View style={styles.snapshotItem}>
+                            <Text style={styles.snapshotLabel}>Pending Activations</Text>
+                            <Text style={styles.snapshotValue}>{adminStats?.pending_reviews !== undefined ? adminStats.pending_reviews : '—'}</Text>
+                        </View>
+                        <View style={styles.snapshotItem}>
+                            <Text style={styles.snapshotLabel}>Active Opportunities</Text>
+                            <Text style={styles.snapshotValue}>{adminStats?.total_opportunities !== undefined ? adminStats.total_opportunities : '—'}</Text>
+                        </View>
+                        <View style={styles.snapshotItem}>
+                            <Text style={styles.snapshotLabel}>Recent Timeline Events</Text>
+                            <Text style={styles.snapshotValue}>{timelineActivityCount !== null ? timelineActivityCount : '—'}</Text>
+                        </View>
+                        <View style={styles.snapshotItem}>
+                            <Text style={styles.snapshotLabel}>Open Leads</Text>
+                            <Text style={styles.snapshotValue}>{leadsCount !== null ? leadsCount : '—'}</Text>
+                        </View>
                     </View>
-                    <View style={styles.snapshotItem}>
-                        <Text style={styles.snapshotLabel}>Active Leads</Text>
-                        <Text style={styles.snapshotValue}>{leadsCount !== null ? leadsCount : '—'}</Text>
+                ) : (
+                    <View style={styles.snapshotGrid}>
+                        <View style={styles.snapshotItem}>
+                            <Text style={styles.snapshotLabel}>Profile Visibility</Text>
+                            <Text style={styles.snapshotValue}>{visibilityScore}%</Text>
+                        </View>
+                        <View style={styles.snapshotItem}>
+                            <Text style={styles.snapshotLabel}>Active Leads</Text>
+                            <Text style={styles.snapshotValue}>{leadsCount !== null ? leadsCount : '—'}</Text>
+                        </View>
+                        <View style={styles.snapshotItem}>
+                            <Text style={styles.snapshotLabel}>Open Opportunities</Text>
+                            <Text style={styles.snapshotValue}>{openOpportunities !== null ? openOpportunities : '—'}</Text>
+                        </View>
+                        <View style={styles.snapshotItem}>
+                            <Text style={styles.snapshotLabel}>Proof Uploads</Text>
+                            <Text style={styles.snapshotValue}>{proofUploadsCount !== null ? proofUploadsCount : '—'}</Text>
+                        </View>
                     </View>
-                    <View style={styles.snapshotItem}>
-                        <Text style={styles.snapshotLabel}>Open Opportunities</Text>
-                        <Text style={styles.snapshotValue}>{openOpportunities !== null ? openOpportunities : '—'}</Text>
-                    </View>
-                    <View style={styles.snapshotItem}>
-                        <Text style={styles.snapshotLabel}>Draft/Recent Quotes</Text>
-                        <Text style={styles.snapshotValue}>{draftQuotesCount !== null ? draftQuotesCount : '—'}</Text>
-                    </View>
-                </View>
+                )}
                 <View style={styles.timelineBox}>
                     <Text style={styles.timelineLabel}>
-                        Recent Activity: {timelineActivityCount !== null ? timelineActivityCount : '—'} records
+                        {isCreator 
+                            ? `Recent Event Telemetry: ${timelineActivityCount !== null ? timelineActivityCount : '—'} platform continuity entries.`
+                            : `Recent Timeline Activity: ${timelineActivityCount !== null ? timelineActivityCount : '—'} events recorded`}
                     </Text>
                 </View>
             </View>
 
-            {/* Steward Console Grid */}
+            {/* Business Tools Grid */}
             <View style={styles.section}>
                 <View style={styles.groupContainer}>
-                    <Text style={styles.groupTitle}>Steward Console</Text>
+                    <Text style={styles.groupTitle}>Business Tools</Text>
                     <View style={[styles.grid, isWide && styles.gridWide]}>
                         {[
-                            { name: "Today", desc: "Your business summary", icon: "today-outline", route: "/tabs/index" },
-                            { name: "Leads", desc: "New and active requests", icon: "people-outline", route: "/tabs/leads" },
-                            { name: "Quotes", desc: "Draft and sent proposals", icon: "calculator-outline", route: "/tools/calculator" },
-                            { name: "Invoices", desc: "Awaiting payment", icon: "receipt-outline", route: "/tools/documents" },
-                            { name: "Receipts", desc: "Payment evidence", icon: "checkmark-done-outline", route: "/tools/documents" },
-                            { name: "Expenses", desc: "Business spending", icon: "wallet-outline", route: "/expenses" },
-                            { name: "Inventory", desc: "Materials and stock", icon: "cube-outline", route: "/tools/inventory-tracker" },
-                            { name: "Proof of Work", desc: "Completed jobs", icon: "camera-outline", route: "/tools/proof-of-work" },
-                            { name: "Documents", desc: "All PDFs and records", icon: "folder-outline", route: "/tools/documents" },
-                            { name: "Timeline", desc: "Activity memory ledger", icon: "list-outline", route: "/tabs/timeline" }
+                            { name: "Opportunities", desc: "Browse community needs", icon: "megaphone-outline", route: "/tabs/index" },
+                            { name: "Timeline", desc: "Activity history & Proof", icon: "time-outline", route: "/tabs/timeline" },
+                            { name: "Quote Builder", desc: "Prepare service quotes", icon: "calculator-outline", route: "/tools/calculator" },
+                            { name: "Documents", desc: "Saved quotes & invoices", icon: "folder-open-outline", route: "/tools/documents" },
+                            { name: "Proof of Work", desc: "Record completed work", icon: "checkmark-done-outline", route: "/tools/proof-of-work" },
+                            { name: "Inventory", desc: "Track material costs", icon: "cube-outline", route: "/tools/inventory-tracker" },
+                            { name: "Mileage Tracker", desc: "Log business travel km", icon: "car-outline", route: "/tools/km-tracker" },
+                            { name: "Notebook", desc: "Record quick text notes", icon: "book-outline", route: "/tools/notebook" },
+                            { name: "Referral Program", desc: "Invite stewards & earn ZAR", icon: "people-outline", route: "/tools/referrals" }
                         ].map((tool, idx) => (
                             <Link key={idx} href={tool.route as any} asChild>
                                 <TouchableOpacity style={StyleSheet.flatten([styles.toolCard, isWide && styles.toolCardWide])}>
@@ -239,61 +286,66 @@ const styles = StyleSheet.create({
         color: '#111827',
         marginBottom: 16,
     },
-    planBox: {
-        backgroundColor: '#111827',
-        padding: 20,
-        borderRadius: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
-        elevation: 3,
-    },
-    planLabel: {
-        fontSize: 12,
-        fontWeight: '800',
-        color: '#9CA3AF',
-        marginBottom: 16,
-        letterSpacing: 1.5,
-        textTransform: 'uppercase',
-    },
-    planList: {
-        flexDirection: 'column',
-    },
-    planActionRow: {
+    statusBanner: {
+        backgroundColor: '#FFFFFF',
+        padding: 16,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#F3F4F6',
+        borderLeftWidth: 4,
         flexDirection: 'row',
-        alignItems: 'center',
         justifyContent: 'space-between',
-        paddingVertical: 14,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 2,
     },
-    planActionDivider: {
-        borderBottomWidth: 1,
-        borderBottomColor: '#374151',
-    },
-    planActionLeft: {
+    statusBannerContent: {
         flexDirection: 'row',
         alignItems: 'center',
         flex: 1,
     },
-    planActionNumberContainer: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        backgroundColor: '#F59E0B',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 12,
-    },
-    planActionNumber: {
-        fontSize: 12,
-        fontWeight: '800',
-        color: '#111827',
-    },
-    planActionTitle: {
+    statusTitle: {
         fontSize: 16,
         fontWeight: '700',
+        color: '#111827',
+    },
+    loadingText: {
+        fontSize: 16,
+        color: '#4B5563',
+    },
+    adminPortalButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#111827',
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 24,
+        gap: 12,
+    },
+    adminPortalText: {
         color: '#FFFFFF',
-        flex: 1,
+        fontSize: 16,
+        fontWeight: '700',
+    },
+    statusDesc: {
+        fontSize: 13,
+        color: '#4B5563',
+        marginTop: 2,
+    },
+    uploadProofBtn: {
+        backgroundColor: '#111827',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 8,
+        marginLeft: 12,
+    },
+    uploadProofBtnText: {
+        color: '#FFFFFF',
+        fontSize: 12,
+        fontWeight: '700',
     },
     snapshotGrid: {
         flexDirection: 'row',
@@ -335,7 +387,7 @@ const styles = StyleSheet.create({
         color: '#4B5563',
     },
     groupContainer: {
-        marginBottom: 36, // Increased spacing between groups
+        marginBottom: 36, 
     },
     groupTitle: {
         fontSize: 14,
@@ -362,10 +414,10 @@ const styles = StyleSheet.create({
         borderColor: '#E5E7EB',
         flexDirection: 'row',
         alignItems: 'center',
-        minHeight: 84, // Consistent card height
+        minHeight: 84, 
     },
     toolCardWide: {
-        width: '48%', // 2 columns
+        width: '48%', 
     },
     toolIcon: {
         marginRight: 14,

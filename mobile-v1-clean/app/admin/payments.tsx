@@ -7,15 +7,19 @@ import { Referral } from '../../src/types/steward';
 import { fetchPendingAdvertisements, approveAdvertisement, rejectAdvertisement } from '../../src/services/advertisementApi';
 import { AdvertisementOut } from '../../src/types/advertisement';
 import { PageHeader } from '../../src/components/PageHeader';
+import { useSteward } from '../../src/context/StewardContext';
 
 export default function AdminControlRoomScreen() {
     const { user } = useAuth();
+    const { profile } = useSteward();
     const router = useRouter();
     const [referrals, setReferrals] = useState<Referral[]>([]);
     const [loadingReferrals, setLoadingReferrals] = useState(true);
     
     const [ads, setAds] = useState<AdvertisementOut[]>([]);
     const [loadingAds, setLoadingAds] = useState(true);
+
+    const isAdmin = profile?.role === 'admin' || profile?.platform_identity === 'SYSTEM_CREATOR' || profile?.platform_identity === 'SYSTEM_ADMIN' || user?.email?.toLowerCase() === 'glegacey97@gmail.com';
 
     const loadReferrals = async () => {
         try {
@@ -40,11 +44,11 @@ export default function AdminControlRoomScreen() {
     };
 
     useEffect(() => {
-        if (user?.email === 'glegacey97@gmail.com') {
+        if (isAdmin) {
             loadReferrals();
             loadAds();
         }
-    }, [user]);
+    }, [profile, user]);
 
     const handlePay = async (id: string) => {
         try {
@@ -90,7 +94,7 @@ export default function AdminControlRoomScreen() {
         }
     };
 
-    if (user?.email !== 'glegacey97@gmail.com') {
+    if (!isAdmin) {
         return (
             <View style={styles.restrictedContainer}>
                 <Text style={styles.restrictedTitle}>Access Restricted</Text>

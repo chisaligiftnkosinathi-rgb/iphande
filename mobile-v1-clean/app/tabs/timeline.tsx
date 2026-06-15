@@ -1,18 +1,24 @@
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ShareButton } from '../../src/components/ShareButton';
 import { fetchWithAuth } from '../../src/config/api';
 import { useSteward } from '../../src/context/StewardContext';
-import { ShareButton } from '../../src/components/ShareButton';
 import { shareProofOfWork } from '../../src/services/shareApi';
 
 export default function TimelineScreen() {
+    const router = useRouter();
     const { profile } = useSteward();
     const [events, setEvents] = useState<any[]>([]);
     const [hiddenEventIds, setHiddenEventIds] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
+    const [activationRequired, setActivationRequired] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const fetchEvents = async () => {
         setLoading(true);
+        setActivationRequired(false);
+        setErrorMessage(null);
         try {
             const data = await fetchWithAuth(`/continuity-events/business/${profile?.id}`);
             const captureEvents = (data || [])
@@ -21,7 +27,15 @@ export default function TimelineScreen() {
                     new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
                 );
             setEvents(captureEvents);
-        } catch (error) {
+        } catch (error: any) {
+            const message = String(error?.message || "");
+
+            if (message.includes("403") || message.includes("Steward verification required")) {
+                setActivationRequired(true);
+                return;
+            }
+
+            setErrorMessage("We could not load your timeline right now.");
             console.error("Timeline fetch error:", error);
         } finally {
             setLoading(false);
@@ -74,165 +88,191 @@ export default function TimelineScreen() {
                 <Text style={styles.subtitle}>The history of your work and promises.</Text>
             </View>
 
-            <View style={styles.section}>
-                {!loading && events.length > 0 && (
-                    <View style={styles.summaryCard}>
-                        <Text style={styles.summaryTitle}>Work Remembered</Text>
-                        <View style={styles.summaryGrid}>
-                            <View style={styles.summaryItem}>
-                                <Text style={styles.summaryValue}>{events.length}</Text>
-                                <Text style={styles.summaryLabel}>Entries</Text>
-                            </View>
-                            <View style={styles.summaryItem}>
-                                <Text style={styles.summaryValue}>{quotesCount}</Text>
-                                <Text style={styles.summaryLabel}>Quotes</Text>
-                            </View>
-                            <View style={styles.summaryItem}>
-                                <Text style={styles.summaryValue}>{completedCount}</Text>
-                                <Text style={styles.summaryLabel}>Completed</Text>
-                            </View>
-                            <View style={styles.summaryItem}>
-                                <Text style={styles.summaryValue}>{expensesCount}</Text>
-                                <Text style={styles.summaryLabel}>Expenses</Text>
+            {activationRequired ? (
+                <View style={styles.centered}>
+                    <Text style={styles.activationTitle}>Activation Required</Text>
+                    <Text style={styles.activationText}>
+                        Your iPhande Timeline is protected until your R120 setup fee has been reviewed.
+                    </Text>
+                    <Text style={styles.activationText}>
+                        This keeps the platform clean, trusted, and steward-led.
+                    </Text>
+
+                    <TouchableOpacity
+                        style={styles.primaryButton}
+                        onPress={() => router.push("/activation" as any)}
+                    >
+                        <Text style={styles.primaryButtonText}>Complete Activation</Text>
+                    </TouchableOpacity>
+                </View>
+            ) : errorMessage ? (
+                <View style={styles.centered}>
+                    <Text style={styles.activationText}>{errorMessage}</Text>
+                    <TouchableOpacity style={styles.primaryButton} onPress={fetchEvents}>
+                        <Text style={styles.primaryButtonText}>Try Again</Text>
+                    </TouchableOpacity>
+                </View>
+            ) : (
+                <View style={styles.section}>
+                    {!loading && events.length > 0 && (
+                        <View style={styles.summaryCard}>
+                            <Text style={styles.summaryTitle}>Work Remembered</Text>
+                            <View style={styles.summaryGrid}>
+                                <View style={styles.summaryItem}>
+                                    <Text style={styles.summaryValue}>{events.length}</Text>
+                                    <Text style={styles.summaryLabel}>Entries</Text>
+                                </View>
+                                <View style={styles.summaryItem}>
+                                    <Text style={styles.summaryValue}>{quotesCount}</Text>
+                                    <Text style={styles.summaryLabel}>Quotes</Text>
+                                </View>
+                                <View style={styles.summaryItem}>
+                                    <Text style={styles.summaryValue}>{completedCount}</Text>
+                                    <Text style={styles.summaryLabel}>Completed</Text>
+                                </View>
+                                <View style={styles.summaryItem}>
+                                    <Text style={styles.summaryValue}>{expensesCount}</Text>
+                                    <Text style={styles.summaryLabel}>Expenses</Text>
+                                </View>
                             </View>
                         </View>
-                    </View>
-                )}
+                    )}
 
-                {loading && events.length === 0 ? (
-                    <ActivityIndicator size="large" color="#111827" style={{ marginTop: 40 }} />
-                ) : visibleEvents.length === 0 ? (
-                    <Text style={styles.emptyText}>No events recorded yet. Add your first capture from the Dashboard!</Text>
-                ) : (
-                    visibleEvents.map((event, index) => {
-                        const payload = event.payload_json || {};
-                        const isLast = index === visibleEvents.length - 1;
+                    {loading && events.length === 0 ? (
+                        <ActivityIndicator size="large" color="#111827" style={{ marginTop: 40 }} />
+                    ) : visibleEvents.length === 0 ? (
+                        <Text style={styles.emptyText}>No events recorded yet. Add your first capture from the Dashboard!</Text>
+                    ) : (
+                        visibleEvents.map((event, index) => {
+                            const payload = event.payload_json || {};
+                            const isLast = index === visibleEvents.length - 1;
 
-                        if (event.related_entity_type === 'quote') {
-                            const lineItems = payload.line_items || [];
-                            const itemsCount = lineItems.length;
-                            const totalAmount = parseFloat(payload.total || payload.amount) || 0;
-                            const formattedTotal = totalAmount.toLocaleString('en-ZA', { style: 'currency', currency: 'ZAR' });
-                            
-                            const itemsSummary = itemsCount > 0 
-                                ? `${itemsCount} item${itemsCount > 1 ? 's' : ''} • ${formattedTotal}`
-                                : formattedTotal;
+                            if (event.related_entity_type === 'quote') {
+                                const lineItems = payload.line_items || [];
+                                const itemsCount = lineItems.length;
+                                const totalAmount = parseFloat(payload.total || payload.amount) || 0;
+                                const formattedTotal = totalAmount.toLocaleString('en-ZA', { style: 'currency', currency: 'ZAR' });
+
+                                const itemsSummary = itemsCount > 0
+                                    ? `${itemsCount} item${itemsCount > 1 ? 's' : ''} • ${formattedTotal}`
+                                    : formattedTotal;
+
+                                return (
+                                    <View key={event.id || index} style={styles.timelineItem}>
+                                        {!isLast && <View style={styles.timelineLine} />}
+                                        <View style={getDotStyle(event.event_type, event.related_entity_type)} />
+                                        <View style={styles.timelineContent}>
+                                            <Text style={styles.dateText}>{formatDate(event.created_at)}</Text>
+                                            <Text style={styles.eventTitle}>{event.event_type === 'quote_issued' ? 'Quote Issued' : 'Quote Drafted'}</Text>
+
+                                            {payload.customer_name && payload.customer_name !== 'Unknown' && (
+                                                <View style={styles.quoteDetailsContainer}>
+                                                    <Text style={styles.quoteDetailLabel}>Customer:</Text>
+                                                    <Text style={styles.quoteDetailValue}>{payload.customer_name}</Text>
+                                                </View>
+                                            )}
+
+                                            {payload.service_description ? (
+                                                <View style={styles.quoteDetailsContainer}>
+                                                    <Text style={styles.quoteDetailLabel}>Service:</Text>
+                                                    <Text style={styles.quoteDetailValue}>{payload.service_description}</Text>
+                                                </View>
+                                            ) : null}
+
+                                            {(() => {
+                                                const planning = payload.structured_terms?.planning || {};
+                                                const hasPlanning =
+                                                    (planning.expected_labour_hours !== null && planning.expected_labour_hours !== undefined && planning.expected_labour_hours !== '') ||
+                                                    (planning.expected_travel_km !== null && planning.expected_travel_km !== undefined && planning.expected_travel_km !== '') ||
+                                                    (planning.expected_material_cost !== null && planning.expected_material_cost !== undefined && planning.expected_material_cost !== '') ||
+                                                    (planning.expected_notes !== null && planning.expected_notes !== undefined && planning.expected_notes !== '');
+
+                                                if (!hasPlanning) return null;
+
+                                                return (
+                                                    <View style={styles.planningTimelineContainer}>
+                                                        <Text style={styles.planningTimelineTitle}>Planned:</Text>
+                                                        {planning.expected_labour_hours !== null && planning.expected_labour_hours !== undefined && planning.expected_labour_hours !== '' && (
+                                                            <Text style={styles.planningTimelineText}>• {planning.expected_labour_hours} labour hours</Text>
+                                                        )}
+                                                        {planning.expected_travel_km !== null && planning.expected_travel_km !== undefined && planning.expected_travel_km !== '' && (
+                                                            <Text style={styles.planningTimelineText}>• {planning.expected_travel_km} km travel</Text>
+                                                        )}
+                                                        {planning.expected_material_cost !== null && planning.expected_material_cost !== undefined && planning.expected_material_cost !== '' && (
+                                                            <Text style={styles.planningTimelineText}>• R {Number(planning.expected_material_cost).toFixed(2)} materials</Text>
+                                                        )}
+                                                        {planning.expected_notes !== null && planning.expected_notes !== undefined && planning.expected_notes !== '' && (
+                                                            <Text style={[styles.planningTimelineText, { fontStyle: 'italic' }]}>• Note: {planning.expected_notes}</Text>
+                                                        )}
+                                                    </View>
+                                                );
+                                            })()}
+
+                                            {totalAmount > 0 && (
+                                                <View style={styles.quoteSummaryRow}>
+                                                    <Text style={styles.quoteSummaryText}>{itemsSummary}</Text>
+                                                </View>
+                                            )}
+
+                                            <TouchableOpacity
+                                                style={styles.hideButton}
+                                                onPress={() => setHiddenEventIds((prev) => [...prev, event.id])}
+                                            >
+                                                <Text style={styles.hideButtonText}>Hide</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                );
+                            }
+
+                            const captureType = payload.capture_type || 'Event';
+                            let title = captureType !== "Event" ? `${captureType}: ${payload.title || "Untitled"}` : "Timeline Event";
+                            let description = payload.description || "";
+
+                            if (event.event_type === "expense_recorded") {
+                                title = "Expense Recorded";
+                                description = `${payload.category} • R${payload.amount}\n${payload.description || ''}`;
+                            } else if (event.event_type === "opportunity_quoted") {
+                                title = "Replied to Opportunity";
+                                description = "You submitted a quote for this opportunity.";
+                            } else if (event.event_type === "quote_request_received") {
+                                title = "Lead Received";
+                                description = `${payload.customer_name} requested a quote for ${payload.service_needed}`;
+                            }
 
                             return (
                                 <View key={event.id || index} style={styles.timelineItem}>
                                     {!isLast && <View style={styles.timelineLine} />}
-                                    <View style={getDotStyle(event.event_type, event.related_entity_type)} />
+                                    <View style={getDotStyle(event.event_type || captureType, event.related_entity_type)} />
                                     <View style={styles.timelineContent}>
                                         <Text style={styles.dateText}>{formatDate(event.created_at)}</Text>
-                                        <Text style={styles.eventTitle}>{event.event_type === 'quote_issued' ? 'Quote Issued' : 'Quote Drafted'}</Text>
-                                        
-                                        {payload.customer_name && payload.customer_name !== 'Unknown' && (
-                                            <View style={styles.quoteDetailsContainer}>
-                                                <Text style={styles.quoteDetailLabel}>Customer:</Text>
-                                                <Text style={styles.quoteDetailValue}>{payload.customer_name}</Text>
-                                            </View>
-                                        )}
-                                        
-                                        {payload.service_description ? (
-                                            <View style={styles.quoteDetailsContainer}>
-                                                <Text style={styles.quoteDetailLabel}>Service:</Text>
-                                                <Text style={styles.quoteDetailValue}>{payload.service_description}</Text>
-                                            </View>
+                                        <Text style={styles.eventTitle}>{title}</Text>
+                                        {description ? (
+                                            <Text style={styles.eventDescription}>{description}</Text>
                                         ) : null}
 
-                                        {(() => {
-                                             const planning = payload.structured_terms?.planning || {};
-                                             const hasPlanning = 
-                                                 (planning.expected_labour_hours !== null && planning.expected_labour_hours !== undefined && planning.expected_labour_hours !== '') ||
-                                                 (planning.expected_travel_km !== null && planning.expected_travel_km !== undefined && planning.expected_travel_km !== '') ||
-                                                 (planning.expected_material_cost !== null && planning.expected_material_cost !== undefined && planning.expected_material_cost !== '') ||
-                                                 (planning.expected_notes !== null && planning.expected_notes !== undefined && planning.expected_notes !== '');
-                                             
-                                             if (!hasPlanning) return null;
-
-                                             return (
-                                                 <View style={styles.planningTimelineContainer}>
-                                                     <Text style={styles.planningTimelineTitle}>Planned:</Text>
-                                                     {planning.expected_labour_hours !== null && planning.expected_labour_hours !== undefined && planning.expected_labour_hours !== '' && (
-                                                         <Text style={styles.planningTimelineText}>• {planning.expected_labour_hours} labour hours</Text>
-                                                     )}
-                                                     {planning.expected_travel_km !== null && planning.expected_travel_km !== undefined && planning.expected_travel_km !== '' && (
-                                                         <Text style={styles.planningTimelineText}>• {planning.expected_travel_km} km travel</Text>
-                                                     )}
-                                                     {planning.expected_material_cost !== null && planning.expected_material_cost !== undefined && planning.expected_material_cost !== '' && (
-                                                         <Text style={styles.planningTimelineText}>• R {Number(planning.expected_material_cost).toFixed(2)} materials</Text>
-                                                     )}
-                                                     {planning.expected_notes !== null && planning.expected_notes !== undefined && planning.expected_notes !== '' && (
-                                                         <Text style={[styles.planningTimelineText, { fontStyle: 'italic' }]}>• Note: {planning.expected_notes}</Text>
-                                                     )}
-                                                 </View>
-                                             );
-                                         })()}
-
-                                        {totalAmount > 0 && (
-                                            <View style={styles.quoteSummaryRow}>
-                                                <Text style={styles.quoteSummaryText}>{itemsSummary}</Text>
-                                            </View>
-                                        )}
-
-                                        <TouchableOpacity
-                                            style={styles.hideButton}
-                                            onPress={() => setHiddenEventIds((prev) => [...prev, event.id])}
-                                        >
-                                            <Text style={styles.hideButtonText}>Hide</Text>
-                                        </TouchableOpacity>
+                                        <View style={styles.actionRow}>
+                                            <TouchableOpacity
+                                                style={styles.hideButton}
+                                                onPress={() => setHiddenEventIds((prev) => [...prev, event.id])}
+                                            >
+                                                <Text style={styles.hideButtonText}>Hide</Text>
+                                            </TouchableOpacity>
+                                            {captureType === 'Work Completed' && (
+                                                <ShareButton
+                                                    fetchShareText={() => shareProofOfWork(event.id)}
+                                                    label="Share"
+                                                    style={styles.shareBtn}
+                                                />
+                                            )}
+                                        </View>
                                     </View>
                                 </View>
                             );
-                        }
-
-                        const captureType = payload.capture_type || 'Event';
-                        let title = captureType !== "Event" ? `${captureType}: ${payload.title || "Untitled"}` : "Timeline Event";
-                        let description = payload.description || "";
-
-                        if (event.event_type === "expense_recorded") {
-                            title = "Expense Recorded";
-                            description = `${payload.category} • R${payload.amount}\n${payload.description || ''}`;
-                        } else if (event.event_type === "opportunity_quoted") {
-                            title = "Replied to Opportunity";
-                            description = "You submitted a quote for this opportunity.";
-                        } else if (event.event_type === "quote_request_received") {
-                            title = "Lead Received";
-                            description = `${payload.customer_name} requested a quote for ${payload.service_needed}`;
-                        }
-
-                        return (
-                            <View key={event.id || index} style={styles.timelineItem}>
-                                {!isLast && <View style={styles.timelineLine} />}
-                                <View style={getDotStyle(event.event_type || captureType, event.related_entity_type)} />
-                                <View style={styles.timelineContent}>
-                                    <Text style={styles.dateText}>{formatDate(event.created_at)}</Text>
-                                    <Text style={styles.eventTitle}>{title}</Text>
-                                    {description ? (
-                                        <Text style={styles.eventDescription}>{description}</Text>
-                                    ) : null}
-
-                                    <View style={styles.actionRow}>
-                                        <TouchableOpacity
-                                            style={styles.hideButton}
-                                            onPress={() => setHiddenEventIds((prev) => [...prev, event.id])}
-                                        >
-                                            <Text style={styles.hideButtonText}>Hide</Text>
-                                        </TouchableOpacity>
-                                        {captureType === 'Work Completed' && (
-                                            <ShareButton 
-                                                fetchShareText={() => shareProofOfWork(event.id)}
-                                                label="Share"
-                                                style={styles.shareBtn}
-                                            />
-                                        )}
-                                    </View>
-                                </View>
-                            </View>
-                        );
-                    })
-                )}
-            </View>
+                        })
+                    )}
+                </View>
+            )}
         </ScrollView>
     );
 }
@@ -269,6 +309,27 @@ const styles = StyleSheet.create({
     },
     section: {
         padding: 24,
+    },
+    centered: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 32,
+        marginTop: 40,
+    },
+    activationTitle: {
+        fontSize: 24,
+        fontWeight: '800',
+        color: '#111827',
+        marginBottom: 16,
+        textAlign: 'center',
+    },
+    activationText: {
+        fontSize: 16,
+        color: '#4B5563',
+        textAlign: 'center',
+        marginBottom: 16,
+        lineHeight: 24,
     },
     timelineItem: {
         flexDirection: 'row',
@@ -449,5 +510,17 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: '600',
         color: '#6B7280',
+    },
+    primaryButton: {
+        backgroundColor: '#111827',
+        paddingVertical: 16,
+        paddingHorizontal: 32,
+        borderRadius: 12,
+        marginTop: 16,
+    },
+    primaryButtonText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontWeight: '700',
     },
 });

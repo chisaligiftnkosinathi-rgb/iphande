@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, Alert, Pressable, ActivityIndicator, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import * as Location from 'expo-location';
 import { uploadToSupabaseStorage } from '../../src/lib/mediaUpload';
 import { supabase } from '../../src/lib/supabase';
+import { Ionicons } from '@expo/vector-icons';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -24,6 +26,11 @@ export default function NewOpportunityScreen() {
     const [contactPhone, setContactPhone] = useState('');
     const [expiryDate, setExpiryDate] = useState(''); // YYYY-MM-DD
 
+    // GPS Pin
+    const [latitude, setLatitude] = useState<number | null>(null);
+    const [longitude, setLongitude] = useState<number | null>(null);
+    const [locationLoading, setLocationLoading] = useState(false);
+
     // Image URIs (local)
     const [image1Uri, setImage1Uri] = useState<string | null>(null);
     const [image2Uri, setImage2Uri] = useState<string | null>(null);
@@ -37,6 +44,27 @@ export default function NewOpportunityScreen() {
 
         if (!result.canceled && result.assets && result.assets.length > 0) {
             setImage(result.assets[0].uri);
+        }
+    };
+
+    const dropPin = async () => {
+        setLocationLoading(true);
+        try {
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permission Denied', 'Permission to access location was denied. Location pin will not be added.');
+                setLocationLoading(false);
+                return;
+            }
+
+            let location = await Location.getCurrentPositionAsync({});
+            setLatitude(location.coords.latitude);
+            setLongitude(location.coords.longitude);
+            Alert.alert('Success', 'Location pin added successfully!');
+        } catch (err) {
+            Alert.alert('Error', 'Could not fetch location. Please try again.');
+        } finally {
+            setLocationLoading(false);
         }
     };
 
@@ -104,6 +132,8 @@ export default function NewOpportunityScreen() {
                 image_url_1: imageUrl1,
                 image_url_2: imageUrl2,
                 expiry_date: expiryDate ? new Date(expiryDate).toISOString() : null,
+                latitude,
+                longitude,
             };
 
             const response = await fetch(`${API_URL}/api/v1/opportunities`, {
@@ -177,6 +207,26 @@ export default function NewOpportunityScreen() {
             <View style={styles.formGroup}>
                 <Text style={styles.label}>Suburb/Area</Text>
                 <TextInput style={styles.input} value={suburbOrArea} onChangeText={setSuburbOrArea} placeholder="e.g. Sandton" />
+            </View>
+            <View style={styles.formGroup}>
+                <Text style={styles.label}>GPS Pin (Optional)</Text>
+                {latitude && longitude ? (
+                    <View style={styles.pinSuccess}>
+                        <Ionicons name="checkmark-circle" size={20} color="#059669" />
+                        <Text style={styles.pinSuccessText}>Location attached</Text>
+                    </View>
+                ) : (
+                    <Pressable style={styles.pinButton} onPress={dropPin} disabled={locationLoading}>
+                        {locationLoading ? (
+                            <ActivityIndicator color="#111827" size="small" />
+                        ) : (
+                            <>
+                                <Ionicons name="location-outline" size={20} color="#111827" />
+                                <Text style={styles.pinButtonText}>Add location pin</Text>
+                            </>
+                        )}
+                    </Pressable>
+                )}
             </View>
 
             <Text style={styles.sectionTitle}>Contact Information</Text>
@@ -302,4 +352,33 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '700',
     },
+    pinButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#F3F4F6',
+        borderWidth: 1,
+        borderColor: '#D1D5DB',
+        borderRadius: 8,
+        padding: 12,
+        gap: 8,
+    },
+    pinButtonText: {
+        color: '#111827',
+        fontSize: 15,
+        fontWeight: '600',
+    },
+    pinSuccess: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#D1FAE5',
+        padding: 12,
+        borderRadius: 8,
+        gap: 8,
+    },
+    pinSuccessText: {
+        color: '#065F46',
+        fontSize: 15,
+        fontWeight: '600',
+    }
 });

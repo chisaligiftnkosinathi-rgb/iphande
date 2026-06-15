@@ -1,26 +1,17 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { fetchWithAuth } from '../../src/config/api';
-
-interface Quote {
-    id: string;
-    customer_name: string;
-    service_description: string;
-    total: number;
-    status: string;
-    created_at: string;
-}
+import { fetchMyQuotes, QuoteOut } from '../../src/services/quoteApi';
 
 export default function QuotesScreen() {
     const router = useRouter();
-    const [quotes, setQuotes] = useState<Quote[]>([]);
+    const [quotes, setQuotes] = useState<QuoteOut[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
     const fetchQuotes = useCallback(async () => {
         try {
-            const data = await fetchWithAuth('/quotes/me');
+            const data = await fetchMyQuotes();
             setQuotes(data || []);
         } catch (error) {
             console.error("Fetch quotes error:", error);
@@ -64,16 +55,16 @@ export default function QuotesScreen() {
                     >
                         <View style={styles.cardHeader}>
                             <Text style={styles.quoteId}>IPH-{q.id.split('-')[0].toUpperCase()}</Text>
-                            <View style={[styles.badge, q.status === 'sent' ? styles.badgeSent : q.status === 'accepted' ? styles.badgeAccepted : styles.badgeDraft]}>
-                                <Text style={[styles.badgeText, q.status === 'sent' ? styles.badgeTextSent : q.status === 'accepted' ? styles.badgeTextAccepted : styles.badgeTextDraft]}>
+                            <View style={[styles.badge, q.status === 'issued' ? styles.badgeSent : q.status === 'accepted' ? styles.badgeAccepted : styles.badgeDraft]}>
+                                <Text style={[styles.badgeText, q.status === 'issued' ? styles.badgeTextSent : q.status === 'accepted' ? styles.badgeTextAccepted : styles.badgeTextDraft]}>
                                     {q.status}
                                 </Text>
                             </View>
                         </View>
                         <Text style={styles.customerName}>{q.customer_name}</Text>
-                        <Text style={styles.serviceText} numberOfLines={1}>{q.service_description}</Text>
+                        <Text style={styles.serviceText} numberOfLines={1}>{q.description || ''}</Text>
                         <View style={styles.cardFooter}>
-                            <Text style={styles.amountText}>R {q.total.toFixed(2)}</Text>
+                            <Text style={styles.amountText}>R {Number(q.amount || 0).toFixed(2)}</Text>
                             <Text style={styles.dateText}>{new Date(q.created_at).toLocaleDateString()}</Text>
                         </View>
                     </TouchableOpacity>

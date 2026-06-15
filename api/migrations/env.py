@@ -11,7 +11,7 @@ from alembic import context
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import your Base and all your models
-from src.database import Base
+from src.database.session import Base
 from src.models.profile import Profile
 from src.models.continuity_event_model import ContinuityEvent
 from src.models.opportunity import Opportunity
@@ -22,15 +22,9 @@ from src.models.inventory import InventoryItem
 from src.models.invoice import Invoice
 from src.models.lead import Lead
 
-from dotenv import load_dotenv
-load_dotenv()
-
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-
-if os.environ.get("DATABASE_URL"):
-    config.set_main_option("sqlalchemy.url", os.environ.get("DATABASE_URL"))
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

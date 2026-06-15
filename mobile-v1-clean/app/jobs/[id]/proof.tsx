@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../../../src/context/AuthContext';
 import { uploadWorkProof } from '../../../src/services/workProofUploadService';
+import { fetchWithAuth } from '../../../src/config/api';
 
 export default function ProofOfWorkScreen() {
     const { id } = useLocalSearchParams();
@@ -42,9 +43,25 @@ export default function ProofOfWorkScreen() {
 
         setIsSubmitting(true);
         try {
-            await uploadWorkProof(user.id, id as string, proofImage.uri, proofImage.fileName);
+            const proofUrl = await uploadWorkProof(user.id, id as string, proofImage.uri, proofImage.fileName);
 
-            // Future V2: This will hit the continuity event API
+            // Record the continuity event via API
+            await fetchWithAuth('/continuity', {
+                method: 'POST',
+                body: JSON.stringify({
+                    business_owner_id: user.id,
+                    event_type: 'job_completed',
+                    actor_type: 'STEWARD',
+                    actor_id: user.id,
+                    related_entity_type: 'opportunity',
+                    related_entity_id: id,
+                    payload_json: {
+                        proof_url: proofUrl,
+                        note: note
+                    }
+                })
+            });
+
             Alert.alert("Job Completed", "Proof of work uploaded to the continuity ledger.", [
                 { text: "Finish", onPress: () => router.push('/tabs/timeline') }
             ]);

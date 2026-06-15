@@ -3,58 +3,27 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { fetchWithAuth, API_BASE_URL } from '../../src/config/api';
+import { API_BASE_URL } from '../../src/config/api';
+import { fetchQuoteDetail, acceptQuote, QuoteOut } from '../../src/services/quoteApi';
+import { fetchWithAuth } from '../../src/config/api';
 import { validateDocumentData } from '../../src/config/documentTemplates';
 import { useSteward } from '../../src/context/StewardContext';
 import * as FileSystem from 'expo-file-system';
 import { supabase } from '../../src/lib/supabase';
-
-interface LineItem {
-    name: string;
-    description: string;
-    quantity: number;
-    unit: string;
-    unit_price: number;
-    category: 'labour' | 'materials' | 'travel' | 'other';
-    line_total: number;
-}
-
-interface QuoteDetail {
-    id: string;
-    customer_name: string;
-    customer_phone: string;
-    service_description: string;
-    labour: number;
-    materials: number;
-    travel: number;
-    other: number;
-    subtotal: number;
-    vat: number;
-    total: number;
-    status: string;
-    created_at: string;
-    // V2 fields
-    line_items?: LineItem[];
-    archetype_key?: string;
-    business_line?: string;
-    quote_template_version?: string;
-    structured_terms?: any;
-}
+import * as Clipboard from 'expo-clipboard';
 
 export default function QuoteDetailScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
     const { profile } = useSteward();
-    const [quote, setQuote] = useState<QuoteDetail | null>(null);
+    const [quote, setQuote] = useState<QuoteOut | null>(null);
     const [loading, setLoading] = useState(true);
 
     const fetchQuote = async () => {
         try {
-            // Fetching from /me and filtering is a safe V1 approach if GET /{id} isn't exposed yet
-            const data = await fetchWithAuth('/quotes/me');
-            const found = data?.find((q: QuoteDetail) => q.id === id);
-            if (found) setQuote(found);
-            else throw new Error("Quote not found");
+            if (typeof id !== 'string') return;
+            const data = await fetchQuoteDetail(id);
+            setQuote(data);
         } catch (error) {
             console.error("Fetch quote error:", error);
             Alert.alert("Error", "Could not load quote details.");
@@ -103,9 +72,9 @@ export default function QuoteDetailScreen() {
     const handleConvertToInvoice = async () => {
         if (!quote) return;
         try {
-            const res = await fetchWithAuth(`/invoices/from-quote/${quote.id}`, { method: 'POST' });
+            await fetchWithAuth(`/invoices/from-quote/${quote.id}`, { method: 'POST' });
             Alert.alert("Success", "Invoice created successfully.");
-            router.push('/steward-console'); // or wherever they should go
+            router.push('/tools/documents');
         } catch (error: any) {
             console.error('Error converting to invoice:', error);
             Alert.alert('Error', error.message || 'Could not convert quote to invoice.');
@@ -136,8 +105,8 @@ export default function QuoteDetailScreen() {
             <View style={styles.header}>
                 <Text style={styles.kicker}>Proposal Review</Text>
                 <Text style={styles.title}>IPH-{quote.id.split('-')[0].toUpperCase()}</Text>
-                <View style={[styles.badge, quote.status === 'sent' ? styles.badgeSent : quote.status === 'accepted' ? styles.badgeAccepted : styles.badgeDraft]}>
-                    <Text style={[styles.badgeText, quote.status === 'sent' ? styles.badgeTextSent : quote.status === 'accepted' ? styles.badgeTextAccepted : styles.badgeTextDraft]}>
+                <View style={[styles.badge, quote.status === 'issued' ? styles.badgeSent : quote.status === 'accepted' ? styles.badgeAccepted : styles.badgeDraft]}>
+                    <Text style={[styles.badgeText, quote.status === 'issued' ? styles.badgeTextSent : quote.status === 'accepted' ? styles.badgeTextAccepted : styles.badgeTextDraft]}>
                         {quote.status.toUpperCase()}
                     </Text>
                 </View>
@@ -152,7 +121,7 @@ export default function QuoteDetailScreen() {
                     <View style={styles.divider} />
 
                     <Text style={styles.sectionHeading}>Service & Breakdown</Text>
-                    <Text style={styles.primaryText}>{quote.service_description || 'General Service'}</Text>
+                    <Text style={styles.primaryText}>{quote.description || 'General Service'}</Text>
                     {quote.quote_template_version === 'QUOTE_V2' && quote.line_items && quote.line_items.length > 0 ? (
                         <View style={styles.lineItemsList}>
                             {quote.line_items.map((item, index) => (
@@ -171,10 +140,7 @@ export default function QuoteDetailScreen() {
                         </View>
                     ) : (
                         <Text style={styles.secondaryText}>
-                            • Labour: R {quote.labour.toFixed(2)}{'\n'}
-                            • Materials: R {quote.materials.toFixed(2)}{'\n'}
-                            • Travel: R {quote.travel.toFixed(2)}{'\n'}
-                            • Other: R {quote.other.toFixed(2)}
+                            Total: R {quote.amount.toFixed(2)}
                         </Text>
                     )}
 
@@ -182,7 +148,7 @@ export default function QuoteDetailScreen() {
 
                     <View style={styles.totalRow}>
                         <Text style={styles.totalLabel}>Total Amount</Text>
-                        <Text style={styles.totalAmount}>R {quote.total.toFixed(2)}</Text>
+                        <Text style={styles.totalAmount}>R {quote.amount.toFixed(2)}</Text>
                     </View>
                 </View>
 

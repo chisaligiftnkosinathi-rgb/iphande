@@ -33,7 +33,9 @@
       "expo-sharing",
       "expo-image-picker",
       "expo-document-picker",
-      "expo-location"
+      "expo-location",
+      "expo-font",
+      "expo-router"
     ]
   }
 }
