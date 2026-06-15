@@ -9,6 +9,10 @@ class ContinuityEventCreate(BaseModel):
     business_category_key: Optional[str] = None
     business_line: Optional[str] = None
     event_type: ContinuityEventType
+    evidence_type: Optional[str] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
+    source: Optional[str] = None
     actor_type: ActorType
     actor_id: Optional[str] = None
     related_entity_type: Optional[str] = None
@@ -23,6 +27,10 @@ class ContinuityEventResponse(BaseModel):
     business_category_key: Optional[str] = None
     business_line: Optional[str] = None
     event_type: str
+    evidence_type: Optional[str] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
+    source: Optional[str] = None
     actor_type: str
     actor_id: Optional[str] = None
     related_entity_type: Optional[str] = None

@@ -1,4 +1,3 @@
-
 from sqlalchemy import Column, String, DateTime, ForeignKey, Text, BigInteger, Identity, CheckConstraint, select
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import JSON
@@ -20,6 +19,10 @@ class ContinuityEvent(Base):
     business_category_key = Column(String, nullable=True)
     business_line = Column(String, nullable=True)
     event_type = Column(String, nullable=False)  # e.g., 'business_identity_created', 'content_generated', etc.
+    evidence_type = Column(String, nullable=True)
+    title = Column(String, nullable=True)
+    description = Column(String, nullable=True)
+    source = Column(String, nullable=True)
     actor_type = Column(String, nullable=True)   # e.g., 'user', 'customer', 'system'
     actor_id = Column(String, nullable=True)
     related_entity_type = Column(String, nullable=True)  # e.g., 'profile', 'post', 'quote_request', etc.

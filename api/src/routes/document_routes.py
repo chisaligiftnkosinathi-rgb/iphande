@@ -5,7 +5,7 @@ import uuid
 
 from src.database import get_db
 from src.auth.supabase_auth import get_current_user
-from src.services.verification_service import require_verified_steward
+from src.services.verification_service import require_verified_steward_or_platform_admin
 from src.models.profile import Profile
 from src.models.quote import Quote
 from src.models.invoice import Invoice
@@ -20,7 +20,7 @@ def download_quote_pdf(
     user: dict = Depends(get_current_user)
 ):
     profile = db.query(Profile).filter(Profile.owner_id == user["uid"]).first()
-    require_verified_steward(profile)
+    require_verified_steward_or_platform_admin(profile)
     
     quote = db.query(Quote).filter(Quote.id == document_id, Quote.business_owner_id == profile.id).first()
     if not quote:
@@ -40,7 +40,7 @@ def download_invoice_pdf(
     user: dict = Depends(get_current_user)
 ):
     profile = db.query(Profile).filter(Profile.owner_id == user["uid"]).first()
-    require_verified_steward(profile)
+    require_verified_steward_or_platform_admin(profile)
     
     invoice = db.query(Invoice).filter(Invoice.id == document_id, Invoice.business_owner_id == profile.id).first()
     if not invoice:

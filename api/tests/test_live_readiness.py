@@ -2,11 +2,11 @@ from fastapi.testclient import TestClient
 
 from src.main import app
 
+client = TestClient(app)
+
 
 def test_health_endpoint_returns_readiness_metadata():
-    with TestClient(app) as client:
-        response = client.get("/health")
-
+    response = client.get("/health")
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "alive"
@@ -16,9 +16,7 @@ def test_health_endpoint_returns_readiness_metadata():
 
 
 def test_db_health_endpoint_reports_database_status():
-    with TestClient(app) as client:
-        response = client.get("/db-health")
-
+    response = client.get("/db-health")
     assert response.status_code == 200
     body = response.json()
     assert body["status"] in {"ok", "degraded"}
@@ -26,23 +24,19 @@ def test_db_health_endpoint_reports_database_status():
 
 
 def test_cors_preflight_allows_mobile_clients():
-    with TestClient(app) as client:
-        response = client.options(
-            "/health",
-            headers={
-                "Origin": "http://localhost:19006",
-                "Access-Control-Request-Method": "GET",
-            },
-        )
-
+    response = client.options(
+        "/health",
+        headers={
+            "Origin": "http://localhost:19006",
+            "Access-Control-Request-Method": "GET",
+        },
+    )
     assert response.status_code == 200
     assert response.headers["access-control-allow-origin"] == "http://localhost:19006"
 
 
 def test_mobile_handshake_reports_replay_contract():
-    with TestClient(app) as client:
-        response = client.get("/api/v1/mobile/handshake")
-
+    response = client.get("/api/v1/mobile/handshake")
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "ok"
@@ -54,8 +48,7 @@ def test_mobile_handshake_reports_replay_contract():
 
 
 def test_mobile_heartbeat_reports_alive():
-    with TestClient(app) as client:
-        response = client.get("/api/v1/mobile/heartbeat")
+    response = client.get("/api/v1/mobile/heartbeat")
 
     assert response.status_code == 200
     body = response.json()

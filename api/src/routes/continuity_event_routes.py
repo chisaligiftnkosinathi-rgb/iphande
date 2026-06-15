@@ -12,15 +12,29 @@ from src.models.continuity_event_model import ContinuityEvent
 from src.models.profile import Profile
 from src.database import get_db
 from src.services.continuity_event_service import emit_continuity_event
-from src.services.verification_service import require_verified_steward
+from src.services.verification_service import require_verified_steward_or_platform_admin
+from src.auth.supabase_auth import get_current_user
 
 router = APIRouter()
 
 @router.post("/", response_model=ContinuityEventResponse)
-def create_event(event: ContinuityEventCreate, db: Session = Depends(get_db)):
+def create_event(
+    event: ContinuityEventCreate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
     if event.business_owner_id:
-        profile = db.query(Profile).filter(Profile.id == event.business_owner_id).first()
-        require_verified_steward(profile)
+        requester = db.query(Profile).filter(Profile.owner_id == current_user["uid"]).first()
+
+        if requester and (
+            requester.trust_posture == "system_creator"
+            or requester.role in ("admin", "system_admin")
+        ):
+            pass
+        else:
+            if not requester or str(requester.id) != str(event.business_owner_id):
+                raise HTTPException(status_code=403, detail="Not allowed to create events for this timeline")
+            require_verified_steward_or_platform_admin(requester)
 
     db_event = emit_continuity_event(
         db,
@@ -143,9 +157,22 @@ def get_events_for_entity(entity_id: str, db: Session = Depends(get_db)):
     return events
 
 @router.get("/business/{business_owner_id}", response_model=List[ContinuityEventResponse])
-def get_events_for_business(business_owner_id: str, db: Session = Depends(get_db)):
-    profile = db.query(Profile).filter(Profile.id == business_owner_id).first()
-    require_verified_steward(profile)
+def get_events_for_business(
+    business_owner_id: str,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    requester = db.query(Profile).filter(Profile.owner_id == current_user["uid"]).first()
+
+    if requester and (
+        requester.trust_posture == "system_creator"
+        or requester.role in ("admin", "system_admin")
+    ):
+        pass
+    else:
+        if not requester or str(requester.id) != str(business_owner_id):
+            raise HTTPException(status_code=403, detail="Not allowed to view this timeline")
+        require_verified_steward_or_platform_admin(requester)
 
     events = db.query(ContinuityEvent).filter(ContinuityEvent.business_owner_id == business_owner_id).order_by(ContinuityEvent.lineage_sequence.asc()).all()
     return events

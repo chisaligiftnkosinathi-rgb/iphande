@@ -40,6 +40,22 @@ def setup_database():
     app.dependency_overrides[get_db] = override_get_db
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
+    
+    db = TestingSessionLocal()
+    from src.models.profile import Profile
+    mock_profile = Profile(
+        id="test-owner-123",
+        owner_id="test-owner-uid",
+        name="Test Owner",
+        email="owner@example.com",
+        slug="test-owner",
+        setup_fee_status="approved",
+        is_verified=True
+    )
+    db.add(mock_profile)
+    db.commit()
+    db.close()
+    
     yield
     app.dependency_overrides.clear()
 

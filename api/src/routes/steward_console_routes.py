@@ -8,7 +8,7 @@ from reportlab.lib.units import cm
 
 from src.database import get_db
 from src.auth.supabase_auth import get_current_user
-from src.services.verification_service import require_verified_steward
+from src.services.verification_service import require_verified_steward_or_platform_admin
 from src.models.profile import Profile
 from src.services.document_engine import draw_header, draw_footer
 
@@ -51,7 +51,7 @@ def export_steward_console(
     user: dict = Depends(get_current_user)
 ):
     profile = db.query(Profile).filter(Profile.owner_id == user["uid"]).first()
-    require_verified_steward(profile)
+    require_verified_steward_or_platform_admin(profile)
     
     pdf_buffer = generate_vba_export_pdf(profile)
     

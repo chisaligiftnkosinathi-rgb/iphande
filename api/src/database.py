@@ -334,6 +334,10 @@ def ensure_postgres_opportunities_schema():
             connection.execute(text("ALTER TABLE opportunities ADD COLUMN image_url_2 VARCHAR"))
         if "expiry_date" not in columns:
             connection.execute(text("ALTER TABLE opportunities ADD COLUMN expiry_date TIMESTAMP"))
+        if "latitude" not in columns:
+            connection.execute(text("ALTER TABLE opportunities ADD COLUMN latitude FLOAT"))
+        if "longitude" not in columns:
+            connection.execute(text("ALTER TABLE opportunities ADD COLUMN longitude FLOAT"))
 
 def ensure_postgres_quotes_schema():
     if engine.dialect.name != "postgresql":

@@ -61,8 +61,10 @@ def list_pending_advertisements(db: Session = Depends(get_db)):
         Advertisement.advert_status == "pending_review"
     ).order_by(Advertisement.created_at.asc()).all()
 
+from uuid import UUID
+
 @router.patch("/admin/advertisements/{ad_id}/approve", response_model=AdvertisementOut)
-def approve_advertisement(ad_id: str, db: Session = Depends(get_db)):
+def approve_advertisement(ad_id: UUID, db: Session = Depends(get_db)):
     with replay_transaction(db):
         ad = db.query(Advertisement).filter(Advertisement.id == ad_id).first()
         if not ad:
@@ -75,7 +77,7 @@ def approve_advertisement(ad_id: str, db: Session = Depends(get_db)):
     return ad
 
 @router.patch("/admin/advertisements/{ad_id}/reject", response_model=AdvertisementOut)
-def reject_advertisement(ad_id: str, db: Session = Depends(get_db)):
+def reject_advertisement(ad_id: UUID, db: Session = Depends(get_db)):
     with replay_transaction(db):
         ad = db.query(Advertisement).filter(Advertisement.id == ad_id).first()
         if not ad:

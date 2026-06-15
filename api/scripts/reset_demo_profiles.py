@@ -28,23 +28,22 @@ def reset_demo_profiles():
     db: Session = SessionLocal()
     try:
         profiles = db.query(Profile).filter(Profile.email.in_(DEMO_EMAILS)).all()
-        
+
         if not profiles:
             print("No demo profiles found in the database. They might not be registered yet.")
             return
 
         for profile in profiles:
             print(f"Resetting data for {profile.email} (Owner ID: {profile.owner_id})...")
-            
+
             # Clear associated business data
             # Use owner_id if it's available, otherwise use profile.id depending on how relationships are set up.
             owner_id = profile.owner_id
             profile_id = profile.id
-            
+
             if owner_id:
                 db.execute(delete(Opportunity).where(Opportunity.created_by_profile_id == owner_id))
                 db.execute(delete(Quote).where(Quote.business_owner_id == owner_id))
-                db.execute(delete(ContinuityEvent).where(ContinuityEvent.business_owner_id == owner_id))
                 db.execute(delete(Expense).where(Expense.owner_id == owner_id))
                 db.execute(delete(InventoryItem).where(InventoryItem.owner_id == owner_id))
                 db.execute(delete(Invoice).where(Invoice.business_owner_id == owner_id))
@@ -53,14 +52,17 @@ def reset_demo_profiles():
                 db.execute(delete(Referral).where(Referral.referrer_id == profile_id))
                 db.execute(delete(Referral).where(Referral.referred_profile_id == profile_id))
 
-            # Reset profile state to a "freshly bootstrapped" state, or just delete the profile 
+            # Delete Continuity Events using direct profile_id
+            db.execute(delete(ContinuityEvent).where(ContinuityEvent.profile_id == profile_id))
+
+            # Reset profile state to a "freshly bootstrapped" state, or just delete the profile
             # to let the app recreate it on next login. Deleting is cleaner for a full reset.
             db.delete(profile)
-            
+
         db.commit()
         print(f"Successfully reset data for {len(profiles)} demo users.")
         print("Note: The Supabase auth users remain active. The next time they log in, they will be prompted to bootstrap their profile again.")
-        
+
     except Exception as e:
         db.rollback()
         print(f"Error resetting demo profiles: {e}")

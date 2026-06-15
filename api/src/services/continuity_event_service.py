@@ -14,6 +14,10 @@ def emit_continuity_event(
     related_entity_type: str | None = None,
     related_entity_id: str | None = None,
     parent_event_id: str | None = None,
+    evidence_type: str | None = None,
+    title: str | None = None,
+    description: str | None = None,
+    source: str | None = None,
     payload: dict | None = None,
     auto_commit: bool = True,
 ):
@@ -33,6 +37,10 @@ def emit_continuity_event(
         related_entity_type=related_entity_type,
         related_entity_id=related_entity_id,
         parent_event_id=parent_event_id,
+        evidence_type=evidence_type,
+        title=title,
+        description=description,
+        source=source,
         payload_json=payload if payload is not None else None,
     )
     db.add(event)
@@ -41,5 +49,4 @@ def emit_continuity_event(
         db.refresh(event)
     else:
         db.flush()
-        db.refresh(event)
     return event

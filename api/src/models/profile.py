@@ -58,6 +58,7 @@ class Profile(Base):
     setup_fee_paid_at = Column(DateTime, nullable=True)
     setup_fee_review_note = Column(String, nullable=True)
     is_verified = Column(Boolean, default=False, nullable=False)
+    is_active = Column(Boolean, default=False, nullable=False)
     activated_at = Column(DateTime, nullable=True)
     onboarding_completed = Column(Boolean, default=False, nullable=False)
 

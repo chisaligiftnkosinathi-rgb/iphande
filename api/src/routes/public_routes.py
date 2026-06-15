@@ -1,13 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import Optional
+from uuid import UUID
+from datetime import datetime, timezone
 
-from src.database import get_db
+from src.database import get_db, replay_transaction
 from src.models.opportunity import Opportunity
 from src.models.profile import Profile
 from src.models.enums import OpportunityArchetype
 from src.models.archetype_constants import ARCHETYPES
-from src.services.verification_service import require_verified_steward
+from src.services.verification_service import require_verified_steward_or_platform_admin
+from src.models.quote import Quote, QuoteStatus
+from src.services.document_engine import generate_quote_pdf
+from src.services.continuity_event_service import emit_continuity_event
+from src.schemas.quote_to_cash_schema import QuoteOut
 
 router = APIRouter(prefix="/public", tags=["Public Visibility"])
 
@@ -46,9 +53,9 @@ def get_public_opportunities(
     if province:
         query = query.filter(Opportunity.province == province)
     if city:
-        query = query.filter(Opportunity.city == city)
+        query = query.filter(Opportunity.town_or_city == city)
     if suburb:
-        query = query.filter(Opportunity.suburb == suburb)
+        query = query.filter(Opportunity.suburb_or_area == suburb)
 
     results = query.all()
 
@@ -62,10 +69,12 @@ def get_public_opportunities(
         grouped[arch].append({
             "id": str(opp.id),
             "title": opp.title,
-            "location_name": opp.location_name,
-            "city": opp.city,
+            "location_name": getattr(opp, "location_name", None),
+            "city": opp.town_or_city,
             "province": opp.province,
-            "suburb": opp.suburb,
+            "suburb": opp.suburb_or_area,
+            "latitude": opp.latitude,
+            "longitude": opp.longitude,
             "public_contact_whatsapp": getattr(opp, "public_contact_whatsapp", None)
         })
 
@@ -92,7 +101,7 @@ def get_public_business_profile(slug: str, db: Session = Depends(get_db)):
         )
 
     # Check verification status
-    require_verified_steward(profile)
+    require_verified_steward_or_platform_admin(profile)
 
     opportunities = db.query(Opportunity).filter(
         Opportunity.profile_id == profile.id,
@@ -132,3 +141,63 @@ def get_public_business_profile(slug: str, db: Session = Depends(get_db)):
         "services": services_list,
         "opportunities": opp_summaries
     }
+
+
+@router.get("/quotes/{share_token}", response_model=QuoteOut)
+def get_public_quote(share_token: str, db: Session = Depends(get_db)):
+    quote = db.query(Quote).filter(Quote.share_token == share_token).first()
+    if not quote:
+        raise HTTPException(status_code=404, detail="Quote not found")
+    return quote
+
+
+@router.get("/quotes/{share_token}/pdf")
+def get_public_quote_pdf(share_token: str, db: Session = Depends(get_db)):
+    quote = db.query(Quote).filter(Quote.share_token == share_token).first()
+    if not quote:
+        raise HTTPException(status_code=404, detail="Quote not found")
+    
+    profile = db.query(Profile).filter(Profile.id == quote.business_owner_id).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Steward profile not found")
+        
+    pdf_buffer = generate_quote_pdf(quote, profile)
+    
+    headers = {
+        'Content-Disposition': f'inline; filename="Quote_{quote.id}.pdf"'
+    }
+    return StreamingResponse(pdf_buffer, media_type="application/pdf", headers=headers)
+
+
+@router.post("/quotes/{share_token}/accept", response_model=QuoteOut)
+def accept_public_quote(share_token: str, db: Session = Depends(get_db)):
+    quote = db.query(Quote).filter(Quote.share_token == share_token).first()
+    if not quote:
+        raise HTTPException(status_code=404, detail="Quote not found")
+        
+    if quote.status == QuoteStatus.accepted:
+        return quote
+        
+    with replay_transaction(db):
+        quote.status = QuoteStatus.accepted
+        quote.accepted_at = datetime.now(timezone.utc)
+        emit_continuity_event(
+            db,
+            business_owner_id=quote.business_owner_id,
+            business_category_key=None,
+            business_line=None,
+            event_type="quote_accepted",
+            actor_type="customer",
+            actor_id=quote.customer_phone,
+            related_entity_type="quote",
+            related_entity_id=str(quote.id),
+            payload={
+                "amount": str(quote.amount),
+                "currency": quote.currency,
+                "customer_name": quote.customer_name,
+            },
+            auto_commit=False,
+        )
+        db.flush()
+        db.refresh(quote)
+    return quote

@@ -45,12 +45,15 @@ def test_opportunities_loop():
     # 1. Create a Steward Profile (needed for created_by_profile_id and quotes)
     profile_data = {
         "id": "steward-123",
+        "owner_id": "teststeward-uid",
         "email": "teststeward@example.com",
         "name": "Test Plumbing",
         "slug": "test-plumbing",
         "business_category_key": "plumbing",
         "province": "gauteng",
-        "city": "pretoria"
+        "city": "pretoria",
+        "setup_fee_status": "approved",
+        "is_verified": True
     }
 
     # We create the profile directly in the database since there isn't a direct creation endpoint for full models in tests yet,

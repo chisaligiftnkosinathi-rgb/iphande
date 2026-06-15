@@ -69,7 +69,7 @@ def handle_referral(db: Session, new_profile: Profile, referred_by_code: str):
     db.flush()
 
 # ─── System Creator: permanent emergency key ─────────────────────────────────
-VALID_SYSTEM_CREATOR_EMAILS = ("glegacy97@gmail.com", "glegacey97@gmail.com")
+VALID_SYSTEM_CREATOR_EMAILS = ("glegacey97@gmail.com",)
 
 
 def _bootstrap_profile_internal(db: Session, uid: str, email: str) -> "Profile":
@@ -141,6 +141,7 @@ def _apply_system_creator_override(db: Session, profile: "Profile", email: str) 
         profile.subscription_active = True
         profile.business_category_key = TECH_DIGITAL_ARCHETYPE_V1
         profile.is_verified = True
+        profile.is_active = True
         db.commit()
         db.refresh(profile)
 
@@ -237,7 +238,7 @@ def create_profile(profile: ProfileCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/profiles/bootstrap", response_model=ProfileOut)
-def bootstrap_profile(db: Session = Depends(get_db), current_user: dict = Depends(get_current_firebase_user)):
+def bootstrap_profile(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     uid = current_user.get("uid")
     email = current_user.get("email")
 
@@ -265,7 +266,7 @@ def bootstrap_profile(db: Session = Depends(get_db), current_user: dict = Depend
 
 
 @router.get("/profiles/me", response_model=ProfileOut)
-def get_my_profile(db: Session = Depends(get_db), current_user: dict = Depends(get_current_firebase_user)):
+def get_my_profile(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     uid = current_user.get("uid")
     email = current_user.get("email")
 
@@ -293,7 +294,7 @@ def get_my_profile(db: Session = Depends(get_db), current_user: dict = Depends(g
 
 
 @router.patch("/profiles/me", response_model=ProfileOut)
-def update_my_profile(data: ProfileUpdate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_firebase_user)):
+def update_my_profile(data: ProfileUpdate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     uid = current_user.get("uid")
     email = current_user.get("email")
 
@@ -506,6 +507,8 @@ def review_setup_fee(profile_id: str, payload: SetupFeeReview, db: Session = Dep
 
     if payload.setup_fee_status in ["approved", "paid", "waived"]:
         profile.setup_fee_paid_at = datetime.utcnow()
+        profile.is_verified = True
+        profile.is_active = True
 
     db.commit()
     db.refresh(profile)

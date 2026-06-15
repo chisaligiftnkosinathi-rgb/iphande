@@ -51,6 +51,7 @@ def seed_demo_users():
         
         if config["status"] == "approved":
             profile.activated_at = datetime.utcnow()
+            profile.is_active = True
         elif config["status"] == "pending_review":
             profile.setup_fee_proof_url = config.get("proof_url")
         elif config["status"] == "rejected":

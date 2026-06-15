@@ -9,6 +9,8 @@ class OpportunityCreate(BaseModel):
     province: str
     town_or_city: str
     suburb_or_area: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     category_key: str
     service_needed: str
     budget_amount: Optional[str] = None
@@ -25,6 +27,8 @@ class OpportunityUpdate(BaseModel):
     province: Optional[str] = None
     town_or_city: Optional[str] = None
     suburb_or_area: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     category_key: Optional[str] = None
     service_needed: Optional[str] = None
     budget_amount: Optional[str] = None
@@ -43,6 +47,8 @@ class OpportunityOut(BaseModel):
     province: Optional[str]
     town_or_city: Optional[str]
     suburb_or_area: Optional[str]
+    latitude: Optional[float]
+    longitude: Optional[float]
     category_key: Optional[str]
     service_needed: Optional[str]
     budget_amount: Optional[str]

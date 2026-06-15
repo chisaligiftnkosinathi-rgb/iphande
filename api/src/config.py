@@ -19,3 +19,9 @@ CORS_ORIGINS = [
     for origin in os.getenv("CORS_ORIGINS", "*").split(",")
     if origin.strip()
 ]
+
+BOOTSTRAP_ADMIN_EMAILS = [
+    email.strip().lower()
+    for email in os.getenv("BOOTSTRAP_ADMIN_EMAILS", "").split(",")
+    if email.strip()
+]

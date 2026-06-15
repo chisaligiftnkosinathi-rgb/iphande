@@ -49,3 +49,4 @@ class Quote(Base):
     archetype_key = Column(String, nullable=True)
     business_line = Column(String, nullable=True)
     quote_template_version = Column(String, nullable=False, default="QUOTE_V1")
+    share_token = Column(String, nullable=True, unique=True, index=True, default=lambda: str(uuid.uuid4()))

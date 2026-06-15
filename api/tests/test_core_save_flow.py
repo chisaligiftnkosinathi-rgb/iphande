@@ -33,18 +33,17 @@ def test_core_save_flow_profile_to_opportunity():
 
         # 2. CREATE THE FRUIT (The Opportunity attached to the Profile)
         new_opportunity = Opportunity(
-            profile_id=new_profile.id, # MUST link to the root
+            created_by_profile_id=new_profile.id, # MUST link to the root
             title="Assistant Mechanic Needed",
-            archetype=OpportunityArchetype.WORK.value,
-            city="Emalahleni",
-            is_public=True
+            town_or_city="Emalahleni",
+            category_key="work"
         )
         db.add(new_opportunity)
         db.commit()
         db.refresh(new_opportunity)
 
         assert new_opportunity.id is not None
-        assert new_opportunity.profile_id == new_profile.id
+        assert new_opportunity.created_by_profile_id == new_profile.id
         assert new_opportunity.title == "Assistant Mechanic Needed"
 
     finally:

@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from src.main import app
-from src.database import Base, engine as prod_engine
+from src.database import Base, engine as prod_engine, get_db
 from src.models.quote import Quote
 from src.models.expense import Expense
 

@@ -1,39 +1,50 @@
-
 import pytest
 from fastapi.testclient import TestClient
 from src.main import app
-import uuid
+from src.database import get_db, Base
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
-@pytest.fixture(scope="module")
-def test_client():
-    with TestClient(app) as client:
-        yield client
+SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+TestingSessionLocal = sessionmaker(
+    autocommit=False, autoflush=False, bind=engine)
+
+def override_get_db():
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+client = TestClient(app)
+
+@pytest.fixture(autouse=True)
+def setup_database():
+    from src.database import register_models
+    register_models()
+    Base.metadata.create_all(bind=engine)
+    app.dependency_overrides[get_db] = override_get_db
+    yield
+    Base.metadata.drop_all(bind=engine)
+    app.dependency_overrides.clear()
 
 steward_id = "steward-123"
 
-import pytest
-from fastapi.testclient import TestClient
-from src.main import app
-import uuid
 
-
-import pytest
-
-@pytest.fixture(scope="module")
-def test_client():
-    with TestClient(app) as client:
-        yield client
-
-steward_id = "steward-123"
-
-
-def test_create_quick_text_capture(test_client):
+def test_create_quick_text_capture():
     payload = {
         "steward_id": steward_id,
         "source_type": "quick_text",
         "raw_text": "Test quick note"
     }
-    resp = test_client.post("/api/v1/continuity-captures", json=payload)
+    resp = client.post("/api/v1/continuity-captures", json=payload)
     assert resp.status_code == 200
     data = resp.json()
     assert data["steward_id"] == steward_id
@@ -45,41 +56,41 @@ def test_create_quick_text_capture(test_client):
     assert "updated_at" in data
 
 
-def test_create_payment_signal_capture_with_context_hint(test_client):
+def test_create_payment_signal_capture_with_context_hint():
     payload = {
         "steward_id": steward_id,
         "source_type": "payment_signal",
         "context_hint": "EFT screenshot sent via WhatsApp"
     }
-    resp = test_client.post("/api/v1/continuity-captures", json=payload)
+    resp = client.post("/api/v1/continuity-captures", json=payload)
     assert resp.status_code == 200
     data = resp.json()
     assert data["source_type"] == "payment_signal"
     assert data["context_hint"] == "EFT screenshot sent via WhatsApp"
 
 
-def test_reject_empty_capture_payload(test_client):
+def test_reject_empty_capture_payload():
     payload = {
         "steward_id": steward_id,
         "source_type": "other"
     }
-    resp = test_client.post("/api/v1/continuity-captures", json=payload)
+    resp = client.post("/api/v1/continuity-captures", json=payload)
     assert resp.status_code == 422
 
 
-def test_list_captures_by_steward(test_client):
+def test_list_captures_by_steward():
     # Create two captures
-    test_client.post("/api/v1/continuity-captures", json={
+    client.post("/api/v1/continuity-captures", json={
         "steward_id": steward_id,
         "source_type": "quick_text",
         "raw_text": "First"
     })
-    test_client.post("/api/v1/continuity-captures", json={
+    client.post("/api/v1/continuity-captures", json={
         "steward_id": steward_id,
         "source_type": "quick_text",
         "raw_text": "Second"
     })
-    resp = test_client.get(f"/api/v1/continuity-captures?steward_id={steward_id}")
+    resp = client.get(f"/api/v1/continuity-captures?steward_id={steward_id}")
     assert resp.status_code == 200
     data = resp.json()
     assert isinstance(data, list)
@@ -88,9 +99,9 @@ def test_list_captures_by_steward(test_client):
         assert item["steward_id"] == steward_id
 
 
-def test_read_capture_by_id(test_client):
+def test_read_capture_by_id():
     # Create a capture
-    resp = test_client.post("/api/v1/continuity-captures", json={
+    resp = client.post("/api/v1/continuity-captures", json={
         "steward_id": steward_id,
         "source_type": "quick_text",
         "raw_text": "Read by id"
@@ -98,20 +109,20 @@ def test_read_capture_by_id(test_client):
     assert resp.status_code == 200
     capture_id = resp.json()["id"]
     # Read it
-    resp2 = test_client.get(f"/api/v1/continuity-captures/{capture_id}")
+    resp2 = client.get(f"/api/v1/continuity-captures/{capture_id}")
     assert resp2.status_code == 200
     data = resp2.json()
     assert data["id"] == capture_id
     assert data["raw_text"] == "Read by id"
 
 
-def test_capture_defaults_to_captured_status(test_client):
+def test_capture_defaults_to_captured_status():
     payload = {
         "steward_id": steward_id,
         "source_type": "quick_text",
         "raw_text": "Default status"
     }
-    resp = test_client.post("/api/v1/continuity-captures", json=payload)
+    resp = client.post("/api/v1/continuity-captures", json=payload)
     assert resp.status_code == 200
     data = resp.json()
     assert data["status"] == "captured"

@@ -44,6 +44,22 @@ async def lifespan(app: FastAPI):
             db.close()
         except Exception:
             pass
+
+        # Patch existing quotes table with the missing 'share_token' column
+        try:
+            db = SessionLocal()
+            db.execute(text("ALTER TABLE quotes ADD COLUMN share_token VARCHAR;"))
+            db.commit()
+            # Populate existing quotes with a share_token if they don't have one
+            from src.models.quote import Quote
+            import uuid
+            quotes_to_update = db.query(Quote).filter(Quote.share_token == None).all()
+            for q in quotes_to_update:
+                q.share_token = str(uuid.uuid4())
+            db.commit()
+            db.close()
+        except Exception:
+            pass
     except Exception:
         logger.exception(
             "Database table initialization failed during startup; "
