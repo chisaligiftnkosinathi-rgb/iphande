@@ -1,2 +1,25 @@
 # Ignore backend media uploads
 api/data/media/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment and secrets
+.env
+.env.*
+
+# SQLite databases
+*.db
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
