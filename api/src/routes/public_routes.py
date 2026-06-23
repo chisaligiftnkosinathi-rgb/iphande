@@ -44,6 +44,7 @@ def get_public_opportunities(
     province: Optional[str] = None,
     city: Optional[str] = None,
     suburb: Optional[str] = None,
+    place_code: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     query = db.query(Opportunity).filter(Opportunity.is_public == True)
@@ -56,6 +57,8 @@ def get_public_opportunities(
         query = query.filter(Opportunity.town_or_city == city)
     if suburb:
         query = query.filter(Opportunity.suburb_or_area == suburb)
+    if place_code:
+        query = query.filter(Opportunity.place_code == place_code)
 
     results = query.all()
 
@@ -128,76 +131,4 @@ def get_public_business_profile(slug: str, db: Session = Depends(get_db)):
         for opp in opportunities
     ]
 
-    return {
-        "slug": profile.slug,
-        "name": profile.name,
-        "category": profile.business_category_key,
-        "steward_story": profile.short_bio or "No story provided yet.",
-        "location_string": location_string,
-        "whatsapp_number": profile.whatsapp_number or profile.phone,
-        "cover_photo_url": profile.cover_photo_url,
-        "logo_url": profile.logo_url,
-        "supporting_images": supporting_images_list,
-        "services": services_list,
-        "opportunities": opp_summaries
-    }
-
-
-@router.get("/quotes/{share_token}", response_model=QuoteOut)
-def get_public_quote(share_token: str, db: Session = Depends(get_db)):
-    quote = db.query(Quote).filter(Quote.share_token == share_token).first()
-    if not quote:
-        raise HTTPException(status_code=404, detail="Quote not found")
-    return quote
-
-
-@router.get("/quotes/{share_token}/pdf")
-def get_public_quote_pdf(share_token: str, db: Session = Depends(get_db)):
-    quote = db.query(Quote).filter(Quote.share_token == share_token).first()
-    if not quote:
-        raise HTTPException(status_code=404, detail="Quote not found")
-    
-    profile = db.query(Profile).filter(Profile.id == quote.business_owner_id).first()
-    if not profile:
-        raise HTTPException(status_code=404, detail="Steward profile not found")
-        
-    pdf_buffer = generate_quote_pdf(quote, profile)
-    
-    headers = {
-        'Content-Disposition': f'inline; filename="Quote_{quote.id}.pdf"'
-    }
-    return StreamingResponse(pdf_buffer, media_type="application/pdf", headers=headers)
-
-
-@router.post("/quotes/{share_token}/accept", response_model=QuoteOut)
-def accept_public_quote(share_token: str, db: Session = Depends(get_db)):
-    quote = db.query(Quote).filter(Quote.share_token == share_token).first()
-    if not quote:
-        raise HTTPException(status_code=404, detail="Quote not found")
-        
-    if quote.status == QuoteStatus.accepted:
-        return quote
-        
-    with replay_transaction(db):
-        quote.status = QuoteStatus.accepted
-        quote.accepted_at = datetime.now(timezone.utc)
-        emit_continuity_event(
-            db,
-            business_owner_id=quote.business_owner_id,
-            business_category_key=None,
-            business_line=None,
-            event_type="quote_accepted",
-            actor_type="customer",
-            actor_id=quote.customer_phone,
-            related_entity_type="quote",
-            related_entity_id=str(quote.id),
-            payload={
-                "amount": str(quote.amount),
-                "currency": quote.currency,
-                "customer_name": quote.customer_name,
-            },
-            auto_commit=False,
-        )
-        db.flush()
-        db.refresh(quote)
-    return quote
+    retu

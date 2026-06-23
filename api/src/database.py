@@ -57,6 +57,7 @@ def register_models():
     from src.models.steward_annotation import StewardAnnotation  # noqa: F401
     from src.models.expense import Expense  # noqa: F401
     from src.models.referral import Referral  # noqa: F401
+    from src.models.place import Place  # noqa: F401
 
 def create_tables():
     register_models()
@@ -338,6 +339,8 @@ def ensure_postgres_opportunities_schema():
             connection.execute(text("ALTER TABLE opportunities ADD COLUMN latitude FLOAT"))
         if "longitude" not in columns:
             connection.execute(text("ALTER TABLE opportunities ADD COLUMN longitude FLOAT"))
+        if "place_code" not in columns:
+            connection.execute(text("ALTER TABLE opportunities ADD COLUMN place_code VARCHAR"))
 
 def ensure_postgres_quotes_schema():
     if engine.dialect.name != "postgresql":

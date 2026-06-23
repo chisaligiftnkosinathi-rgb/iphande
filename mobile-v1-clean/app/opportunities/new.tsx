@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, Alert, Pressable, ActivityIndicator, Image } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { LocationPicker, LocationSelection } from '../../src/components/LocationPicker';
+import { API_BASE_URL } from '../../src/config/api';
 import { uploadToSupabaseStorage } from '../../src/lib/mediaUpload';
 import { supabase } from '../../src/lib/supabase';
-import { Ionicons } from '@expo/vector-icons';
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
 
 export default function NewOpportunityScreen() {
     const router = useRouter();
@@ -16,15 +16,16 @@ export default function NewOpportunityScreen() {
     // Form state
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [province, setProvince] = useState('');
-    const [townOrCity, setTownOrCity] = useState('');
-    const [suburbOrArea, setSuburbOrArea] = useState('');
     const [categoryKey, setCategoryKey] = useState('');
     const [serviceNeeded, setServiceNeeded] = useState('');
     const [budgetAmount, setBudgetAmount] = useState('');
     const [contactName, setContactName] = useState('');
     const [contactPhone, setContactPhone] = useState('');
     const [expiryDate, setExpiryDate] = useState(''); // YYYY-MM-DD
+
+    // Location State
+    const [locationData, setLocationData] = useState<LocationSelection | null>(null);
+    const [showPicker, setShowPicker] = useState(false);
 
     // GPS Pin
     const [latitude, setLatitude] = useState<number | null>(null);
@@ -69,7 +70,7 @@ export default function NewOpportunityScreen() {
     };
 
     const submitOpportunity = async () => {
-        if (!title || !serviceNeeded || !contactName || !contactPhone || !province || !townOrCity) {
+        if (!title || !serviceNeeded || !contactName || !contactPhone || !locationData) {
             Alert.alert('Missing Fields', 'Please fill in all required fields.');
             return;
         }
@@ -86,7 +87,7 @@ export default function NewOpportunityScreen() {
             const token = sessionData.session?.access_token;
             // The backend requires created_by_profile_id. Assuming the profile ID is the user ID for now,
             // or the user must be authenticated. Wait, the user asked if public customer can post an opportunity.
-            // If they can't, they should be logged in. 
+            // If they can't, they should be logged in.
             // In V1, we assume created_by_profile_id is the session user id.
             const userId = sessionData.session?.user?.id;
 
@@ -121,9 +122,10 @@ export default function NewOpportunityScreen() {
                 created_by_profile_id: userId,
                 title,
                 description,
-                province,
-                town_or_city: townOrCity,
-                suburb_or_area: suburbOrArea,
+                province: locationData.province,
+                town_or_city: locationData.municipality,
+                suburb_or_area: locationData.sub_place ? `${locationData.main_place}, ${locationData.sub_place}` : locationData.main_place,
+                place_code: locationData.place_code,
                 category_key: categoryKey || 'GENERAL',
                 service_needed: serviceNeeded,
                 budget_amount: budgetAmount,
@@ -136,7 +138,7 @@ export default function NewOpportunityScreen() {
                 longitude,
             };
 
-            const response = await fetch(`${API_URL}/api/v1/opportunities`, {
+            const response = await fetch(`${API_BASE_URL}/opportunities`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -197,16 +199,13 @@ export default function NewOpportunityScreen() {
 
             <Text style={styles.sectionTitle}>Location</Text>
             <View style={styles.formGroup}>
-                <Text style={styles.label}>Province *</Text>
-                <TextInput style={styles.input} value={province} onChangeText={setProvince} placeholder="e.g. Gauteng" />
-            </View>
-            <View style={styles.formGroup}>
-                <Text style={styles.label}>Town/City *</Text>
-                <TextInput style={styles.input} value={townOrCity} onChangeText={setTownOrCity} placeholder="e.g. Johannesburg" />
-            </View>
-            <View style={styles.formGroup}>
-                <Text style={styles.label}>Suburb/Area</Text>
-                <TextInput style={styles.input} value={suburbOrArea} onChangeText={setSuburbOrArea} placeholder="e.g. Sandton" />
+                <Text style={styles.label}>Area *</Text>
+                <Pressable style={styles.pickerButton} onPress={() => setShowPicker(true)}>
+                    <Text style={locationData ? styles.pickerButtonTextActive : styles.pickerButtonText}>
+                        {locationData ? `${locationData.main_place}${locationData.sub_place ? ', ' + locationData.sub_place : ''}` : 'Select Area'}
+                    </Text>
+                    <Ionicons name="chevron-down" size={20} color="#6B7280" />
+                </Pressable>
             </View>
             <View style={styles.formGroup}>
                 <Text style={styles.label}>GPS Pin (Optional)</Text>
@@ -252,6 +251,12 @@ export default function NewOpportunityScreen() {
             <Pressable style={[styles.submitButton, loading && styles.submitButtonDisabled]} onPress={submitOpportunity} disabled={loading}>
                 {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitButtonText}>Post Opportunity</Text>}
             </Pressable>
+
+            <LocationPicker
+                visible={showPicker}
+                onClose={() => setShowPicker(false)}
+                onSelect={setLocationData}
+            />
         </ScrollView>
     );
 }
@@ -300,6 +305,23 @@ const styles = StyleSheet.create({
         padding: 12,
         fontSize: 16,
         color: '#111827',
+    },
+    pickerButton: {
+        backgroundColor: '#FFFFFF',
+        borderWidth: 1,
+        borderColor: '#D1D5DB',
+        borderRadius: 8,
+        padding: 16,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    pickerButtonText: {
+        color: '#9CA3AF',
+        fontSize: 16,
+    },
+    pickerButtonTextActive: {
+        color: '#111827',
+        fontSize: 16,
     },
     textArea: {
         backgroundColor: '#FFFFFF',

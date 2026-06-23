@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, SafeAreaView, Alert, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
+import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Linking, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { LocationPicker, LocationSelection } from '../../src/components/LocationPicker';
+import { API_BASE_URL } from '../../src/config/api';
 import { calculateDistanceKm } from '../../src/lib/location';
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
 
 type OpportunityGroup = {
     archetype: string;
@@ -32,10 +32,15 @@ export default function ExploreScreen() {
     const [userLon, setUserLon] = useState<number | null>(null);
     const [locationLoading, setLocationLoading] = useState(false);
 
+    const [locationFilter, setLocationFilter] = useState<LocationSelection | null>(null);
+    const [showPicker, setShowPicker] = useState(false);
+
     useEffect(() => {
         const fetchOpportunities = async () => {
+            setLoading(true);
             try {
-                const res = await fetch(`${API_URL}/api/v1/public/opportunities`);
+                const url = locationFilter ? `${API_BASE_URL}/public/opportunities?place_code=${locationFilter.place_code}` : `${API_BASE_URL}/public/opportunities`;
+                const res = await fetch(url);
                 if (!res.ok) throw new Error('Failed to fetch opportunities');
                 const data = await res.json();
                 setGroups(data.groups || []);
@@ -48,7 +53,7 @@ export default function ExploreScreen() {
         };
 
         fetchOpportunities();
-    }, []);
+    }, [locationFilter]);
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -63,39 +68,50 @@ export default function ExploreScreen() {
                 <View style={styles.hero}>
                     <Text style={styles.title}>Community Opportunities</Text>
                     <Text style={styles.subtitle}>Discover needs and services in your area.</Text>
-                    
-                    {!userLat && !userLon ? (
-                        <TouchableOpacity style={styles.locationButton} onPress={async () => {
-                            setLocationLoading(true);
-                            try {
-                                let { status } = await Location.requestForegroundPermissionsAsync();
-                                if (status !== 'granted') {
-                                    Alert.alert('Permission Denied', 'Permission to access location was denied.');
-                                    setLocationLoading(false);
-                                    return;
-                                }
-                                let loc = await Location.getCurrentPositionAsync({});
-                                setUserLat(loc.coords.latitude);
-                                setUserLon(loc.coords.longitude);
-                            } catch (err) {
-                                Alert.alert('Error', 'Could not fetch location.');
-                            } finally {
-                                setLocationLoading(false);
-                            }
-                        }} disabled={locationLoading}>
-                            {locationLoading ? <ActivityIndicator size="small" color="#111827" /> : (
-                                <>
-                                    <Ionicons name="location-outline" size={16} color="#111827" />
-                                    <Text style={styles.locationButtonText}>Use my current location</Text>
-                                </>
-                            )}
+
+                    <View style={styles.filtersRow}>
+                        <TouchableOpacity style={styles.filterButton} onPress={() => setShowPicker(true)}>
+                            <Ionicons name="map-outline" size={16} color="#111827" />
+                            <Text style={styles.filterButtonText}>
+                                {locationFilter ? `${locationFilter.main_place}` : 'Filter by Area'}
+                            </Text>
                         </TouchableOpacity>
-                    ) : (
-                        <View style={styles.locationActive}>
-                            <Ionicons name="checkmark-circle" size={16} color="#059669" />
-                            <Text style={styles.locationActiveText}>Showing distance from you</Text>
-                        </View>
-                    )}
+
+                        {locationFilter && (
+                            <TouchableOpacity style={styles.clearFilterBtn} onPress={() => setLocationFilter(null)}>
+                                <Ionicons name="close-circle" size={18} color="#6B7280" />
+                            </TouchableOpacity>
+                        )}
+
+                        {!userLat && !userLon ? (
+                            <TouchableOpacity style={styles.locationButton} onPress={async () => {
+                                setLocationLoading(true);
+                                try {
+                                    let { status } = await Location.requestForegroundPermissionsAsync();
+                                    if (status !== 'granted') {
+                                        Alert.alert('Permission Denied', 'Permission to access location was denied.');
+                                        setLocationLoading(false);
+                                        return;
+                                    }
+                                    let loc = await Location.getCurrentPositionAsync({});
+                                    setUserLat(loc.coords.latitude);
+                                    setUserLon(loc.coords.longitude);
+                                } catch (err) {
+                                    Alert.alert('Error', 'Could not fetch location.');
+                                } finally {
+                                    setLocationLoading(false);
+                                }
+                            }} disabled={locationLoading}>
+                                {locationLoading ? <ActivityIndicator size="small" color="#111827" /> : (
+                                    <Text style={styles.locationButtonText}>Use GPS</Text>
+                                )}
+                            </TouchableOpacity>
+                        ) : (
+                            <View style={styles.locationActive}>
+                                <Ionicons name="checkmark-circle" size={16} color="#059669" />
+                            </View>
+                        )}
+                    </View>
                 </View>
 
                 {loading ? (
@@ -142,6 +158,12 @@ export default function ExploreScreen() {
                     ))
                 )}
             </ScrollView>
+
+            <LocationPicker
+                visible={showPicker}
+                onClose={() => setShowPicker(false)}
+                onSelect={setLocationFilter}
+            />
         </SafeAreaView>
     );
 }
@@ -259,6 +281,31 @@ const styles = StyleSheet.create({
         color: '#059669',
         fontWeight: '600',
     },
+    filtersRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 16,
+        gap: 8,
+    },
+    filterButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+        borderWidth: 1,
+        borderColor: '#D1D5DB',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 20,
+        gap: 6,
+    },
+    filterButtonText: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#111827',
+    },
+    clearFilterBtn: {
+        padding: 4,
+    },
     locationButton: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -267,8 +314,6 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         borderRadius: 20,
         gap: 6,
-        alignSelf: 'flex-start',
-        marginTop: 12,
     },
     locationButtonText: {
         fontSize: 13,

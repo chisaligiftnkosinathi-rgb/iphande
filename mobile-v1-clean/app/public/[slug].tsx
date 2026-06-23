@@ -676,7 +676,7 @@ const styles = StyleSheet.create({
     errorText: { textAlign: 'center', fontSize: 15, color: '#6F7D75', lineHeight: 22 },
 
     // Hero
-    heroContainer: { width: '100%', height: 210, backgroundColor: '#E8DFD0', overflow: 'hidden' },
+    heroContainer: { width: '100%', aspectRatio: 16 / 9, backgroundColor: '#E8DFD0', overflow: 'hidden' },
     heroImage: { width: '100%', height: '100%', resizeMode: 'cover' },
     heroPlaceholder: { justifyContent: 'center', alignItems: 'center' },
     heroPlaceholderText: { fontSize: 28, fontWeight: '800', color: '#9EAD9B', letterSpacing: 4 },

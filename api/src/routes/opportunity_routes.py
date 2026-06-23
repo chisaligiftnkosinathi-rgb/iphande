@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.orm import Session
 from typing import Optional
+import math
 from src.database import SessionLocal, replay_transaction, get_db
 from src.models.opportunity import Opportunity
 from src.schemas.opportunity_schema import OpportunityCreate, OpportunityOut, OpportunityUpdate
@@ -9,6 +10,18 @@ from src.services.verification_service import require_verified_steward_or_platfo
 from src.models.profile import Profile
 
 router = APIRouter()
+
+def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    if None in (lat1, lon1, lat2, lon2):
+        return float('inf')
+    R = 6371.0  # Earth radius in kilometers
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = math.sin(dlat / 2)**2 + \
+        math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * \
+        math.sin(dlon / 2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
 
 @router.post("/opportunities", response_model=OpportunityOut)
 def create_opportunity(opportunity: OpportunityCreate, db: Session = Depends(get_db)):
@@ -47,10 +60,11 @@ def create_opportunity(opportunity: OpportunityCreate, db: Session = Depends(get
 
 @router.get("/opportunities", response_model=list[OpportunityOut])
 def list_opportunities(
-    profile_id: Optional[str] = None, 
+    profile_id: Optional[str] = None,
     province: Optional[str] = None,
     town_or_city: Optional[str] = None,
     category_key: Optional[str] = None,
+    place_code: Optional[str] = None,
     q: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
@@ -63,11 +77,44 @@ def list_opportunities(
         query = query.filter(Opportunity.town_or_city == town_or_city)
     if category_key:
         query = query.filter(Opportunity.category_key == category_key)
+    if place_code:
+        query = query.filter(Opportunity.place_code == place_code)
     if q:
         search = f"%{q}%"
         query = query.filter((Opportunity.title.like(search)) | (Opportunity.description.like(search)) | (Opportunity.service_needed.like(search)))
-    
+
     return query.order_by(Opportunity.created_at.desc()).all()
+
+@router.get("/opportunities/nearby", response_model=list[OpportunityOut])
+def list_nearby_opportunities(
+    lat: float,
+    lng: float,
+    radius_km: float = 15.0,
+    category_key: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    query = db.query(Opportunity)
+    if category_key:
+        query = query.filter(Opportunity.category_key == category_key)
+
+    # Basic bounding box to reduce DB load before precise Python filtering
+    lat_degree_approx = radius_km / 111.0
+    lng_degree_approx = radius_km / (111.0 * math.cos(math.radians(lat))) if math.cos(math.radians(lat)) != 0 else radius_km / 111.0
+
+    query = query.filter(
+        Opportunity.latitude >= lat - lat_degree_approx,
+        Opportunity.latitude <= lat + lat_degree_approx,
+        Opportunity.longitude >= lng - lng_degree_approx,
+        Opportunity.longitude <= lng + lng_degree_approx
+    )
+
+    opportunities = query.order_by(Opportunity.created_at.desc()).all()
+
+    return [
+        opp for opp in opportunities
+        if opp.latitude is not None and opp.longitude is not None and
+        haversine_distance(lat, lng, opp.latitude, opp.longitude) <= radius_km
+    ]
 
 @router.get("/opportunities/{opportunity_id}", response_model=OpportunityOut)
 def get_opportunity(opportunity_id: str, db: Session = Depends(get_db)):

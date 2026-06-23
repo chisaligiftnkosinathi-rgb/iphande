@@ -9,6 +9,7 @@ class OpportunityCreate(BaseModel):
     province: str
     town_or_city: str
     suburb_or_area: Optional[str] = None
+    place_code: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     category_key: str
@@ -27,6 +28,7 @@ class OpportunityUpdate(BaseModel):
     province: Optional[str] = None
     town_or_city: Optional[str] = None
     suburb_or_area: Optional[str] = None
+    place_code: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     category_key: Optional[str] = None
@@ -47,6 +49,7 @@ class OpportunityOut(BaseModel):
     province: Optional[str]
     town_or_city: Optional[str]
     suburb_or_area: Optional[str]
+    place_code: Optional[str]
     latitude: Optional[float]
     longitude: Optional[float]
     category_key: Optional[str]

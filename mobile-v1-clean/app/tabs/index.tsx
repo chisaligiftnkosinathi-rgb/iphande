@@ -1,20 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, SectionList, TouchableOpacity, TextInput, Modal, ScrollView, Alert, KeyboardAvoidingView, Platform, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../../src/context/AuthContext';
-import { useSteward } from '../../src/context/StewardContext';
-import { fetchOpportunities, createOpportunity, updateOpportunity } from '../../src/services/opportunityApi';
-import { OpportunityOut, OpportunityCreate } from '../../src/types/opportunity';
-import { fetchActiveAdvertisements } from '../../src/services/advertisementApi';
-import { AdvertisementOut } from '../../src/types/advertisement';
-import { useRouter } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
-import { PROVINCES, TOWNS_BY_PROVINCE, ARCHETYPES } from '../../src/data/southAfricaLocations';
+import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Alert, Linking, SectionList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { PageHeader } from '../../src/components/PageHeader';
 import { theme } from '../../src/config/theme';
+import { useLocations } from '../../src/config/useLocations';
+import { useAuth } from '../../src/context/AuthContext';
+import { useSteward } from '../../src/context/StewardContext';
+import { ARCHETYPES } from '../../src/data/southAfricaLocations';
 import { calculateDistanceKm } from '../../src/lib/location';
+import { fetchActiveAdvertisements } from '../../src/services/advertisementApi';
+import { fetchOpportunities, updateOpportunity } from '../../src/services/opportunityApi';
+import { AdvertisementOut } from '../../src/types/advertisement';
+import { OpportunityOut } from '../../src/types/opportunity';
 
-type FeedItem = 
+type FeedItem =
     | { type: 'opportunity'; data: OpportunityOut }
     | { type: 'advertisement'; data: AdvertisementOut };
 
@@ -31,56 +32,50 @@ export default function OpportunitiesScreen() {
     const [sections, setSections] = useState<SectionData[]>([]);
     const [otherOpportunities, setOtherOpportunities] = useState<FeedItem[]>([]);
     const [showOther, setShowOther] = useState(false);
-    
+
     const [loading, setLoading] = useState(true);
-    
+
     // Filters
     const [searchQuery, setSearchQuery] = useState('');
-    const [filterProvince, setFilterProvince] = useState('');
-    const [filterTown, setFilterTown] = useState('');
     const [filterCategory, setFilterCategory] = useState('');
     const [oppsError, setOppsError] = useState('');
-    const [customFilterTown, setCustomFilterTown] = useState('');
-    const [customNewTown, setCustomNewTown] = useState('');
+    const [searchRadius, setSearchRadius] = useState('15');
 
-    const [isCreateModalVisible, setCreateModalVisible] = useState(false);
-    
-    // Create form state
-    const [newTitle, setNewTitle] = useState('');
-    const [newDesc, setNewDesc] = useState('');
-    const [newProvince, setNewProvince] = useState('');
-    const [newTown, setNewTown] = useState('');
-    const [newArea, setNewArea] = useState('');
-    const [newCategory, setNewCategory] = useState('');
-    const [newService, setNewService] = useState('');
-    const [newBudget, setNewBudget] = useState('');
-    const [newContactName, setNewContactName] = useState('');
-    const [newContactPhone, setNewContactPhone] = useState('');
+    // 1. Wire in Geographic Truth Tree
+    const {
+        provinces, selectedProvince, setSelectedProvince,
+        towns, selectedTown, setSelectedTown,
+        places, selectedPlaceCode, setSelectedPlaceCode
+    } = useLocations();
 
     useEffect(() => {
         const timer = setTimeout(() => {
             loadOpportunities();
         }, 300);
         return () => clearTimeout(timer);
-    }, [filterProvince, filterTown, filterCategory, searchQuery]);
+    }, [selectedProvince, selectedTown, selectedPlaceCode, filterCategory, searchQuery, searchRadius]);
 
     const loadOpportunities = async () => {
         try {
             setLoading(true);
             setOppsError('');
-            
-            const effectiveFilterTown = filterTown === 'other' ? customFilterTown : filterTown;
+
             const filters = {
-                province: filterProvince || undefined,
-                town_or_city: effectiveFilterTown || undefined,
+                province: selectedProvince || undefined,
+                town_or_city: selectedTown || undefined,
+                place_code: selectedPlaceCode || undefined,
                 category_key: filterCategory || undefined,
-                q: searchQuery || undefined
+                q: searchQuery || undefined,
+                lat: (!selectedPlaceCode && searchRadius !== 'nationwide') ? profile?.latitude ?? undefined : undefined,
+                lng: (!selectedPlaceCode && searchRadius !== 'nationwide') ? profile?.longitude ?? undefined : undefined,
+                radius_km: (!selectedPlaceCode && searchRadius !== 'nationwide') ? searchRadius : undefined,
             };
+
             const [oppResult, adResult] = await Promise.allSettled([
                 fetchOpportunities(filters),
                 fetchActiveAdvertisements(filters)
             ]);
-            
+
             const openOpps: FeedItem[] = [];
             const otherOpps: FeedItem[] = [];
             const activeAds: FeedItem[] = [];
@@ -111,7 +106,7 @@ export default function OpportunitiesScreen() {
             openOpps.sort((a, b) => new Date(b.data.created_at || 0).getTime() - new Date(a.data.created_at || 0).getTime());
             activeAds.sort((a, b) => new Date(b.data.created_at || 0).getTime() - new Date(a.data.created_at || 0).getTime());
             otherOpps.sort((a, b) => new Date(b.data.created_at || 0).getTime() - new Date(a.data.created_at || 0).getTime());
-            
+
             const newSections: SectionData[] = [];
             if (openOpps.length > 0) {
                 newSections.push({ title: 'Open Opportunities', data: openOpps });
@@ -119,7 +114,7 @@ export default function OpportunitiesScreen() {
             if (activeAds.length > 0) {
                 newSections.push({ title: 'Community Ads', data: activeAds });
             }
-            
+
             setSections(newSections);
             setOtherOpportunities(otherOpps);
         } catch (err) {
@@ -131,46 +126,11 @@ export default function OpportunitiesScreen() {
 
     const clearFilters = () => {
         setSearchQuery('');
-        setFilterProvince('');
-        setFilterTown('');
+        setSelectedProvince('');
+        setSelectedTown('');
+        setSelectedPlaceCode('');
         setFilterCategory('');
-    };
-
-    const handleCreateOpportunity = async () => {
-        if (!profile?.id) return;
-        const effectiveNewTown = newTown === 'other' ? customNewTown : newTown;
-        if (!newTitle || !newProvince || !effectiveNewTown || !newCategory || !newContactPhone) {
-            Alert.alert('Validation Error', 'Please fill in Title, Category, Province, Town, and Contact Phone.');
-            return;
-        }
-
-        try {
-            const oppData: OpportunityCreate = {
-                created_by_profile_id: profile.id,
-                title: newTitle,
-                description: newDesc,
-                province: newProvince,
-                town_or_city: effectiveNewTown,
-                suburb_or_area: newArea,
-                category_key: newCategory,
-                service_needed: newService,
-                budget_amount: newBudget,
-                contact_name: newContactName,
-                contact_phone: newContactPhone,
-            };
-            await createOpportunity(oppData);
-            setCreateModalVisible(false);
-            
-            // Reset form
-            setNewTitle(''); setNewDesc(''); setNewProvince(''); setNewTown(''); setNewArea('');
-            setNewCategory(''); setNewService(''); setNewBudget(''); setNewContactName(''); setNewContactPhone('');
-            
-            loadOpportunities();
-            Alert.alert("Success", "Opportunity created successfully.");
-        } catch (err) {
-            console.error(err);
-            Alert.alert('Error', 'Failed to create opportunity');
-        }
+        setSearchRadius('15');
     };
 
     const handleContact = async (opp: OpportunityOut) => {
@@ -198,7 +158,7 @@ export default function OpportunitiesScreen() {
 
     const renderHeader = () => (
         <View style={styles.listHeader}>
-            <PageHeader 
+            <PageHeader
                 eyebrow="Community"
                 title="Opportunities"
                 subtitle="Find needs by place, skill, and service."
@@ -208,9 +168,9 @@ export default function OpportunitiesScreen() {
             <View style={theme.styles.card}>
                 <View style={styles.searchRow}>
                     <Ionicons name="search" size={20} color={theme.colors.textMuted} style={styles.searchIcon} />
-                    <TextInput 
-                        style={styles.searchInput} 
-                        placeholder="Search keywords..." 
+                    <TextInput
+                        style={styles.searchInput}
+                        placeholder="Search keywords..."
                         placeholderTextColor={theme.colors.textMuted}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
@@ -220,40 +180,27 @@ export default function OpportunitiesScreen() {
                 <View style={styles.pickerRow}>
                     <View style={styles.pickerWrapper}>
                         <Picker
-                            selectedValue={filterProvince}
-                            onValueChange={(val) => {
-                                setFilterProvince(val);
-                                setFilterTown('');
-                            }}
+                            selectedValue={selectedProvince}
+                            onValueChange={setSelectedProvince}
                             style={styles.pickerElement}
                         >
-                            <Picker.Item label="Province" value="" />
-                            {PROVINCES.map(p => <Picker.Item key={p.value} label={p.label} value={p.value} />)}
+                            <Picker.Item label="Filter by Province" value="" />
+                            {provinces.map(p => <Picker.Item key={p} label={p} value={p} />)}
                         </Picker>
                     </View>
                     <View style={styles.pickerWrapper}>
                         <Picker
-                            selectedValue={filterTown}
-                            onValueChange={setFilterTown}
+                            selectedValue={selectedTown}
+                            onValueChange={setSelectedTown}
                             style={styles.pickerElement}
-                            enabled={!!filterProvince}
+                            enabled={!!selectedProvince}
                         >
-                            <Picker.Item label="Town/City" value="" />
-                            {filterProvince && TOWNS_BY_PROVINCE[filterProvince]?.map(t => <Picker.Item key={t.value} label={t.label} value={t.value} />)}
-                            {filterProvince && <Picker.Item label="Other / Not listed" value="other" />}
+                            <Picker.Item label="Filter by Town/City" value="" />
+                            {towns.map(t => <Picker.Item key={t} label={t} value={t} />)}
                         </Picker>
                     </View>
                 </View>
-                {filterTown === 'other' && (
-                    <TextInput 
-                        style={[styles.searchInput, { marginBottom: 12, marginTop: -4 }]} 
-                        placeholder="Enter town or city"
-                        placeholderTextColor={theme.colors.textMuted}
-                        value={customFilterTown}
-                        onChangeText={setCustomFilterTown}
-                    />
-                )}
-                
+
                 <View style={styles.pickerRow}>
                     <View style={styles.pickerWrapper}>
                         <Picker
@@ -267,7 +214,7 @@ export default function OpportunitiesScreen() {
                     </View>
                 </View>
 
-                {(searchQuery || filterProvince || filterTown || filterCategory) ? (
+                {(searchQuery || selectedProvince || selectedTown || selectedPlaceCode || filterCategory || searchRadius !== '15') ? (
                     <TouchableOpacity style={styles.clearFilterButton} onPress={clearFilters}>
                         <Text style={styles.clearFilterText}>Clear Filters</Text>
                     </TouchableOpacity>
@@ -279,12 +226,12 @@ export default function OpportunitiesScreen() {
                 <Text style={styles.sectionTitle}>What can you create?</Text>
                 <View style={styles.actionButtonsRow}>
                     {session && profile ? (
-                        <TouchableOpacity style={styles.primaryActionButton} onPress={() => setCreateModalVisible(true)}>
+                        <TouchableOpacity style={styles.primaryActionButton} onPress={() => router.push('/opportunities/new')}>
                             <Ionicons name="add-circle-outline" size={20} color="#fff" />
                             <Text style={styles.primaryActionText}>Create Opportunity</Text>
                         </TouchableOpacity>
                     ) : null}
-                    
+
                     <TouchableOpacity style={styles.secondaryActionButton} onPress={() => router.push('/public/advertise')}>
                         <Ionicons name="megaphone-outline" size={20} color={theme.colors.navy} />
                         <Text style={styles.secondaryActionText}>Post Work Opportunity (R2.50) - Help someone find a provider</Text>
@@ -302,14 +249,14 @@ export default function OpportunitiesScreen() {
 
     const renderFooter = () => {
         if (otherOpportunities.length === 0) return null;
-        
+
         return (
             <View style={{ marginTop: 24 }}>
                 <TouchableOpacity style={styles.toggleClosedBtn} onPress={() => setShowOther(!showOther)}>
                     <Text style={styles.toggleClosedText}>{showOther ? "Hide" : "Show"} Other Opportunities ({otherOpportunities.length})</Text>
                     <Ionicons name={showOther ? "chevron-up" : "chevron-down"} size={20} color={theme.colors.textMuted} />
                 </TouchableOpacity>
-                
+
                 {showOther && (
                     <View style={{ marginTop: 16 }}>
                         {otherOpportunities.map(item => renderItem({ item }))}
@@ -323,7 +270,7 @@ export default function OpportunitiesScreen() {
         if (item.type === 'opportunity') {
             const opp = item.data;
             const isOpen = opp.status === 'open';
-            
+
             let distanceText = '';
             if (opp.latitude && opp.longitude && profile?.latitude && profile?.longitude) {
                 const distance = calculateDistanceKm(profile.latitude, profile.longitude, opp.latitude, opp.longitude);
@@ -331,8 +278,8 @@ export default function OpportunitiesScreen() {
             }
 
             return (
-                <TouchableOpacity 
-                    style={[theme.styles.card, styles.feedCard, !isOpen && { opacity: 0.7 }]} 
+                <TouchableOpacity
+                    style={[theme.styles.card, styles.feedCard, !isOpen && { opacity: 0.7 }]}
                     key={`opp-${opp.id}`}
                     onPress={() => router.push(`/opportunities/${opp.id}` as any)}
                 >
@@ -347,7 +294,7 @@ export default function OpportunitiesScreen() {
                         )}
                     </View>
                     <Text style={styles.cardTitle}>{opp.title}</Text>
-                    
+
                     <View style={styles.metaRow}>
                         <Ionicons name="location-outline" size={14} color={theme.colors.textMuted} />
                         <Text style={styles.metaText}>{opp.town_or_city}, {opp.province} {opp.suburb_or_area ? `(${opp.suburb_or_area})` : ''}</Text>
@@ -368,7 +315,7 @@ export default function OpportunitiesScreen() {
                         <Text style={styles.serviceNeedsText}>{opp.service_needed || opp.category_key}</Text>
                         {opp.budget_amount ? <Text style={styles.budget}>Budget: R{opp.budget_amount}</Text> : null}
                     </View>
-                    
+
                     <Text style={styles.contactName}>Contact: {opp.contact_name}</Text>
 
                     {isOpen && (
@@ -401,7 +348,7 @@ export default function OpportunitiesScreen() {
                         </View>
                     </View>
                     <Text style={styles.cardTitle}>{ad.title}</Text>
-                    
+
                     <View style={styles.metaRow}>
                         <Ionicons name="location-outline" size={14} color={theme.colors.textMuted} />
                         <Text style={styles.metaText}>{ad.town_or_city}, {ad.province}</Text>
@@ -410,9 +357,9 @@ export default function OpportunitiesScreen() {
                         <Ionicons name="grid-outline" size={14} color={theme.colors.textMuted} />
                         <Text style={styles.metaText}>{ad.category_key}</Text>
                     </View>
-                    
+
                     {ad.price_or_budget ? <Text style={styles.budget}>Budget/Price: {ad.price_or_budget}</Text> : null}
-                    
+
                     <Text style={styles.contactName}>Contact: {ad.contact_name}</Text>
 
                     <View style={styles.cardActionsRow}>
@@ -462,91 +409,6 @@ export default function OpportunitiesScreen() {
                     )
                 }
             />
-
-            {/* Create Opportunity Studio Modal */}
-            <Modal visible={isCreateModalVisible} animationType="slide" presentationStyle="pageSheet">
-                <KeyboardAvoidingView style={{flex: 1}} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>Create Opportunity</Text>
-                        <TouchableOpacity onPress={() => setCreateModalVisible(false)} style={styles.closeBtn}>
-                            <Ionicons name="close" size={24} color={theme.colors.textPrimary} />
-                        </TouchableOpacity>
-                    </View>
-                    <ScrollView style={styles.modalContent} contentContainerStyle={{ paddingBottom: 60 }}>
-                        <Text style={styles.modalSubtitle}>Post a need on behalf of a community member.</Text>
-                        
-                        <Text style={styles.label}>Title *</Text>
-                        <TextInput style={theme.styles.input} value={newTitle} onChangeText={setNewTitle} placeholder="e.g. Need a plumber for geyser" />
-
-                        <Text style={styles.label}>Description</Text>
-                        <TextInput style={[theme.styles.input, { height: 80, paddingTop: 12 }]} value={newDesc} onChangeText={setNewDesc} multiline placeholder="Provide details..." />
-
-                        <Text style={styles.label}>Category *</Text>
-                        <View style={styles.modalPickerContainer}>
-                            <Picker selectedValue={newCategory} onValueChange={setNewCategory} style={styles.modalPicker}>
-                                <Picker.Item label="Select Category..." value="" />
-                                {ARCHETYPES.map(a => <Picker.Item key={a.value} label={a.label} value={a.value} />)}
-                            </Picker>
-                        </View>
-
-                        <Text style={styles.label}>Service Needed</Text>
-                        <TextInput style={theme.styles.input} value={newService} onChangeText={setNewService} placeholder="e.g. Geyser replacement" />
-
-                        <Text style={styles.label}>Budget (Optional)</Text>
-                        <TextInput style={theme.styles.input} value={newBudget} onChangeText={setNewBudget} placeholder="e.g. 1500" keyboardType="numeric" />
-
-                        <Text style={styles.label}>Province *</Text>
-                        <View style={styles.modalPickerContainer}>
-                            <Picker
-                                selectedValue={newProvince}
-                                onValueChange={(val) => {
-                                    setNewProvince(val);
-                                    setNewTown('');
-                                }}
-                                style={styles.modalPicker}
-                            >
-                                <Picker.Item label="Select Province..." value="" />
-                                {PROVINCES.map(p => <Picker.Item key={p.value} label={p.label} value={p.value} />)}
-                            </Picker>
-                        </View>
-
-                        <Text style={styles.label}>Town / City *</Text>
-                        <View style={styles.modalPickerContainer}>
-                            <Picker
-                                selectedValue={newTown}
-                                onValueChange={setNewTown}
-                                style={styles.modalPicker}
-                                enabled={!!newProvince}
-                            >
-                                <Picker.Item label="Select Town / City..." value="" />
-                                {newProvince && TOWNS_BY_PROVINCE[newProvince]?.map(t => <Picker.Item key={t.value} label={t.label} value={t.value} />)}
-                                {newProvince && <Picker.Item label="Other / Not listed" value="other" />}
-                            </Picker>
-                        </View>
-                        {newTown === 'other' && (
-                            <TextInput 
-                                style={[theme.styles.input, { marginTop: 8 }]} 
-                                placeholder="Enter town or city" 
-                                value={customNewTown} 
-                                onChangeText={setCustomNewTown} 
-                            />
-                        )}
-
-                        <Text style={styles.label}>Suburb / Area</Text>
-                        <TextInput style={theme.styles.input} value={newArea} onChangeText={setNewArea} placeholder="e.g. Menlyn" />
-
-                        <Text style={styles.label}>Contact Name</Text>
-                        <TextInput style={theme.styles.input} value={newContactName} onChangeText={setNewContactName} placeholder="e.g. John Doe" />
-
-                        <Text style={styles.label}>Contact Phone *</Text>
-                        <TextInput style={theme.styles.input} value={newContactPhone} onChangeText={setNewContactPhone} placeholder="e.g. +27820000000" keyboardType="phone-pad" />
-
-                        <TouchableOpacity style={styles.submitModalBtn} onPress={handleCreateOpportunity}>
-                            <Text style={styles.submitModalBtnText}>Post Opportunity</Text>
-                        </TouchableOpacity>
-                    </ScrollView>
-                </KeyboardAvoidingView>
-            </Modal>
         </View>
     );
 }
@@ -555,7 +417,7 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: theme.colors.background },
     listContent: { padding: 16, paddingBottom: 40 },
     listHeader: { marginBottom: 16 },
-    
+
     // Search & Filters
     searchRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', borderRadius: 8, paddingHorizontal: 12, marginBottom: 12 },
     searchIcon: { marginRight: 8 },
@@ -585,7 +447,7 @@ const styles = StyleSheet.create({
     badgeAdText: { color: '#1E40AF', fontSize: 12, fontWeight: '700' },
     badgeClosed: { backgroundColor: '#F3F4F6', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
     badgeClosedText: { color: theme.colors.textMuted, fontSize: 12, fontWeight: '600', textTransform: 'capitalize' },
-    
+
     cardTitle: { fontSize: 18, fontWeight: '700', color: theme.colors.textPrimary, marginBottom: 8 },
     metaRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6, gap: 6 },
     metaText: { fontSize: 14, color: theme.colors.textMuted },

@@ -1,0 +1,55 @@
+# SANAS ERP RFI RESPONSE SUBMISSION
+
+**To:** South African National Accreditation System (SANAS)
+**RFI Reference:** SANAS/ERP/2026-27/03
+**Date:** 19 June 2026
+
+## Attention: SANAS Evaluation Committee
+
+Dear Members of the Evaluation Committee,
+
+Global IT and Business Solutions (Pty) Ltd is pleased to submit this response to the SANAS Request for Information (RFI) for the implementation of an Enterprise Resource Planning (ERP) system.
+
+We recognize the critical role SANAS plays as South Africa's National Accreditation Body in maintaining confidence in conformity assessment, laboratory competence, inspection services, certification bodies, and related accreditation activities. We understand that the successful implementation of an ERP system within SANAS requires more than technology alone; it requires governance, traceability, accountability, compliance, and the preservation of institutional knowledge.
+
+Our response presents a governance-oriented architectural approach that has emerged from our ongoing work in evidence-based decision systems, audit traceability frameworks, and accreditation intelligence research. Through this submission we seek to contribute ideas, architectural concepts, and implementation approaches that may support SANAS in achieving its strategic objectives.
+
+The proposed architecture is guided by several core principles:
+
+* Evidence-based decision making
+* Rule-driven governance evaluation
+* Audit-ready traceability and accountability
+* Structured document and records management
+* Compliance-oriented process design
+* Data stewardship and information integrity
+* Transparency and explainability of decisions
+
+We believe that modern ERP platforms should not only manage transactions and workflows but should also strengthen governance, improve visibility, support compliance obligations, and provide decision-makers with reliable and traceable information.
+
+This submission distinguishes clearly between:
+
+* Existing organizational capabilities;
+* Developed architectural components and prototypes;
+* Proposed future implementation concepts.
+
+Where concepts are presented as prototypes or architectural models, they are identified accordingly. We have intentionally avoided overstating capabilities and have sought to provide an accurate representation of our current stage of development.
+
+We appreciate the opportunity to participate in this information-gathering process and to contribute our perspective on governance-centred ERP architecture for accreditation environments. We remain available to clarify any aspect of this submission and welcome further engagement should SANAS require additional information.
+
+Thank you for your consideration.
+
+Yours faithfully,
+
+**Gift Nkosinathi Chisali**
+Director
+**Global IT and Business Solutions (Pty) Ltd**
+
+Registration Number: 2021/999569/07
+
+---
+
+### Submission Declaration
+
+We declare that the information contained within this response has been prepared in good faith and, to the best of our knowledge, accurately reflects the current capabilities, prototypes, research, and proposals described herein.
+
+We further acknowledge the distinction between operational systems, prototype implementations, and future development concepts, and have endeavoured to represent each accordingly.

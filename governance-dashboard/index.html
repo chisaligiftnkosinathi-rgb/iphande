@@ -1,0 +1,1930 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="SANAS Governance Dashboard — Live Truth Operating Surface for the Steward Operating System">
+  <title>SANAS Governance Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    /* ═══════════════════════════════════════════
+   DESIGN SYSTEM — Premium Dark Glassmorphism
+   ═══════════════════════════════════════════ */
+    :root {
+      --bg-deep: #05070d;
+      --bg-surface: rgba(12, 20, 38, 0.85);
+      --bg-glass: rgba(255, 255, 255, 0.04);
+      --bg-glass-hover: rgba(255, 255, 255, 0.08);
+      --bg-glass-active: rgba(255, 255, 255, 0.12);
+      --border-subtle: rgba(255, 255, 255, 0.07);
+      --border-glow: rgba(99, 138, 255, 0.25);
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #555d66;
+      --accent-blue: #638aff;
+      --accent-emerald: #34d399;
+      --accent-amber: #fbbf24;
+      --accent-rose: #f87171;
+      --accent-violet: #a78bfa;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --shadow-glow: 0 0 30px rgba(99, 138, 255, 0.08);
+      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-deep);
+      background-image:
+        radial-gradient(ellipse at 15% 10%, rgba(99, 138, 255, 0.06) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 90%, rgba(167, 139, 250, 0.04) 0%, transparent 50%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── HEADER ─── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 28px;
+      border-bottom: 1px solid var(--border-subtle);
+      backdrop-filter: blur(20px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(5, 7, 13, 0.75);
+    }
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+
+    .header-title .icon {
+      font-size: 22px;
+    }
+
+    .header-badge {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(52, 211, 153, 0.12);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(52, 211, 153, 0.2);
+      animation: pulse-badge 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse-badge {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.7;
+      }
+    }
+
+    /* ─── STATUS BAR ─── */
+    .status-bar {
+      display: flex;
+      gap: 24px;
+      padding: 12px 28px;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: rgba(5, 7, 13, 0.5);
+      flex-wrap: wrap;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      animation: dot-pulse 2s ease-in-out infinite;
+    }
+
+    .status-dot.green {
+      background: var(--accent-emerald);
+      box-shadow: 0 0 8px rgba(52, 211, 153, 0.5);
+    }
+
+    .status-dot.blue {
+      background: var(--accent-blue);
+      box-shadow: 0 0 8px rgba(99, 138, 255, 0.5);
+    }
+
+    .status-dot.amber {
+      background: var(--accent-amber);
+      box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+    }
+
+    @keyframes dot-pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.3);
+      }
+    }
+
+    /* ─── NAVIGATION TABS ─── */
+    .nav-tabs {
+      display: flex;
+      gap: 6px;
+      padding: 14px 28px;
+      border-bottom: 1px solid var(--border-subtle);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .nav-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .nav-tab {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 16px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: transparent;
+      border: 1px solid transparent;
+      transition: var(--transition);
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .nav-tab:hover {
+      background: var(--bg-glass-hover);
+      color: var(--text-primary);
+    }
+
+    .nav-tab.selected {
+      background: var(--bg-glass-active);
+      color: var(--text-primary);
+      border-color: var(--border-glow);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .nav-tab .tab-icon {
+      font-size: 15px;
+    }
+
+    /* ─── PANELS ─── */
+    .panel-container {
+      padding: 24px 28px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .panel {
+      display: none;
+      animation: fadeIn 0.35s ease;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ─── CARDS ─── */
+    .card {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-bottom: 16px;
+      backdrop-filter: blur(16px);
+      transition: var(--transition);
+    }
+
+    .card:hover {
+      border-color: var(--border-glow);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+    }
+
+    .card-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* ─── GRID ─── */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 768px) {
+
+      .grid-2,
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-container {
+        padding: 16px;
+      }
+
+      .header {
+        padding: 14px 16px;
+      }
+
+      .nav-tabs {
+        padding: 10px 16px;
+      }
+
+      .status-bar {
+        padding: 10px 16px;
+      }
+    }
+
+    /* ─── BUTTONS ─── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-glass);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn:hover {
+      background: var(--bg-glass-hover);
+      border-color: var(--border-glow);
+    }
+
+    .btn-primary {
+      background: rgba(99, 138, 255, 0.15);
+      border-color: rgba(99, 138, 255, 0.3);
+      color: var(--accent-blue);
+    }
+
+    .btn-primary:hover {
+      background: rgba(99, 138, 255, 0.25);
+    }
+
+    .btn-success {
+      background: rgba(52, 211, 153, 0.12);
+      border-color: rgba(52, 211, 153, 0.25);
+      color: var(--accent-emerald);
+    }
+
+    .btn-success:hover {
+      background: rgba(52, 211, 153, 0.2);
+    }
+
+    .btn-danger {
+      background: rgba(248, 113, 113, 0.12);
+      border-color: rgba(248, 113, 113, 0.25);
+      color: var(--accent-rose);
+    }
+
+    .btn-danger:hover {
+      background: rgba(248, 113, 113, 0.2);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* ─── RULE CARDS ─── */
+    .rule-item {
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      margin-bottom: 10px;
+      transition: var(--transition);
+    }
+
+    .rule-item:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(99, 138, 255, 0.2);
+    }
+
+    .rule-id {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--accent-blue);
+      margin-bottom: 4px;
+    }
+
+    .rule-desc {
+      font-size: 13px;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .rule-category {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .cat-EPISTEMIC {
+      background: rgba(99, 138, 255, 0.15);
+      color: var(--accent-blue);
+    }
+
+    .cat-ETHICAL {
+      background: rgba(167, 139, 250, 0.15);
+      color: var(--accent-violet);
+    }
+
+    .cat-GOVERNANCE {
+      background: rgba(251, 191, 36, 0.15);
+      color: var(--accent-amber);
+    }
+
+    .cat-INTEGRITY {
+      background: rgba(52, 211, 153, 0.15);
+      color: var(--accent-emerald);
+    }
+
+    /* ─── STAT COUNTERS ─── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      text-align: center;
+      transition: var(--transition);
+    }
+
+    .stat-card:hover {
+      border-color: var(--border-glow);
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    /* ─── MEMBER CARDS ─── */
+    .member-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      margin-bottom: 10px;
+    }
+
+    .member-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .member-info {
+      flex: 1;
+    }
+
+    .member-name {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .member-role {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .trust-bar {
+      width: 60px;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .trust-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+
+    /* ─── VOTE BUTTONS ─── */
+    .vote-section {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .vote-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-glass);
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+
+    .vote-btn:hover {
+      transform: scale(1.15);
+    }
+
+    .vote-btn.voted-yes {
+      background: rgba(52, 211, 153, 0.2);
+      border-color: var(--accent-emerald);
+    }
+
+    .vote-btn.voted-no {
+      background: rgba(248, 113, 113, 0.2);
+      border-color: var(--accent-rose);
+    }
+
+    /* ─── SIMULATION RESULTS ─── */
+    .sim-result {
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      margin: 6px 0;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .sim-accepted {
+      background: rgba(52, 211, 153, 0.08);
+      border: 1px solid rgba(52, 211, 153, 0.2);
+      color: var(--accent-emerald);
+    }
+
+    .sim-rejected {
+      background: rgba(248, 113, 113, 0.08);
+      border: 1px solid rgba(248, 113, 113, 0.2);
+      color: var(--accent-rose);
+    }
+
+    /* ─── LEDGER EVENTS ─── */
+    .ledger-event {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      font-size: 12px;
+      animation: slideIn 0.3s ease;
+    }
+
+    .ledger-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+      min-width: 70px;
+      padding-top: 2px;
+    }
+
+    .ledger-type {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      min-width: 120px;
+      text-align: center;
+    }
+
+    .ledger-detail {
+      flex: 1;
+      color: var(--text-secondary);
+    }
+
+    /* ─── COMPARISON VIEW ─── */
+    .compare-col {
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .compare-col h4 {
+      font-size: 13px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .delta-positive {
+      color: var(--accent-emerald);
+    }
+
+    .delta-negative {
+      color: var(--accent-rose);
+    }
+
+    .delta-neutral {
+      color: var(--text-muted);
+    }
+
+    /* ─── DECISION BANNER ─── */
+    .decision-banner {
+      padding: 20px;
+      border-radius: var(--radius-md);
+      text-align: center;
+      font-weight: 600;
+      font-size: 15px;
+      margin: 16px 0;
+      animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes popIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .decision-approved {
+      background: rgba(52, 211, 153, 0.1);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      color: var(--accent-emerald);
+    }
+
+    .decision-rejected {
+      background: rgba(248, 113, 113, 0.1);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+      color: var(--accent-rose);
+    }
+
+    /* ─── PROPOSAL FORM ─── */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 13px;
+      transition: var(--transition);
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(99, 138, 255, 0.1);
+    }
+
+    .form-textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .form-select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238b949e' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+
+    .form-select option {
+      background: #0c1426;
+      color: var(--text-primary);
+    }
+
+    /* ─── TOAST NOTIFICATIONS ─── */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      padding: 12px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 500;
+      backdrop-filter: blur(20px);
+      animation: toastIn 0.35s ease, toastOut 0.3s ease 2.7s forwards;
+      max-width: 360px;
+    }
+
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateX(40px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes toastOut {
+      to {
+        opacity: 0;
+        transform: translateX(40px);
+      }
+    }
+
+    .toast-success {
+      background: rgba(52, 211, 153, 0.15);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      color: var(--accent-emerald);
+    }
+
+    .toast-info {
+      background: rgba(99, 138, 255, 0.15);
+      border: 1px solid rgba(99, 138, 255, 0.3);
+      color: var(--accent-blue);
+    }
+
+    .toast-error {
+      background: rgba(248, 113, 113, 0.15);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+      color: var(--accent-rose);
+    }
+
+    /* ─── SCROLLBAR ─── */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SANAS Governance Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #05070d;
+      --surface: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.1);
+      --primary: #2563eb;
+      --text: #e6edf3;
+      --success: #22c55e;
+      --error: #ef4444;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at 20% 20%, #0b1220, var(--bg));
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    header {
+      padding: 20px 24px;
+      font-size: 20px;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.02em;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 12px;
+      padding: 16px 24px;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .tab {
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      background: var(--surface);
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .tab:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .tab.active {
+      background: var(--primary);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .panel {
+      display: none;
+      padding: 24px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      backdrop-filter: blur(12px);
+    }
+
+    button {
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+      margin-right: 8px;
+      transition: filter 0.2s;
+    }
+
+    button:hover {
+      filter: brightness(1.2);
+    }
+
+    pre {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 16px;
+      border-radius: 8px;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+    }
+
+    h3 {
+      margin-top: 0;
+      font-weight: 600;
+      color: #fff;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ═══════════ HEADER ═══════════ -->
+  <header class="header">
+    <div class="header-title">
+      <span class="icon">🏛</span>
+      SANAS Governance Dashboard
+    </div>
+    <div class="header-badge" id="systemStatus">● System Active</div>
+  </header>
+  <!-- ═══════════ STATUS BAR ═══════════ -->
+  <div class="status-bar">
+    <div class="status-item">
+      <div class="status-dot green"></div>
+      Constitution: <strong id="statusVersion">v1</strong>
+    </div>
+    <div class="status-item">
+      <div class="status-dot blue"></div>
+      Ledger Events: <strong id="statusEvents">0</strong>
+    </div>
+    <div class="status-item">
+      <div class="status-dot amber"></div>
+      Council Members: <strong id="statusMembers">0</strong>
+    </div>
+    <div class="status-item">
+      <div class="status-dot green"></div>
+      Proposals: <strong id="statusProposals">0</strong>
+    </div>
+    <div class="tabs">
+      <div class="tab active" onclick="show('constitution', this)">📜 Constitution</div>
+      <div class="tab" onclick="show('simulation', this)">🔬 Simulation</div>
+      <div class="tab" onclick="show('council', this)">🏛 Council</div>
+      <div class="tab" onclick="show('ledger', this)">📡 Ledger</div>
+    </div>
+
+    <!-- ═══════════ NAV TABS ═══════════ -->
+    <nav class="nav-tabs" id="navTabs">
+      <div class="nav-tab selected" data-tab="constitution">
+        <span class="tab-icon">📜</span> Constitution
+      </div>
+      <div class="nav-tab" data-tab="simulation">
+        <span class="tab-icon">🔬</span> Simulation Lab
+      </div>
+      <div class="nav-tab" data-tab="council">
+        <span class="tab-icon">🏛</span> Council Chamber
+      </div>
+      <div class="nav-tab" data-tab="stewards">
+        <span class="tab-icon">📊</span> Steward Activity
+      </div>
+      <div class="nav-tab" data-tab="compare">
+        <span class="tab-icon">🧬</span> Version Comparison
+      </div>
+      <div class="nav-tab" data-tab="ledger">
+        <span class="tab-icon">📡</span> Truth Ledger
+      </div>
+    </nav>
+
+    <!-- ═══════════ PANELS ═══════════ -->
+    <main class="panel-container">
+
+      <!-- ──── CONSTITUTION TAB ──── -->
+      <div id="panel-constitution" class="panel active">
+        <div class="stat-grid" id="constitutionStats"></div>
+        <div id="constitution" class="panel active">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Active Constitution Rules</div>
+                <div class="card-subtitle">Rules that govern truth evaluation in the current version</div>
+              </div>
+              <div class="header-badge" id="activeVersionBadge">v1</div>
+            </div>
+            <div id="rulesList"></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Version History</div>
+            </div>
+            <div id="versionHistory"></div>
+          </div>
+        </div>
+      </div>
+      <!-- ──── SIMULATION TAB ──── -->
+      <div id="panel-simulation" class="panel">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Simulation Lab</div>
+            <div class="card-subtitle">Run events against the active constitution to preview enforcement</div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <div class="form-group">
+              <label class="form-label">Event Type</label>
+              <select class="form-select" id="simEventType">
+                <option value="SIGNAL_INGESTED">SIGNAL_INGESTED</option>
+                <option value="CALIBRATION_APPLIED">CALIBRATION_APPLIED</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Signal Amount (0–100)</label>
+              <input type="number" class="form-input" id="simAmount" value="50" min="0" max="100">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Steward ID</label>
+              <input type="text" class="form-input" id="simSteward" value="A" placeholder="e.g. A, B, C">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Trust Score (0–1)</label>
+              <input type="number" class="form-input" id="simTrust" value="0.85" min="0" max="1" step="0.05">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Steward History Count</label>
+              <input type="number" class="form-input" id="simHistory" value="4" min="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">External Source</label>
+              <select class="form-select" id="simExternal">
+                <option value="false">No</option>
+                <option value="true">Yes</option>
+              </select>
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-primary" onclick="runSingleSimulation()">▶ Run Single Event</button>
+              <button class="btn" onclick="runBatchSimulation()">⚡ Run Batch (All Ledger Events)</button>
+            </div>
+          </div>
+          <div>
+            <div class="card-title" style="margin-bottom:12px;">Results</div>
+            <div id="simResults" style="min-height:200px;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Batch Simulation Summary</div>
+        </div>
+        <div class="stat-grid" id="simStats"></div>
+      </div>
+  </div>
+  <!-- ──── COUNCIL TAB ──── -->
+  <div id="panel-council" class="panel">
+    <div class="stat-grid" id="councilStats"></div>
+    <div class="grid-2">
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Council Members</div>
+            <button class="btn" onclick="showAddMemberForm()">+ Add Member</button>
+          </div>
+          <div id="addMemberForm" style="display:none; margin-bottom: 16px;">
+            <div class="form-group">
+              <label class="form-label">Name</label>
+              <input type="text" class="form-input" id="newMemberName" placeholder="e.g. Technical Reviewer">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Role</label>
+              <select class="form-select" id="newMemberRole">
+                <option value="AUDITOR">AUDITOR</option>
+                <option value="STEWARD">STEWARD</option>
+                <option value="RESEARCHER">RESEARCHER</option>
+                <option value="GUARDIAN">GUARDIAN</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Trust Level (0–1)</label>
+              <input type="number" class="form-input" id="newMemberTrust" value="0.5" min="0" max="1" step="0.05">
+            </div>
+            <button class="btn btn-success" onclick="addMember()">Register Member</button>
+          </div>
+          <div id="membersList"></div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Submit Proposal</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-textarea" id="proposalDesc"
+              placeholder="Describe the proposed rule change..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">New Rule — Category</label>
+            <select class="form-select" id="proposalCategory">
+              <option value="GOVERNANCE">GOVERNANCE</option>
+              <option value="EPISTEMIC">EPISTEMIC</option>
+              <option value="ETHICAL">ETHICAL</option>
+              <option value="INTEGRITY">INTEGRITY</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">New Rule — Max Allowed Signal Amount</label>
+            <input type="number" class="form-input" id="proposalThreshold" value="60" min="0" max="100">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Submitted By (Member ID)</label>
+            <select class="form-select" id="proposalSubmitter"></select>
+          </div>
+          <button class="btn btn-primary" onclick="submitProposal()">📋 Submit Proposal</button>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Active Proposals</div>
+          </div>
+          <div id="proposalsList"></div>
+        </div>
+      </div>
+    </div>
+    <div id="councilDecisionArea"></div>
+  </div>
+
+  <!-- ──── STEWARD ACTIVITY TAB ──── -->
+  <div id="panel-stewards" class="panel">
+    <div id="council" class="panel">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Steward Activity Map</div>
+          <div class="card-subtitle">Event distribution across stewards from the Truth Ledger</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Steward Timeline</div>
+      </div>
+      <div id="stewardTimeline"></div>
+    </div>
+  </div>
+  <!-- ──── COMPARISON TAB ──── -->
+  <div id="panel-compare" class="panel">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Constitution Version Comparison</div>
+        <div class="card-subtitle">Side-by-side simulation results between two versions</div>
+      </div>
+      <button class="btn btn-primary" onclick="runComparison()">🧬 Run Comparison</button>
+    </div>
+    <div class="grid-2" id="comparisonArea">
+      <div class="compare-col" id="compareLeft">
+        <h4>Select two versions and click "Run Comparison"</h4>
+      </div>
+      <div class="compare-col" id="compareRight"></div>
+    </div>
+  </div>
+  <div class="card" id="comparisonDelta" style="display:none;">
+    <div class="card-header">
+      <div class="card-title">Delta Analysis</div>
+    </div>
+    <div class="stat-grid" id="deltaStats"></div>
+  </div>
+  </div>
+  </div>
+  <!-- ──── TRUTH LEDGER TAB ──── -->
+  <div id="panel-ledger" class="panel">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Immutable Truth Ledger</div>
+        <div class="card-subtitle">Every event is frozen. Nothing is overwritten.</div>
+      </div>
+      <div class="btn-group">
+        <button class="btn" onclick="filterLedger('all')">All</button>
+        <button class="btn" onclick="filterLedger('SIGNAL_INGESTED')">Signals</button>
+        <button class="btn" onclick="filterLedger('GOVERNANCE_DECISION')">Governance</button>
+        <button class="btn" onclick="filterLedger('CALIBRATION_APPLIED')">Calibration</button>
+      </div>
+    </div>
+    <div id="ledgerFeed" style="max-height: 500px; overflow-y: auto;"></div>
+  </div>
+  </main>
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    /* ═══════════════════════════════════════════════════════════════
+       SANAS ENGINE CORE — Faithful JS ports of the TypeScript engines
+       ═══════════════════════════════════════════════════════════════ */
+    /* --- Core SANAS Engines (Vanilla JS implementation of TS logic) --- */
+
+    class TruthLedger {
+      constructor() { this.events = []; }
+      append(event) {
+        this.events.push(Object.freeze({ ...event, timestamp: Date.now(), _seq: this.events.length }));
+        updateStatusBar();
+        return event;
+      }
+      getAll() { return [...this.events]; }
+      getBySteward(id) { return this.events.filter(e => e.stewardId === id); }
+      getByType(type) { return this.events.filter(e => e.type === type); }
+      getStewardMap() {
+        const map = {};
+        for (const e of this.events) {
+          if (!map[e.stewardId]) map[e.stewardId] = { count: 0, events: [] };
+          map[e.stewardId].count++;
+          map[e.stewardId].events.push(e);
+        }
+        return map;
+      }
+    }
+
+    class TruthConstitutionV1 {
+      constructor() { this.rules = []; }
+      register(rule) { this.rules.push(rule); }
+      evaluate(event, context = {}) {
+        for (const rule of this.rules) {
+          const result = rule.evaluate(event, context);
+          if (!result.allowed) {
+            return { allowed: false, reason: result.reason, ruleId: rule.id };
+          }
+        }
+        return { allowed: true };
+      }
+      getRules() { return [...this.rules]; }
+    }
+
+    class ConstitutionSimulator {
+      run(constitution, events, contextFactory) {
+        const accepted = [];
+        const rejected = [];
+        for (const event of events) {
+          const context = contextFactory ? contextFactory(event) : {};
+          const decision = constitution.evaluate(event, context);
+          if (decision.allowed) {
+            accepted.push({ event, decision });
+          } else {
+            rejected.push({ event, decision });
+          }
+        }
+        return { accepted, rejected };
+      }
+    }
+
+    class ConstitutionComparator {
+      compare(r1, r2) {
+        return {
+          acceptedDelta: r2.accepted.length - r1.accepted.length,
+          rejectedDelta: r2.rejected.length - r1.rejected.length,
+          stabilityScore: r2.accepted.length / Math.max(1, r1.accepted.length + r1.rejected.length),
+          riskIncrease: r2.rejected.length > r1.rejected.length
+        };
+      }
+    }
+
+    class ConstitutionRegistry {
+      constructor() { this.versions = {}; this.activeVersion = null; this.history = []; }
+      registerVersion(version, constitution) {
+        this.versions[version] = constitution;
+        this.history.push({ version, registeredAt: Date.now(), ruleCount: constitution.getRules().length });
+      }
+      setActive(version) {
+        if (!this.versions[version]) throw new Error(`Version ${version} not found`);
+        this.activeVersion = version;
+        updateStatusBar();
+      }
+      getActive() { return this.versions[this.activeVersion]; }
+      getActiveVersion() { return this.activeVersion; }
+      get(version) { return this.versions[version]; }
+      getHistory() { return this.history; }
+      getVersionList() { return Object.keys(this.versions); }
+    }
+
+    class GovernanceCouncilEngine {
+      constructor() {
+        this.members = new Map();
+        this.proposals = new Map();
+        this.votes = [];
+        this.evaluations = new Map();
+        this.simulator = new ConstitutionSimulator();
+        this.comparator = new ConstitutionComparator();
+      }
+      registerMember(member) {
+        if (member.trustLevel < 0 || member.trustLevel > 1) throw new Error('Trust must be 0–1');
+        this.members.set(member.id, member);
+        updateStatusBar();
+      }
+      getMember(id) { return this.members.get(id); }
+      getAllMembers() { return Array.from(this.members.values()); }
+      getMemberCount() { return this.members.size; }
+      submitProposal(proposal) {
+        if (!this.members.has(proposal.submittedBy)) throw new Error('Submitter not a member');
+        proposal.status = 'DRAFT';
+        this.proposals.set(proposal.id, proposal);
+        updateStatusBar();
+        return proposal;
+      }
+      getProposal(id) { return this.proposals.get(id); }
+      getAllProposals() { return Array.from(this.proposals.values()); }
+      submitVote(vote) {
+        if (!this.members.has(vote.memberId)) throw new Error('Voter not a member');
+        const proposal = this.proposals.get(vote.proposalId);
+        if (!proposal) throw new Error('Proposal not found');
+        const existing = this.votes.find(v => v.memberId === vote.memberId && v.proposalId === vote.proposalId);
+        if (existing) throw new Error('Already voted');
+        proposal.status = 'VOTING';
+        this.votes.push(vote);
+      }
+      getVotesForProposal(id) { return this.votes.filter(v => v.proposalId === id); }
+      evaluateProposal(proposalId, currentConstitution, events, contextFactory, ledger) {
+        const proposal = this.proposals.get(proposalId);
+        if (!proposal) throw new Error('Proposal not found');
+
+        // Simulation
+        const currentResult = this.simulator.run(currentConstitution, events, contextFactory);
+
+        const proposedConstitution = new TruthConstitutionV1();
+        // Copy current rules
+        for (const rule of currentConstitution.getRules()) proposedConstitution.register(rule);
+        // Add proposed rules
+        for (const rule of proposal.proposedRules) proposedConstitution.register(rule);
+
+        const proposedResult = this.simulator.run(proposedConstitution, events, contextFactory);
+        const impact = this.comparator.compare(currentResult, proposedResult);
+
+        const riskScore = currentResult.rejected.length / Math.max(1, currentResult.accepted.length + currentResult.rejected.length);
+
+        // Weighted votes
+        const proposalVotes = this.getVotesForProposal(proposalId);
+        const weightedVotes = proposalVotes.reduce((sum, v) => {
+          const m = this.members.get(v.memberId);
+          const w = m ? m.trustLevel : 0;
+          return sum + (v.vote === 'YES' ? w : -w);
+        }, 0);
+
+        const approved = weightedVotes > 0 && riskScore < 0.5;
+        const reason = !approved
+          ? (weightedVotes <= 0 ? `Insufficient council support (weighted: ${weightedVotes.toFixed(2)})` : `Risk too high (${riskScore.toFixed(2)})`)
+          : `Approved — votes: ${weightedVotes.toFixed(2)}, risk: ${riskScore.toFixed(2)}`;
+
+        proposal.status = approved ? 'APPROVED' : 'REJECTED';
+
+        const evaluation = {
+          proposalId, approved, riskScore, weightedVotes,
+          simulationImpact: impact, evaluatedAt: Date.now(), reason,
+          voteBreakdown: proposalVotes.map(v => ({
+            member: this.members.get(v.memberId)?.name || v.memberId,
+            vote: v.vote,
+            weight: this.members.get(v.memberId)?.trustLevel || 0
+          }))
+        };
+
+        this.evaluations.set(proposalId, evaluation);
+
+        if (ledger) {
+          ledger.append({
+            id: `gov_${proposalId}_${Date.now()}`,
+            stewardId: proposal.submittedBy,
+            type: 'GOVERNANCE_DECISION',
+            timestamp: Date.now(),
+            payload: { proposalId, approved, riskScore, weightedVotes, reason },
+            version: 1
+          });
+        }
+        return evaluation;
+      }
+      getEvaluation(id) { return this.evaluations.get(id); }
+      const ledger = new TruthLedger();
+      const registry = new ConstitutionRegistry();
+      const simulator = new ConstitutionSimulator();
+      const comparator = new ConstitutionComparator();
+      const council = new GovernanceCouncilEngine();
+
+      let proposalCounter = 0;
+    let memberCounter = 3;
+
+    // ── Build Constitution v1 ──
+    const v1 = new TruthConstitutionV1();
+
+    v1.register({
+      id: 'epistemic.no_low_trust_external_override',
+      category: 'EPISTEMIC',
+      description: 'External low-trust signals cannot override steward truth',
+      evaluate: (event, ctx) => {
+        if (event.type !== 'SIGNAL_INGESTED') return { allowed: true };
+        if (ctx.isExternalSource && (ctx.trustScore || 0) < 0.7)
+          return { allowed: false, reason: 'Low-trust external signal blocked' };
+        return { allowed: true };
+      }
+    });
+
+    v1.register({
+      id: 'governance.min_steward_history',
+      category: 'GOVERNANCE',
+      description: 'New stewards must establish history before high-impact signals',
+      evaluate: (event, ctx) => {
+        if (event.type !== 'SIGNAL_INGESTED') return { allowed: true };
+        if ((ctx.stewardHistoryCount || 0) < 3 && event.payload.amount > 50)
+          return { allowed: false, reason: 'Steward not mature enough for high-impact signal' };
+        return { allowed: true };
+      }
+    });
+
+    v1.register({
+      id: 'integrity.calibration_consistency',
+      category: 'INTEGRITY',
+      description: 'Calibration version must remain consistent within a session',
+      evaluate: (event, ctx) => {
+        if (event.type !== 'CALIBRATION_APPLIED') return { allowed: true };
+        if (ctx.calibrationVersion && event.payload.calibrationVersion !== ctx.calibrationVersion)
+          return { allowed: false, reason: 'Calibration version drift detected' };
+        return { allowed: true };
+      }
+    });
+
+    v1.register({
+      id: 'ethical.no_reality_fabrication',
+      category: 'ETHICAL',
+      description: 'System cannot fabricate high-confidence truth without event origin',
+      evaluate: (event) => {
+        if (!event.stewardId)
+          return { allowed: false, reason: 'Unattributed truth assertion blocked' };
+        return { allowed: true };
+      }
+    });
+
+    registry.registerVersion('v1', v1);
+    registry.setActive('v1');
+
+    // ── Seed Council Members ──
+    council.registerMember({ id: 'm1', name: 'Lead Auditor', role: 'AUDITOR', trustLevel: 0.9, registeredAt: Date.now() });
+    council.registerMember({ id: 'm2', name: 'System Steward', role: 'STEWARD', trustLevel: 0.6, registeredAt: Date.now() });
+    council.registerMember({ id: 'm3', name: 'Research Lead', role: 'RESEARCHER', trustLevel: 0.7, registeredAt: Date.now() });
+
+    // ── Seed Ledger Events ──
+    const seedEvents = [
+      { id: 'evt_001', stewardId: 'A', type: 'SIGNAL_INGESTED', timestamp: Date.now() - 50000, payload: { amount: 30 }, version: 1 },
+      { id: 'evt_002', stewardId: 'A', type: 'SIGNAL_INGESTED', timestamp: Date.now() - 40000, payload: { amount: 45 }, version: 1 },
+      { id: 'evt_003', stewardId: 'B', type: 'SIGNAL_INGESTED', timestamp: Date.now() - 30000, payload: { amount: 80 }, version: 1 },
+      { id: 'evt_004', stewardId: 'C', type: 'SIGNAL_INGESTED', timestamp: Date.now() - 20000, payload: { amount: 15 }, version: 1 },
+      { id: 'evt_005', stewardId: 'A', type: 'SIGNAL_INGESTED', timestamp: Date.now() - 10000, payload: { amount: 62 }, version: 1 },
+      { id: 'evt_006', stewardId: 'B', type: 'CALIBRATION_APPLIED', timestamp: Date.now() - 5000, payload: { calibrationVersion: 1 }, version: 1 },
+    ];
+
+    for (const e of seedEvents) ledger.append(e);
+
+    // ── Default simulation context factory ──
+    function defaultContextFactory(event) {
+      return {
+        stewardHistoryCount: ledger.getBySteward(event.stewardId).length,
+        isExternalSource: false,
+        trustScore: 0.85,
+        calibrationVersion: 1
+      };
+    }
+         UI RENDERING FUNCTIONS
+         ═══════════════════════════════════════════════════════════════ */
+
+    // ── Tab Navigation ──
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('selected'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('selected');
+        document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+
+        // Refresh panel on switch
+        const t = tab.dataset.tab;
+        if (t === 'constitution') renderConstitution();
+        if (t === 'stewards') renderStewards();
+        if (t === 'ledger') renderLedger();
+        if (t === 'council') renderCouncil();
+      });
+    });
+
+    // ── Status Bar ──
+    function updateStatusBar() {
+      const vEl = document.getElementById('statusVersion');
+      const eEl = document.getElementById('statusEvents');
+      const mEl = document.getElementById('statusMembers');
+      const pEl = document.getElementById('statusProposals');
+      if (vEl) vEl.textContent = registry.getActiveVersion() || '—';
+      if (eEl) eEl.textContent = ledger.getAll().length;
+      if (mEl) mEl.textContent = council.getMemberCount();
+      if (pEl) pEl.textContent = council.getAllProposals().length;
+    }
+
+    // ── Toast Notifications ──
+    function toast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const el = document.createElement('div');
+      el.className = `toast toast-${type}`;
+      el.textContent = message;
+      container.appendChild(el);
+      setTimeout(() => el.remove(), 3200);
+    }
+
+    // ── Constitution Tab ──
+    function renderConstitution() {
+      const constitution = registry.getActive();
+      const rules = constitution ? constitution.getRules() : [];
+
+      // Stats
+      const cats = {};
+      rules.forEach(r => { cats[r.category] = (cats[r.category] || 0) + 1; });
+      document.getElementById('constitutionStats').innerHTML = `
+    <div class="stat-card"><div class="stat-value" style="color:var(--accent-blue)">${rules.length}</div><div class="stat-label">Total Rules</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--accent-blue)">${cats['EPISTEMIC'] || 0}</div><div class="stat-label">Epistemic</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--accent-amber)">${cats['GOVERNANCE'] || 0}</div><div class="stat-label">Governance</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--accent-emerald)">${cats['INTEGRITY'] || 0}</div><div class="stat-label">Integrity</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--accent-violet)">${cats['ETHICAL'] || 0}</div><div class="stat-label">Ethical</div></div>
+  `;
+
+      document.getElementById('activeVersionBadge').textContent = registry.getActiveVersion();
+
+      // Rules list
+      document.getElementById('rulesList').innerHTML = rules.map(r => `
+    <div class="rule-item">
+      <div class="rule-id">${r.id}</div>
+      <div class="rule-desc">${r.description}</div>
+      <span class="rule-category cat-${r.category}">${r.category}</span>
+    </div>
+  `).join('');
+
+      // Version history
+      const hist = registry.getHistory();
+      document.getElementById('versionHistory').innerHTML = hist.map(h => `
+    <div class="rule-item">
+      <div class="rule-id">${h.version}</div>
+      <div class="rule-desc">${h.ruleCount} rules — registered ${new Date(h.registeredAt).toLocaleTimeString()}</div>
+    </div>
+  `).join('') || '<div style="color:var(--text-muted);font-size:12px;">No version history yet.</div>';
+    }
+
+    // ── Simulation Tab ──
+    function runSingleSimulation() {
+      const type = document.getElementById('simEventType').value;
+      const amount = parseFloat(document.getElementById('simAmount').value);
+      const stewardId = document.getElementById('simSteward').value || 'A';
+      const trustScore = parseFloat(document.getElementById('simTrust').value);
+      const historyCount = parseInt(document.getElementById('simHistory').value);
+      const isExternal = document.getElementById('simExternal').value === 'true';
+
+      const event = { type, payload: { amount, calibrationVersion: 1 }, stewardId };
+      const context = { stewardHistoryCount: historyCount, isExternalSource: isExternal, trustScore, calibrationVersion: 1 };
+
+      const constitution = registry.getActive();
+      const decision = constitution.evaluate(event, context);
+
+      // Record to ledger
+      ledger.append({ id: `sim_${Date.now()}`, stewardId, type, timestamp: Date.now(), payload: event.payload, version: 1 });
+
+      const container = document.getElementById('simResults');
+      const resultEl = document.createElement('div');
+      resultEl.className = decision.allowed ? 'sim-result sim-accepted' : 'sim-result sim-rejected';
+      resultEl.innerHTML = decision.allowed
+        ? `✅ ACCEPTED — ${type} (amount: ${amount}, steward: ${stewardId})`
+        : `❌ REJECTED — ${decision.reason} [rule: ${decision.ruleId}]`;
+      container.prepend(resultEl);
+
+      toast(decision.allowed ? 'Event accepted by constitution' : `Event rejected: ${decision.reason}`, decision.allowed ? 'success' : 'error');
+    }
+
+    function runBatchSimulation() {
+      const events = ledger.getAll().filter(e => e.type === 'SIGNAL_INGESTED' || e.type === 'CALIBRATION_APPLIED');
+      const constitution = registry.getActive();
+      const result = simulator.run(constitution, events, defaultContextFactory);
+
+      const container = document.getElementById('simResults');
+      container.innerHTML = '';
+
+      result.accepted.forEach(r => {
+        const el = document.createElement('div');
+        el.className = 'sim-result sim-accepted';
+        el.innerHTML = `✅ ACCEPTED — ${r.event.type} (amount: ${r.event.payload.amount ?? '—'}, steward: ${r.event.stewardId})`;
+        container.appendChild(el);
+      });
+
+      result.rejected.forEach(r => {
+        const el = document.createElement('div');
+        el.className = 'sim-result sim-rejected';
+        el.innerHTML = `❌ REJECTED — ${r.decision.reason} [${r.decision.ruleId}] (steward: ${r.event.stewardId})`;
+        container.appendChild(el);
+      });
+
+      document.getElementById('simStats').innerHTML = `
+    <div class="stat-card"><div class="stat-value" style="color:var(--accent-emerald)">${result.accepted.length}</div><div class="stat-label">Accepted</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--accent-rose)">${result.rejected.length}</div><div class="stat-label">Rejected</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--accent-blue)">${events.length}</div><div class="stat-label">Total Events</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--accent-amber)">${(result.rejected.length / Math.max(1, events.length) * 100).toFixed(0)}%</div><div class="stat-label">Risk Rate</div></div>
+  `;
+
+      toast(`Batch simulation complete: ${result.accepted.length} accepted, ${result.rejected.length} rejected`, 'info');
+    }
+
+    // ── Council Tab ──
+    function renderCouncil() {
+      const members = council.getAllMembers();
+      const proposals = council.getAllProposals();
+
+      // Stats
+      document.getElementById('councilStats').innerHTML = `
+    <div class="stat-card"><div class="stat-value" style="color:var(--accent-blue)">${members.length}</div><div class="stat-label">Members</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--accent-amber)">${proposals.length}</div><div class="stat-label">Proposals</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--accent-emerald)">${proposals.filter(p => p.status === 'APPROVED').length}</div><div class="stat-label">Approved</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--accent-rose)">${proposals.filter(p => p.status === 'REJECTED').length}</div><div class="stat-label">Rejected</div></div>
+  `;
+
+      // Members
+      const roleIcons = { AUDITOR: '🔍', STEWARD: '🛡', RESEARCHER: '🔬', GUARDIAN: '⚖️' };
+      const roleColors = { AUDITOR: 'var(--accent-blue)', STEWARD: 'var(--accent-emerald)', RESEARCHER: 'var(--accent-violet)', GUARDIAN: 'var(--accent-amber)' };
+
+      document.getElementById('membersList').innerHTML = members.map(m => `
+    <div class="member-card">
+      <div class="member-avatar" style="background:${roleColors[m.role]}22;border:1px solid ${roleColors[m.role]}44;">${roleIcons[m.role] || '👤'}</div>
+      <div class="member-info">
+        <div class="member-name">${m.name}</div>
+        <div class="member-role">${m.role} · Trust: ${m.trustLevel.toFixed(1)}</div>
+        <div class="trust-bar"><div class="trust-fill" style="width:${m.trustLevel * 100}%;background:${m.trustLevel > 0.7 ? 'var(--accent-emerald)' : m.trustLevel > 0.4 ? 'var(--accent-amber)' : 'var(--accent-rose)'}"></div></div>
+      </div>
+      <div style="font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;">${m.id}</div>
+    </div>
+  `).join('');
+
+      // Submitter dropdown
+      const select = document.getElementById('proposalSubmitter');
+      select.innerHTML = members.map(m => `<option value="${m.id}">${m.name} (${m.id})</option>`).join('');
+
+      // Proposals
+      renderProposals();
+    }
+
+    function renderProposals() {
+      const proposals = council.getAllProposals();
+      const container = document.getElementById('proposalsList');
+
+      if (proposals.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted);font-size:12px;">No proposals yet. Submit one above.</div>';
+        return;
+      }
+
+      container.innerHTML = proposals.map(p => {
+        const votes = council.getVotesForProposal(p.id);
+        const evaluation = council.getEvaluation(p.id);
+        const members = council.getAllMembers();
+        const statusColors = { DRAFT: 'var(--text-muted)', SIMULATED: 'var(--accent-blue)', VOTING: 'var(--accent-amber)', APPROVED: 'var(--accent-emerald)', REJECTED: 'var(--accent-rose)' };
+
+        let voteHTML = '';
+        if (p.status === 'VOTING' || p.status === 'DRAFT' || p.status === 'SIMULATED') {
+          voteHTML = '<div style="margin-top:12px;"><div class="form-label">Cast Votes</div>' +
+            members.map(m => {
+              const existingVote = votes.find(v => v.memberId === m.id);
+              if (existingVote) {
+                return `<div style="font-size:11px;margin:4px 0;color:var(--text-secondary);">${m.name}: <span style="color:${existingVote.vote === 'YES' ? 'var(--accent-emerald)' : 'var(--accent-rose)'}">${existingVote.vote}</span> (weight: ${m.trustLevel})</div>`;
+              }
+              return `<div style="display:flex;align-items:center;gap:6px;margin:4px 0;">
+            <span style="font-size:11px;min-width:100px;">${m.name}</span>
+            <button class="vote-btn" onclick="castVote('${p.id}','${m.id}','YES')" title="Vote YES">✓</button>
+            <button class="vote-btn" onclick="castVote('${p.id}','${m.id}','NO')" title="Vote NO">✗</button>
+          </div>`;
+            }).join('') + '</div>';
+        <div class="decision-banner ${evaluation.approved ? 'decision-approved' : 'decision-rejected'}">
+          ${evaluation.approved ? '✅ APPROVED' : '❌ REJECTED'} — ${evaluation.reason}
+        </div>
+        <div style="font-size:11px;color:var(--text-secondary);margin-top:8px;">
+          Risk: ${evaluation.riskScore.toFixed(3)} · Weighted Votes: ${evaluation.weightedVotes.toFixed(3)} ·
+          ΔAccepted: ${evaluation.simulationImpact.acceptedDelta} · ΔRejected: ${evaluation.simulationImpact.rejectedDelta}
+        </div>`;
+
+                if (evaluation.approved && !registry.get(registry.getActiveVersion() + '_' + p.id)) {
+                  evalResult += `< button class="btn btn-success" onclick = "applyApprovedProposal('${p.id}')" style = "margin-top:8px;" >🚀 Apply to Constitution</button > `;
+                }
+
+                return `
+            < div class="rule-item" >
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="rule-id">${p.id}</div>
+          <span class="rule-category" style="background:${statusColors[p.status]}22;color:${statusColors[p.status]}">${p.status}</span>
+        </div>
+        <div class="rule-desc" style="margin-top:6px;">${p.description}</div>
+      </div > `;
+            }
+            return '';
+        }).join('');
+      }
+
+      function showAddMemberForm() {
+        const form = document.getElementById('addMemberForm');
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+      }
+
+      function addMember() {
+        const name = document.getElementById('newMemberName').value.trim();
+        const role = document.getElementById('newMemberRole').value;
+        const trust = parseFloat(document.getElementById('newMemberTrust').value);
+        if (!name) { toast('Please enter a member name', 'error'); return; }
+        memberCounter++;
+        const id = 'm' + memberCounter;
+        council.registerMember({ id, name, role, trustLevel: trust, registeredAt: Date.now() });
+        document.getElementById('newMemberName').value = '';
+        document.getElementById('addMemberForm').style.display = 'none';
+        renderCouncil();
+        toast(`${ name } registered as ${ role } (trust: ${ trust })`, 'success');
+      }
+
+      function submitProposal() {
+        const desc = document.getElementById('proposalDesc').value.trim();
+        const category = document.getElementById('proposalCategory').value;
+        const threshold = parseInt(document.getElementById('proposalThreshold').value);
+        const submitter = document.getElementById('proposalSubmitter').value;
+
+        if (!desc) { toast('Please describe the proposal', 'error'); return; }
+        if (!submitter) { toast('Please select a submitter', 'error'); return; }
+
+        proposalCounter++;
+        const proposalId = 'p' + proposalCounter;
+
+        council.submitProposal({
+          id: proposalId,
+          description: desc,
+          proposedRules: [{
+            id: `${ category.toLowerCase() }.proposal_${ proposalId } `,
+            category: category,
+            description: `${ desc } (max signal: ${ threshold })`,
+            evaluate: (event, ctx) => {
+              if (event.type !== 'SIGNAL_INGESTED') return { allowed: true };
+              if (event.payload.amount > threshold)
+                return { allowed: false, reason: `Proposal ${ proposalId }: signal exceeds threshold ${ threshold } ` };
+              return { allowed: true };
+            }
+          }],
+          submittedBy: submitter,
+          timestamp: Date.now(),
+          status: 'DRAFT'
+        });
+
+        document.getElementById('proposalDesc').value = '';
+        renderCouncil();
+        toast(`Proposal ${ proposalId } submitted`, 'success');
+      }
+
+      function castVote(proposalId, memberId, vote) {
+        try {
+          council.submitVote({ memberId, proposalId, vote, rationale: '', timestamp: Date.now() });
+          const member = council.getMember(memberId);
+          toast(`${ member?.name || memberId } voted ${ vote } on ${ proposalId } `, vote === 'YES' ? 'success' : 'error');
+          renderProposals();
+        } catch (e) {
+          toast(e.message, 'error');
+        }
+      }
+
+      function evaluateCouncilProposal(proposalId) {
+        try {
+          const events = ledger.getAll().filter(e => e.type === 'SIGNAL_INGESTED' || e.type === 'CALIBRATION_APPLIED');
+          const result = council.evaluateProposal(proposalId, registry.getActive(), events, defaultContextFactory, ledger);
+          renderProposals();
+          toast(result.approved ? `Proposal ${ proposalId } APPROVED` : `Proposal ${ proposalId } REJECTED`, result.approved ? 'success' : 'error');
+        } catch (e) {
+          toast(e.message, 'error');
+        }
+      }
+
+      function applyApprovedProposal(proposalId) {
+        const proposal = council.getProposal(proposalId);
+        if (!proposal || proposal.status !== 'APPROVED') { toast('Proposal not approved', 'error'); return; }
+
+        const currentVersion = registry.getActiveVersion();
+        const newVersion = currentVersion + '.1';
+        const current = registry.getActive();
+        const newConstitution = new TruthConstitutionV1();
+        for (const rule of current.getRules()) newConstitution.register(rule);
+        for (const rule of proposal.proposedRules) newConstitution.register(rule);
+
+        registry.registerVersion(newVersion, newConstitution);
+        registry.setActive(newVersion);
+
+        ledger.append({
+          id: `apply_${ proposalId }_${ Date.now() } `, stewardId: proposal.submittedBy,
+          type: 'GOVERNANCE_DECISION', timestamp: Date.now(),
+          payload: { action: 'CONSTITUTION_UPDATED', proposalId, newVersion, ruleCount: newConstitution.getRules().length },
+          version: 1
+        });
+
+        renderCouncil();
+        renderConstitution();
+        toast(`Constitution updated to ${ newVersion } with ${ newConstitution.getRules().length } rules`, 'success');
+      }
+
+      // ── Steward Activity Tab ──
+      function renderStewards() {
+        const map = ledger.getStewardMap();
+        const stewards = Object.entries(map);
+
+        document.getElementById('stewardGrid').innerHTML = stewards.map(([id, data]) => `
+        < div class="stat-card" >
+      <div class="stat-value" style="color:var(--accent-blue)">${data.count}</div>
+      <div class="stat-label">Steward ${id}</div>
+    </div >
+        `).join('') || '<div style="color:var(--text-muted);font-size:12px;">No steward activity yet.</div>';
+
+        // Timeline
+        const allEvents = ledger.getAll().slice().reverse().slice(0, 20);
+        document.getElementById('stewardTimeline').innerHTML = allEvents.map(e => {
+          const typeColors = {
+            'SIGNAL_INGESTED': 'var(--accent-blue)',
+            'CALIBRATION_APPLIED': 'var(--accent-emerald)',
+            'GOVERNANCE_DECISION': 'var(--accent-violet)',
+          };
+          return `
+        < div class="ledger-event" >
+        <div class="ledger-time">${new Date(e.timestamp).toLocaleTimeString()}</div>
+        <div class="ledger-type" style="background:${typeColors[e.type] || 'var(--text-muted)'}22;color:${typeColors[e.type] || 'var(--text-muted)'}">${e.type}</div>
+        <div class="ledger-detail">Steward ${e.stewardId} · ${JSON.stringify(e.payload)}</div>
+      </div > `;
+        }).join('');
+      }
+
+      // ── Comparison Tab ──
+      function runComparison() {
+        const versions = registry.getVersionList();
+        if (versions.length < 2) {
+          toast('Need at least 2 constitution versions to compare. Submit and approve a proposal first.', 'error');
+          return;
+        }
+
+        const v1Key = versions[0];
+        const v2Key = versions[versions.length - 1];
+        const c1 = registry.get(v1Key);
+        const c2 = registry.get(v2Key);
+        const events = ledger.getAll().filter(e => e.type === 'SIGNAL_INGESTED' || e.type === 'CALIBRATION_APPLIED');
+
+        const r1 = simulator.run(c1, events, defaultContextFactory);
+        const r2 = simulator.run(c2, events, defaultContextFactory);
+        const delta = comparator.compare(r1, r2);
+
+        document.getElementById('compareLeft').innerHTML = `
+        < h4 style = "color:var(--accent-blue)" > ${ v1Key } — ${ c1.getRules().length } rules</h4 >
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">${r1.accepted.length} accepted · ${r1.rejected.length} rejected</div>
+    ${ r1.accepted.map(r => `<div class="sim-result sim-accepted" style="font-size:11px;">✅ ${r.event.stewardId}: amount ${r.event.payload.amount ?? '—'}</div>`).join('') }
+    ${ r1.rejected.map(r => `<div class="sim-result sim-rejected" style="font-size:11px;">❌ ${r.event.stewardId}: ${r.decision.reason}</div>`).join('') }
+      `;
+
+        document.getElementById('compareRight').innerHTML = `
+        < h4 style = "color:var(--accent-violet)" > ${ v2Key } — ${ c2.getRules().length } rules</h4 >
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">${r2.accepted.length} accepted · ${r2.rejected.length} rejected</div>
+    ${ r2.accepted.map(r => `<div class="sim-result sim-accepted" style="font-size:11px;">✅ ${r.event.stewardId}: amount ${r.event.payload.amount ?? '—'}</div>`).join('') }
+    ${ r2.rejected.map(r => `<div class="sim-result sim-rejected" style="font-size:11px;">❌ ${r.event.stewardId}: ${r.decision.reason}</div>`).join('') }
+      `;
+
+        document.getElementById('comparisonDelta').style.display = 'block';
+        document.getElementById('deltaStats').innerHTML = `
+        < div class="stat-card" ><div class="stat-value ${delta.acceptedDelta >= 0 ? 'delta-positive' : 'delta-negative'}">${delta.acceptedDelta >= 0 ? '+' : ''}${delta.acceptedDelta}</div><div class="stat-label">Accepted Δ</div></div >
+    <div class="stat-card"><div class="stat-value ${delta.rejectedDelta <= 0 ? 'delta-positive' : 'delta-negative'}">${delta.rejectedDelta >= 0 ? '+' : ''}${delta.rejectedDelta}</div><div class="stat-label">Rejected Δ</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--accent-blue)">${(delta.stabilityScore * 100).toFixed(0)}%</div><div class="stat-label">Stability</div></div>
+    <div class="stat-card"><div class="stat-value ${delta.riskIncrease ? 'delta-negative' : 'delta-positive'}">${delta.riskIncrease ? '⚠ YES' : '✓ NO'}</div><div class="stat-label">Risk Increase</div></div>
+      `;
+
+        toast(`Comparison: ${ v1Key } vs ${ v2Key } complete`, 'info');
+      }
+
+      // ── Truth Ledger Tab ──
+      let currentFilter = 'all';
+
+      function filterLedger(type) {
+        currentFilter = type;
+        renderLedger();
+      }
+
+      function renderLedger() {
+        const events = currentFilter === 'all'
+          ? ledger.getAll()
+          : ledger.getByType(currentFilter);
+
+        const typeColors = {
+          'SIGNAL_INGESTED': 'var(--accent-blue)',
+          'CALIBRATION_APPLIED': 'var(--accent-emerald)',
+          'GOVERNANCE_DECISION': 'var(--accent-violet)',
+          'STEWARD_CREATED': 'var(--accent-amber)',
+          'RECONCILIATION_RUN': 'var(--accent-amber)',
+          'NARRATIVE_EMITTED': 'var(--text-secondary)',
+          'CROSS_STEWARD_INSIGHT': 'var(--accent-rose)',
+        };
+
+        document.getElementById('ledgerFeed').innerHTML = events.slice().reverse().map(e => `
+        < div class="ledger-event" >
+      <div class="ledger-time">${new Date(e.timestamp).toLocaleTimeString()}</div>
+      <div class="ledger-type" style="background:${typeColors[e.type] || 'var(--text-muted)'}22;color:${typeColors[e.type] || 'var(--text-muted)'}">${e.type}</div>
+      <div class="ledger-detail">
+        <strong>Steward ${e.stewardId}</strong> · ${JSON.stringify(e.payload)}
+      </div>
+    </div >
+  `).join('') || '<div style="color:var(--text-muted);font-size:12px;">No events matching filter.</div>';
+      }
+
+      /* ═══════════════════════════════════════════════════════════════
+         SYSTEM STARTUP
+         ═══════════════════════════════════════════════════════════════ */
+
+      window.onload = () => {
+        renderConstitution();
+        updateStatusBar();
+        renderLedger();
+        renderCouncil();
+      };
+  </script>
+</body>
+
+</html>

@@ -28,25 +28,25 @@ def generate_referral_code(db: Session, slug: str) -> str:
 def handle_referral(db: Session, new_profile: Profile, referred_by_code: str):
     if not referred_by_code:
         return
-    
+
     referrer = db.query(Profile).filter(Profile.referral_code == referred_by_code).first()
     if not referrer:
         return
-    
+
     if referrer.id == new_profile.id:
         return
-    
+
     existing_referral = db.query(Referral).filter(
         Referral.referred_profile_id == new_profile.id
     ).first()
     if existing_referral:
         return
-    
+
     count = db.query(Referral).filter(
         Referral.referrer_profile_id == referrer.id,
         Referral.status.in_(["pending", "qualified", "paid"])
     ).count()
-    
+
     if count >= 5:
         referral = Referral(
             referrer_profile_id=referrer.id,
@@ -118,10 +118,10 @@ def _bootstrap_profile_internal(db: Session, uid: str, email: str) -> "Profile":
 def _apply_system_creator_override(db: Session, profile: "Profile", email: str) -> None:
     """If the email is the system creator, force approved / unblockable state."""
     from src.models.archetype_constants import TECH_DIGITAL_ARCHETYPE_V1
-    
+
     if email not in VALID_SYSTEM_CREATOR_EMAILS:
         return
-        
+
     needs_save = (
         profile.setup_fee_status != "approved"
         or profile.setup_fee_required != 0
@@ -190,7 +190,7 @@ def create_profile(profile: ProfileCreate, db: Session = Depends(get_db)):
             existing_profile.continuity_event_id = str(event.id)
             if not existing_profile.referral_code:
                 existing_profile.referral_code = generate_referral_code(db, existing_profile.slug)
-            
+
             if profile.referred_by_code and not existing_profile.referred_by_code:
                 existing_profile.referred_by_code = profile.referred_by_code
                 handle_referral(db, existing_profile, profile.referred_by_code)
@@ -362,6 +362,125 @@ def update_my_profile(data: ProfileUpdate, db: Session = Depends(get_db), curren
         db.refresh(profile)
 
     return ProfileOut.from_orm_with_privacy(profile)
+
+
+@router.get("/profiles/me/onboarding-state")
+def get_my_onboarding_state(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    uid = current_user.get("uid")
+    if not uid:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    profile = db.query(Profile).filter(Profile.owner_id == uid).first()
+
+    def _is_truthy(val):
+        if not val:
+            return False
+        if isinstance(val, str):
+            return bool(val.strip().replace('"', '').replace("'", "").replace('[', '').replace(']', ''))
+        if isinstance(val, list):
+            return len(val) > 0
+        return True
+
+    # Evaluate the truth of the steward's current progress
+    has_identity = bool(profile and _is_truthy(profile.name) and _is_truthy(profile.location))
+    has_contact = bool(profile and _is_truthy(profile.phone))
+    has_services = bool(profile and (_is_truthy(profile.business_line) or _is_truthy(profile.services)))
+    has_proof = bool(profile and _is_truthy(profile.supporting_image_urls))
+    has_branding = bool(profile and (_is_truthy(profile.logo_url) or _is_truthy(profile.cover_photo_url)))
+    has_referral = bool(profile and _is_truthy(profile.referred_by_code))
+
+    cards = []
+
+    # Card 1: Identity
+    identity_status = "complete" if has_identity else "next"
+    cards.append({
+        "key": "identity",
+        "title": "Become Visible",
+        "description": "Name, category, location",
+        "status": identity_status,
+        "route": "/onboarding/identity" if identity_status != "complete" else None
+    })
+
+    # Card 2: Contact
+    contact_status = "locked" if not has_identity else ("complete" if has_contact else "next")
+    cards.append({
+        "key": "contact",
+        "title": "Let customers reach you",
+        "description": "WhatsApp number",
+        "status": contact_status,
+        "route": "/onboarding/contact" if contact_status == "next" else None
+    })
+
+    # Card 3: Services
+    services_status = "locked" if contact_status in ("locked", "next") else ("complete" if has_services else "next")
+    cards.append({
+        "key": "services",
+        "title": "Show What You Do",
+        "description": "Core service, service list",
+        "status": services_status,
+        "route": "/onboarding/services" if services_status == "next" else None
+    })
+
+    # Card 4: Proof
+    proof_status = "locked" if services_status in ("locked", "next") else ("complete" if has_proof else "next")
+    cards.append({
+        "key": "proof",
+        "title": "Build Trust",
+        "description": "Proof of work / gallery",
+        "status": proof_status,
+        "route": "/onboarding/proof" if proof_status == "next" else None
+    })
+
+    # Card 5: Branding
+    branding_status = "locked" if proof_status in ("locked", "next") else ("complete" if has_branding else "next")
+    cards.append({
+        "key": "branding",
+        "title": "Look Professional",
+        "description": "Logo, cover photo",
+        "status": branding_status,
+        "route": "/onboarding/branding" if branding_status == "next" else None
+    })
+
+    # Card 6: Referral
+    referral_status = "locked" if branding_status in ("locked", "next") else ("complete" if has_referral else "optional")
+    cards.append({
+        "key": "referral",
+        "title": "Invite & Grow",
+        "description": "Referral code",
+        "status": referral_status,
+        "route": "/onboarding/referral" if referral_status in ("next", "optional") else None
+    })
+
+    # Calculate overall completion percentage
+    total_steps = 6
+    completed_steps = sum(1 for c in cards if c["status"] == "complete")
+    completion_percent = int((completed_steps / total_steps) * 100)
+
+    # Determine the absolute best next action to feed the top hero card
+    next_action_card = next((c for c in cards if c["status"] == "next"), None)
+    if next_action_card:
+        next_best_action = {
+            "key": next_action_card["key"],
+            "label": next_action_card["title"],
+            "route": next_action_card["route"]
+        }
+    else:
+        # If everything is complete or only optional things remain!
+        next_best_action = {
+            "key": "done",
+            "label": "Share your profile to the community",
+            "route": "/tabs/visibility"
+        }
+
+    return {
+        "profile_stage": "visible_basic" if has_contact else "incomplete",
+        "completion_percent": completion_percent,
+        "next_best_action": next_best_action,
+        "cards": cards
+    }
 
 
 @router.get("/profiles", response_model=List[ProfileOut])

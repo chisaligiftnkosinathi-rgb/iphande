@@ -1,7 +1,10 @@
 import { supabase } from '../lib/supabase';
 
-// Use your Expo env variable, fallback to local python API server
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+
+if (!API_BASE_URL) {
+    console.warn("⚠️ EXPO_PUBLIC_API_URL is missing! API calls will fail in production.");
+}
 
 export async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
     // Get the fresh Supabase JWT

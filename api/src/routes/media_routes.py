@@ -50,8 +50,9 @@ def record_evidence(
         db.flush()
 
         # Emit ContinuityEvent for strict evidence
+        event_id = None
         if payload.bucket_name in ["proof-of-work", "business-documents", "payment-proofs"]:
-            emit_continuity_event(
+            event = emit_continuity_event(
                 db=db,
                 business_owner_id=payload.profile_id,
                 business_category_key=None,
@@ -65,18 +66,31 @@ def record_evidence(
                     "description": f"Captured {payload.purpose}",
                     "opportunity_id": payload.opportunity_id,
                     "quote_id": payload.quote_id
-                }
+                },
+                auto_commit=False
             )
+            event_id = event.id
 
-        # Send memory to Axionyx for governance scoring
-        axionyx_payload = {
-            "steward_id": payload.profile_id,
-            "need_category": payload.purpose,
-            "evidence_payload": {
-                "url": payload.public_url,
-                "media_type": payload.bucket_name
+        # Send memory to Axionyx for governance scoring using Continuity Handshake
+        if event_id:
+            from datetime import datetime
+            axionyx_payload = {
+                "source_system": "iphande",
+                "source_event_id": str(event_id),
+                "business_owner_id": payload.profile_id,
+                "event_type": "evidence_captured",
+                "evidence_type": payload.bucket_name.replace("-", "_"),
+                "title": f"Captured {payload.purpose}",
+                "description": "Work completed and evidence attached",
+                "occurred_at": datetime.utcnow().isoformat() + "Z",
+                "evidence_items": [
+                    {
+                        "type": "image",
+                        "url": payload.public_url,
+                        "description": payload.purpose
+                    }
+                ]
             }
-        }
-        background_tasks.add_task(send_evidence_to_axionyx, axionyx_payload)
+            background_tasks.add_task(send_evidence_to_axionyx, axionyx_payload)
 
         return db_media

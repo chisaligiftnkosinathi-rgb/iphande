@@ -9,7 +9,8 @@ from sqlalchemy import text
 from src.config import API_VERSION, APP_NAME, CORS_ORIGINS
 from src.routes import (
     health_routes, profile_routes, opportunity_routes, timeline_routes, followup_routes,
-    media_routes, reflection_routes, campaign_routes, message_template_routes, scripture_reflection_routes, content_post_routes,
+    media_routes, reflection_routes, campaign_routes, message_template_routes, scripture_reflection_routes,
+    content_post_routes, places_routes,
     business_categories, business_content_rules, quote_request_routes, giving_routes,
     steward_timeline_routes, steward_annotations, referral_routes, public_routes,
     advertisement_routes, expense_routes, share_routes, admin_routes, document_routes, steward_console_routes
@@ -23,6 +24,8 @@ from src.routers.inventory import router as inventory_router
 from src.routers.commissions import router as commissions_router
 from src.routes.continuity_capture_routes import router as continuity_capture_router
 from src.routes.lead_routes import router as lead_router
+from src.routes.river_routes import router as river_router
+from src.routes.river_stream_routes import router as river_stream_router
 
 from src.models.quote_request_model import QuoteRequest
 from src.database import create_tables, SessionLocal
@@ -125,8 +128,11 @@ app.include_router(expense_routes.router)
 app.include_router(share_routes.router)
 app.include_router(document_routes.router)
 app.include_router(continuity_event_router, prefix="/api/v1/continuity-events", tags=["continuity-events"])
+app.include_router(places_routes.router)
 app.include_router(continuity_capture_router, prefix="/api/v1/continuity-captures", tags=["continuity-captures"])
 app.include_router(steward_console_routes.router)
+app.include_router(river_router, prefix="/api/v1")
+app.include_router(river_stream_router, prefix="/api/v1")
 
 # Clean 404 handler
 @app.exception_handler(404)

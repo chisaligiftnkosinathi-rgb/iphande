@@ -136,7 +136,7 @@ export default function ProfileScreen() {
                                 { textTransform: "capitalize" }
                             ]}
                         >
-                            {String(profile?.archetype_key ?? "Not set")
+                            {String(profile?.archetype ?? "Not set")
                                 .replace(/_/g, " ")}
                         </Text>
                     </View>

@@ -1,12 +1,12 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FeatureLockedCard } from '../../src/components/FeatureLockedCard';
+import { PageHeader } from '../../src/components/PageHeader';
+import { ShareButton } from '../../src/components/ShareButton';
 import { fetchWithAuth } from '../../src/config/api';
 import { useSteward } from '../../src/context/StewardContext';
-import { ShareButton } from '../../src/components/ShareButton';
 import { shareQuote } from '../../src/services/shareApi';
-import { PageHeader } from '../../src/components/PageHeader';
-import { FeatureLockedCard } from '../../src/components/FeatureLockedCard';
 
 interface QuoteDocument {
     id: string;
@@ -76,10 +76,10 @@ export default function DocumentsScreen() {
             <ScrollView style={styles.container}>
                 <PageHeader title="Quotes & Invoices" subtitle="Professional Business Documents" />
                 <View style={styles.subcontent}>
-                    <FeatureLockedCard 
-                        featureName="Documents" 
+                    <FeatureLockedCard
+                        featureName="Documents"
                         description="Send professional quotes, invoices, and receipts to customers. Download branded PDFs."
-                        packName="Documents Pack" 
+                        packName="Documents Pack"
                     />
                 </View>
             </ScrollView>
@@ -91,10 +91,10 @@ export default function DocumentsScreen() {
             style={styles.container}
             refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchDocuments} />}
         >
-            <PageHeader 
-                eyebrow="Steward Tools" 
-                title="Documents Tracker" 
-                subtitle="View saved quotes and business documents." 
+            <PageHeader
+                eyebrow="Steward Tools"
+                title="Documents Tracker"
+                subtitle="View saved quotes and business documents."
             />
 
             <View style={styles.subcontent}>
@@ -133,7 +133,7 @@ export default function DocumentsScreen() {
                                 </View>
                                 <Text style={styles.customerName}>{quote.customer_name}</Text>
                                 <Text style={styles.serviceDesc}>{quote.service_description || 'General Service'}</Text>
-                                
+
                                 <View style={styles.cardFooter}>
                                     <Text style={styles.docDate}>{formatDate(quote.created_at)}</Text>
                                     <Text style={styles.docAmount}>R {Number(amount).toFixed(2)}</Text>
@@ -146,9 +146,8 @@ export default function DocumentsScreen() {
                                     >
                                         <Text style={styles.actionButtonText}>View Quote</Text>
                                     </TouchableOpacity>
-                                    <ShareButton 
+                                    <ShareButton
                                         fetchShareText={() => shareQuote(quote.id)}
-                                        label=""
                                         style={styles.shareBtn}
                                     />
                                 </View>
@@ -165,10 +164,10 @@ export default function DocumentsScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F8FAFC' },
     subcontent: { padding: 24, paddingBottom: 60 },
-    
+
     sectionHeader: { marginBottom: 16 },
     sectionTitle: { fontSize: 20, fontWeight: '800', color: '#111827', marginBottom: 16 },
-    
+
     emptyState: { padding: 32, backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB', alignItems: 'center' },
     emptyText: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 4 },
     emptySubtext: { fontSize: 14, color: '#6B7280', textAlign: 'center' },
@@ -189,7 +188,7 @@ const styles = StyleSheet.create({
 
     customerName: { fontSize: 18, fontWeight: '800', color: '#111827', marginBottom: 4 },
     serviceDesc: { fontSize: 14, color: '#4B5563', marginBottom: 16 },
-    
+
     cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#F3F4F6' },
     docDate: { fontSize: 13, color: '#6B7280', fontWeight: '600' },
     docAmount: { fontSize: 16, fontWeight: '800', color: '#10B981' },

@@ -1,35 +1,76 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Link, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Ionicons } from '@expo/vector-icons';
 import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { fetchWithAuth } from '../../src/config/api';
 import { useSteward } from '../../src/context/StewardContext';
+import { STEWARD_TOOL_REGISTRY, ToolKey } from '../../src/domain/stewardToolRegistry';
+import { DashboardStats, getAdminDashboard } from '../../src/services/adminApi';
 import { computeVisibilityScore } from './visibility';
-import { getAdminDashboard, DashboardStats } from '../../src/services/adminApi';
+
+interface Tool {
+    key: ToolKey;
+    name: string;
+    desc: string;
+    icon: React.ComponentProps<typeof Ionicons>['name'];
+    route: string;
+}
+
+const ALL_TOOLS: Record<ToolKey, Tool> = {
+    'quote_builder': { key: 'quote_builder', name: "Quote Builder", desc: "Prepare service quotes", icon: "calculator-outline", route: "/tools/calculator" },
+    'documents': { key: 'documents', name: "Documents", desc: "Saved quotes & invoices", icon: "folder-open-outline", route: "/tools/documents" },
+    'proof_of_work': { key: 'proof_of_work', name: "Proof of Work", desc: "Record completed work", icon: "checkmark-done-outline", route: "/tools/proof-of-work" },
+    'inventory_tracker': { key: 'inventory_tracker', name: "Inventory", desc: "Track material costs", icon: "cube-outline", route: "/tools/inventory-tracker" },
+    'km_tracker': { key: 'km_tracker', name: "Mileage Tracker", desc: "Log business travel km", icon: "car-outline", route: "/tools/km-tracker" },
+    'notebook': { key: 'notebook', name: "Notebook", desc: "Record quick text notes", icon: "book-outline", route: "/tools/notebook" },
+    'referrals': { key: 'referrals', name: "Referral Program", desc: "Invite stewards & earn ZAR", icon: "people-outline", route: "/tools/referrals" },
+    // TODO: Add all other tools from the old static list to complete this mapping
+    'materials_calculator': { key: 'materials_calculator', name: "Materials", desc: "Calculate material costs", icon: "build-outline", route: "/tools/calculator" },
+    'travel_calculator': { key: 'travel_calculator', name: "Travel", desc: "Calculate travel costs", icon: "map-outline", route: "/tools/km-tracker" },
+    'before_after_proof': { key: 'before_after_proof', name: "Before/After Proof", desc: "Capture work progress", icon: "camera-reverse-outline", route: "/tools/proof-of-work" },
+    'expense_tracker': { key: 'expense_tracker', name: "Expenses", desc: "Track business expenses", icon: "receipt-outline", route: "/tools/expenses" }, // Assuming an expenses tool exists
+    'lead_tracker': { key: 'lead_tracker', name: "Lead Tracker", desc: "Manage customer leads", icon: "people-circle-outline", route: "/tabs/leads" },
+    'commission_calculator': { key: 'commission_calculator', name: "Commission", desc: "Calculate sales commission", icon: "cash-outline", route: "/tools/calculator" },
+    'whatsapp_followup': { key: 'whatsapp_followup', name: "WhatsApp Follow-up", desc: "Engage with customers", icon: "logo-whatsapp", route: "/tabs/leads" },
+    'receipt_capture': { key: 'receipt_capture', name: "Receipt Capture", desc: "Scan and save receipts", icon: "receipt-outline", route: "/tools/expenses" },
+    'project_milestone_tracker': { key: 'project_milestone_tracker', name: "Project Milestones", desc: "Track project progress", icon: "flag-outline", route: "/tools/milestones" },
+    'document_generator': { key: 'document_generator', name: "Documents", desc: "Generate project documents", icon: "document-text-outline", route: "/tools/documents" },
+    'vba_console': { key: 'vba_console', name: "VBA Console", desc: "Access Visual Business Automation", icon: "terminal-outline", route: "/tools/vba" },
+};
 
 export default function HomeScreen() {
     const { profile, refreshProfile } = useSteward();
     const { width } = useWindowDimensions();
     const router = useRouter();
-    
+
     const [leadsCount, setLeadsCount] = useState<number | null>(null);
     const [openOpportunities, setOpenOpportunities] = useState<number | null>(null);
     const [proofUploadsCount, setProofUploadsCount] = useState<number | null>(null);
     const [timelineActivityCount, setTimelineActivityCount] = useState<number | null>(null);
     const [adminStats, setAdminStats] = useState<DashboardStats | null>(null);
-    
+    const [visibleTools, setVisibleTools] = useState<Tool[]>([]);
+
     const [refreshing, setRefreshing] = useState(false);
 
     const isAdmin = profile?.role === 'admin' || profile?.role === 'system_admin' || profile?.trust_posture === 'system_creator';
     const isCreator = profile?.trust_posture === 'system_creator';
-    
+
     const { score: visibilityScore } = computeVisibilityScore(profile as Record<string, unknown> | null);
+
+    useEffect(() => {
+        if (profile?.archetype) {
+            const toolSet = STEWARD_TOOL_REGISTRY[profile.archetype] ?? STEWARD_TOOL_REGISTRY['general'];
+            const tools = toolSet.tools.map(key => ALL_TOOLS[key]).filter(Boolean); // Filter out any undefined tools
+            setVisibleTools(tools);
+        }
+    }, [profile?.archetype]);
+
 
     const fetchData = async () => {
         try {
             const leadsData = await fetchWithAuth('/leads/me');
             const leads = leadsData || [];
-            const activeLeads = leads.filter((lead: any) => 
+            const activeLeads = leads.filter((lead: any) =>
                 lead.status === 'new' || lead.status === 'contacted' || lead.status === 'quote_requested' || lead.status === 'quoted'
             );
             setLeadsCount(activeLeads.length);
@@ -47,11 +88,11 @@ export default function HomeScreen() {
             const eventsData = await fetchWithAuth(`/continuity-events/business/${profile.id}`);
             const events = eventsData || [];
             setTimelineActivityCount(events.length);
-            
+
             const proofEvents = events.filter((e: any) => e.event_type === 'evidence_captured');
             setProofUploadsCount(proofEvents.length);
-        } catch { 
-            setTimelineActivityCount(null); 
+        } catch {
+            setTimelineActivityCount(null);
             setProofUploadsCount(null);
         }
 
@@ -78,7 +119,7 @@ export default function HomeScreen() {
 
     const isActivationApproved = profile?.setup_fee_status === "approved" && profile?.is_verified;
     const isPaymentPending = profile?.setup_fee_status === "pending" || profile?.setup_fee_status === "proof_uploaded";
-    
+
     let activationStatusText = "Pending Activation";
     let activationStatusColor = "#D97706"; // Amber
     if (isActivationApproved || isAdmin) {
@@ -92,7 +133,7 @@ export default function HomeScreen() {
     const isWide = width > 768;
 
     return (
-        <ScrollView 
+        <ScrollView
             style={styles.container}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
         >
@@ -120,17 +161,17 @@ export default function HomeScreen() {
                 ) : (
                     <View style={[styles.statusBanner, { borderLeftColor: activationStatusColor }]}>
                         <View style={styles.statusBannerContent}>
-                            <Ionicons 
-                                name={isActivationApproved ? "checkmark-circle" : "time"} 
-                                size={24} 
-                                color={activationStatusColor} 
+                            <Ionicons
+                                name={isActivationApproved ? "checkmark-circle" : "time"}
+                                size={24}
+                                color={activationStatusColor}
                             />
                             <View style={{ marginLeft: 12 }}>
                                 <Text style={styles.statusTitle}>{activationStatusText}</Text>
                                 {!isActivationApproved && (
                                     <Text style={styles.statusDesc}>
-                                        {isPaymentPending 
-                                            ? "Your R120 payment proof is being reviewed." 
+                                        {isPaymentPending
+                                            ? "Your R120 payment proof is being reviewed."
                                             : "Please upload your R120 payment proof to activate your business profile."}
                                     </Text>
                                 )}
@@ -150,7 +191,7 @@ export default function HomeScreen() {
             {/* My Business Today / Platform Overview */}
             <View style={styles.section}>
                 {isAdmin && (
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         style={styles.adminPortalButton}
                         onPress={() => router.push('/admin')}
                     >
@@ -206,7 +247,7 @@ export default function HomeScreen() {
                 )}
                 <View style={styles.timelineBox}>
                     <Text style={styles.timelineLabel}>
-                        {isCreator 
+                        {isCreator
                             ? `Recent Event Telemetry: ${timelineActivityCount !== null ? timelineActivityCount : '—'} platform continuity entries.`
                             : `Recent Timeline Activity: ${timelineActivityCount !== null ? timelineActivityCount : '—'} events recorded`}
                     </Text>
@@ -218,18 +259,8 @@ export default function HomeScreen() {
                 <View style={styles.groupContainer}>
                     <Text style={styles.groupTitle}>Business Tools</Text>
                     <View style={[styles.grid, isWide && styles.gridWide]}>
-                        {[
-                            { name: "Opportunities", desc: "Browse community needs", icon: "megaphone-outline", route: "/tabs/index" },
-                            { name: "Timeline", desc: "Activity history & Proof", icon: "time-outline", route: "/tabs/timeline" },
-                            { name: "Quote Builder", desc: "Prepare service quotes", icon: "calculator-outline", route: "/tools/calculator" },
-                            { name: "Documents", desc: "Saved quotes & invoices", icon: "folder-open-outline", route: "/tools/documents" },
-                            { name: "Proof of Work", desc: "Record completed work", icon: "checkmark-done-outline", route: "/tools/proof-of-work" },
-                            { name: "Inventory", desc: "Track material costs", icon: "cube-outline", route: "/tools/inventory-tracker" },
-                            { name: "Mileage Tracker", desc: "Log business travel km", icon: "car-outline", route: "/tools/km-tracker" },
-                            { name: "Notebook", desc: "Record quick text notes", icon: "book-outline", route: "/tools/notebook" },
-                            { name: "Referral Program", desc: "Invite stewards & earn ZAR", icon: "people-outline", route: "/tools/referrals" }
-                        ].map((tool, idx) => (
-                            <Link key={idx} href={tool.route as any} asChild>
+                        {visibleTools.map((tool) => (
+                            <Link key={tool.key} href={tool.route as any} asChild>
                                 <TouchableOpacity style={StyleSheet.flatten([styles.toolCard, isWide && styles.toolCardWide])}>
                                     <Ionicons name={tool.icon as any} size={22} color="#6B7280" style={styles.toolIcon} />
                                     <View style={styles.toolTextContent}>
@@ -387,7 +418,7 @@ const styles = StyleSheet.create({
         color: '#4B5563',
     },
     groupContainer: {
-        marginBottom: 36, 
+        marginBottom: 36,
     },
     groupTitle: {
         fontSize: 14,
@@ -414,10 +445,10 @@ const styles = StyleSheet.create({
         borderColor: '#E5E7EB',
         flexDirection: 'row',
         alignItems: 'center',
-        minHeight: 84, 
+        minHeight: 84,
     },
     toolCardWide: {
-        width: '48%', 
+        width: '48%',
     },
     toolIcon: {
         marginRight: 14,

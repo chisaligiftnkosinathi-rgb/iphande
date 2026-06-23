@@ -10,21 +10,17 @@ from alembic import context
 # Add the api directory to the Python path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Import your Base and all your models
-from src.database.session import Base
-from src.models.profile import Profile
-from src.models.continuity_event_model import ContinuityEvent
-from src.models.opportunity import Opportunity
-from src.models.quote import Quote
-from src.models.referral import Referral
-from src.models.expense import Expense
-from src.models.inventory import InventoryItem
-from src.models.invoice import Invoice
-from src.models.lead import Lead
+# Import your Base and all your models dynamically
+from src.database import Base
+from src.database import register_models
+register_models()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+
+from src.config import DATABASE_URL
+config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -80,7 +76,9 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection,
+            target_metadata=target_metadata,
+            render_as_batch=True
         )
 
         with context.begin_transaction():

@@ -1,0 +1,131 @@
+LEGAL DECLARATION AND STATEMENT OF GOOD FAITH
+
+Project: SANAS ERP RFI Response
+RFI Reference: SANAS/ERP/2026-27/03
+Bidder: Global IT and Business Solutions (Pty) Ltd
+Date: 19 June 2026
+
+1. DECLARATION OF GOOD FAITH
+
+Global IT and Business Solutions (Pty) Ltd hereby submits this response to the South African National Accreditation System (SANAS) Request for Information (RFI) in good faith.
+
+This submission is intended to provide information regarding our organizational capabilities, architectural approach, governance philosophy, and proposed solutions relevant to the requirements outlined within the SANAS ERP RFI.
+
+To the best of our knowledge, the information contained in this submission is accurate, honest, and presented without deliberate misrepresentation.
+
+2. STATEMENT OF TRUTHFUL REPRESENTATION
+
+Global IT and Business Solutions (Pty) Ltd affirms that all statements contained within this submission have been classified according to one of the following categories:
+
+Verified Information
+
+Information relating to:
+
+Company registration details
+Company leadership
+Existing research and development activities
+Developed software prototypes
+Architectural designs
+Internal governance methodologies
+Documentation produced as part of this submission
+
+Such information is represented as factual based on records available to the company.
+
+Prototype Capabilities
+
+Where this submission references:
+
+Axionyx Governance Kernel
+Axionyx Bid Compiler Engine (ABCE)
+Governance evaluation concepts
+Rule-driven decision models
+Evidence aggregation frameworks
+Decision trace mechanisms
+
+These references describe prototype, developmental, or conceptual capabilities developed as part of ongoing research and software development activities.
+
+Such references should not be interpreted as proof of production deployment within SANAS or any accreditation authority unless explicitly stated.
+
+Proposed Future Capabilities
+
+Any references to future ERP functionality, governance automation, accreditation intelligence, reporting capabilities, workflow orchestration, or enterprise integration represent proposed implementation concepts that would require formal requirements analysis, design validation, implementation, testing, and acceptance.
+
+These proposed capabilities are presented solely to demonstrate architectural direction and potential value.
+
+3. NO MISREPRESENTATION OF DEPLOYMENT STATUS
+
+Global IT and Business Solutions (Pty) Ltd does not represent that:
+
+A SANAS ERP implementation currently exists.
+SANAS has approved, endorsed, or adopted any Axionyx solution.
+Any proposed ERP functionality has been deployed within SANAS.
+Any accreditation authority currently operates the proposed architecture.
+Any certification, accreditation, or compliance status exists beyond what can be independently verified.
+4. GOVERNANCE AND EVIDENCE PRINCIPLES
+
+This submission is guided by the following principles:
+
+Evidence Before Assertion
+
+Claims should be supported by available records, documentation, or demonstrable artifacts.
+
+Transparency Before Assumption
+
+Unknowns, limitations, and future proposals should be clearly identified.
+
+Governance Before Automation
+
+Technology should operate within defined governance structures and accountability mechanisms.
+
+Traceability Before Decision
+
+Significant decisions should be linked to supporting evidence and documented reasoning.
+
+5. PRIVACY AND DATA PROTECTION
+
+Global IT and Business Solutions (Pty) Ltd recognizes the importance of lawful and responsible information management.
+
+Any future implementation would be designed with consideration for:
+
+Protection of personal information
+Access control mechanisms
+Audit logging
+Data retention controls
+Information governance requirements
+Applicable provisions of the Protection of Personal Information Act (POPIA)
+
+Compliance obligations would be validated during detailed solution design and implementation phases.
+
+6. INTELLECTUAL PROPERTY
+
+All proprietary concepts, methodologies, frameworks, architectural designs, software prototypes, documentation structures, and governance models described within this submission remain the intellectual property of Global IT and Business Solutions (Pty) Ltd unless otherwise agreed in writing.
+
+Submission of this RFI response does not transfer ownership of intellectual property.
+
+7. COMMITMENT TO COLLABORATION
+
+Global IT and Business Solutions (Pty) Ltd welcomes further engagement with SANAS to:
+
+Clarify any aspect of this submission
+Demonstrate prototype capabilities
+Discuss governance architecture concepts
+Explore implementation approaches
+Participate in future procurement processes
+8. DECLARATION
+
+I, the undersigned, declare that the information contained within this submission has been prepared honestly, to the best of my knowledge, and in accordance with the principles described above.
+
+I further acknowledge that this submission constitutes an information response and should not be interpreted as proof of capabilities beyond those expressly identified as verified within this document.
+
+Signed on: 19 June 2026
+
+Director:
+Gift Nkosinathi Chisali
+
+Company:
+Global IT and Business Solutions (Pty) Ltd
+
+Submission Reference:
+SANAS ERP RFI Response – SANAS/ERP/2026-27/03
+
+"Let each matter be established by evidence and truth."

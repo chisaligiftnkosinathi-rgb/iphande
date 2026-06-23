@@ -13,7 +13,7 @@ async def send_evidence_to_axionyx(payload: Dict[str, Any], max_retries: int = 3
     If it fails, we catch the exception so it doesn't crash the calling route,
     allowing the 'store-and-forward' continuity principle.
     """
-    url = f"{AXIONYX_API_URL.rstrip('/')}/api/governance/trust-ledger/submit"
+    url = f"{AXIONYX_API_URL.rstrip('/')}/api/v1/governance/trust-ledger/submit"
     
     for attempt in range(max_retries):
         try:
