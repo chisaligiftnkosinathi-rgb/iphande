@@ -1,10 +1,11 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
 from src.database import get_db, replay_transaction
 from src.auth.supabase_auth import get_current_user
 from src.schemas.media_schema import EvidenceUploadIn, MediaOut
 from src.models.media import Media
 from src.services.continuity_event_service import emit_continuity_event
+from src.services.axionyx_client import send_evidence_to_axionyx
 import os
 
 router = APIRouter()
@@ -21,6 +22,7 @@ ALLOWED_BUCKETS = {
 @router.post("/media/evidence", response_model=MediaOut)
 def record_evidence(
     payload: EvidenceUploadIn,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
@@ -65,5 +67,16 @@ def record_evidence(
                     "quote_id": payload.quote_id
                 }
             )
+
+        # Send memory to Axionyx for governance scoring
+        axionyx_payload = {
+            "steward_id": payload.profile_id,
+            "need_category": payload.purpose,
+            "evidence_payload": {
+                "url": payload.public_url,
+                "media_type": payload.bucket_name
+            }
+        }
+        background_tasks.add_task(send_evidence_to_axionyx, axionyx_payload)
 
         return db_media
