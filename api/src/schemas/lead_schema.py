@@ -7,6 +7,7 @@ class LeadCreate(BaseModel):
     name: str
     phone: str
     service_needed: Optional[str] = None
+    customer_location: Optional[str] = None
     message: Optional[str] = None
     source: Optional[str] = "public_profile"
 
@@ -19,6 +20,7 @@ class LeadOut(BaseModel):
     name: str
     phone: str
     service_needed: Optional[str] = None
+    customer_location: Optional[str] = None
     message: Optional[str] = None
     status: str
     source: str

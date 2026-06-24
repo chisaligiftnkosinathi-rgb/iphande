@@ -565,6 +565,9 @@ class ProfileVisibilityUpdate(BaseModel):
     province: Optional[str] = None
     city: Optional[str] = None
     suburb: Optional[str] = None
+    place_id: Optional[str] = None
+    canonical_name: Optional[str] = None
+    municipality: Optional[str] = None
     services: Optional[str] = None
     cover_photo_url: Optional[str] = None
     logo_url: Optional[str] = None

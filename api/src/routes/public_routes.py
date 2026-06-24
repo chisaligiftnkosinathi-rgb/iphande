@@ -40,45 +40,59 @@ def get_archetype_templates(archetype_key: str):
 
 @router.get("/opportunities")
 def get_public_opportunities(
-    archetype: Optional[OpportunityArchetype] = None,
+    archetype: Optional[str] = None,
     province: Optional[str] = None,
     city: Optional[str] = None,
     suburb: Optional[str] = None,
-    place_code: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
-    query = db.query(Opportunity).filter(Opportunity.is_public == True)
+    query = db.query(Profile).filter(
+        Profile.is_public == True,
+        Profile.is_verified == True
+    )
 
     if archetype:
-        query = query.filter(Opportunity.archetype == archetype)
+        query = query.filter(Profile.business_category_key == archetype)
     if province:
-        query = query.filter(Opportunity.province == province)
+        query = query.filter(Profile.province == province)
     if city:
-        query = query.filter(Opportunity.town_or_city == city)
+        query = query.filter(Profile.city == city)
     if suburb:
-        query = query.filter(Opportunity.suburb_or_area == suburb)
-    if place_code:
-        query = query.filter(Opportunity.place_code == place_code)
+        query = query.filter(Profile.suburb == suburb)
 
     results = query.all()
 
-    # Group the opportunities by archetype
     grouped = {}
-    for opp in results:
-        arch = opp.archetype.value if hasattr(opp.archetype, 'value') else opp.archetype
+    for profile in results:
+        arch = profile.business_category_key or "unclassified"
         if arch not in grouped:
             grouped[arch] = []
 
+        # Count proof of work items
+        proof_count = 0
+        try:
+            import json
+            if profile.supporting_image_urls:
+                if isinstance(profile.supporting_image_urls, list):
+                    proof_count += len([u for u in profile.supporting_image_urls if u])
+                elif isinstance(profile.supporting_image_urls, str):
+                    proof_count += len([u for u in json.loads(profile.supporting_image_urls) if u])
+            if profile.proof_of_work_items:
+                parsed_pow = json.loads(profile.proof_of_work_items)
+                if isinstance(parsed_pow, list):
+                    proof_count += len([item for item in parsed_pow if item.get('url')])
+        except Exception:
+            pass
+
         grouped[arch].append({
-            "id": str(opp.id),
-            "title": opp.title,
-            "location_name": getattr(opp, "location_name", None),
-            "city": opp.town_or_city,
-            "province": opp.province,
-            "suburb": opp.suburb_or_area,
-            "latitude": opp.latitude,
-            "longitude": opp.longitude,
-            "public_contact_whatsapp": getattr(opp, "public_contact_whatsapp", None)
+            "id": str(profile.id),
+            "slug": profile.slug,
+            "name": profile.name,
+            "business_line": profile.business_line,
+            "city": profile.city,
+            "province": profile.province,
+            "is_verified": profile.is_verified,
+            "proof_count": proof_count
         })
 
     formatted_groups = [{"archetype": arch, "items": items} for arch, items in grouped.items()]
@@ -107,8 +121,7 @@ def get_public_business_profile(slug: str, db: Session = Depends(get_db)):
     require_verified_steward_or_platform_admin(profile)
 
     opportunities = db.query(Opportunity).filter(
-        Opportunity.profile_id == profile.id,
-        Opportunity.is_public == True
+        Opportunity.created_by_profile_id == str(profile.id)
     ).all()
 
     location_parts = [part for part in [profile.suburb, profile.city, profile.province] if part]
@@ -126,9 +139,15 @@ def get_public_business_profile(slug: str, db: Session = Depends(get_db)):
         {
             "id": str(opp.id),
             "title": opp.title,
-            "archetype": opp.archetype or "opportunity"
+            "archetype": opp.category_key or "opportunity"
         }
         for opp in opportunities
     ]
 
-    retu
+    return {
+        "profile": profile,
+        "opportunities": opp_summaries,
+        "services": services_list,
+        "supporting_images": supporting_images_list,
+        "location_string": location_string
+    }

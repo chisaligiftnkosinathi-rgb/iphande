@@ -2,6 +2,13 @@ from pydantic import BaseModel, Field, EmailStr, field_validator, ConfigDict
 from typing import Optional
 
 class ProfileLocationUpdate(BaseModel):
+    place_id: Optional[str] = None
+    canonical_name: Optional[str] = None
+    province: Optional[str] = None
+    municipality: Optional[str] = None
+    lat: Optional[float] = None
+    lng: Optional[float] = None
+    
     operating_area: Optional[str] = None
     address_label: Optional[str] = None
     latitude: Optional[float] = None

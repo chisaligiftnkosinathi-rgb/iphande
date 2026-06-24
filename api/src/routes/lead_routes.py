@@ -26,6 +26,7 @@ def create_lead(lead_in: LeadCreate, db: Session = Depends(get_db)):
             profile_slug=lead_in.profile_slug,
             name=lead_in.name,
             phone=lead_in.phone,
+            customer_location=lead_in.customer_location,
             service_needed=lead_in.service_needed,
             message=lead_in.message,
             status="new",
@@ -49,6 +50,7 @@ def create_lead(lead_in: LeadCreate, db: Session = Depends(get_db)):
             payload={
                 "customer_name": lead_in.name,
                 "service_needed": lead_in.service_needed,
+                "customer_location": lead_in.customer_location,
                 "source": db_lead.source
             },
             auto_commit=False,

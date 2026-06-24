@@ -23,9 +23,12 @@ class Profile(Base):
 
     # V1 Public Visibility Layer
     is_public = Column(Boolean, default=True, nullable=False)
+    place_id = Column(String, nullable=True)
+    canonical_name = Column(String, nullable=True)
     province = Column(String, nullable=True)
-    city = Column(String, nullable=True)
-    suburb = Column(String, nullable=True)
+    municipality = Column(String, nullable=True)
+    city = Column(String, nullable=True) # Legacy
+    suburb = Column(String, nullable=True) # Legacy
     whatsapp_number = Column(String, nullable=True)
     facebook_page_url = Column(String, nullable=True)
     cover_photo_url = Column(String, nullable=True)

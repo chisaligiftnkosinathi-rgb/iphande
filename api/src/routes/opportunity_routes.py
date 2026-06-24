@@ -33,6 +33,19 @@ def create_opportunity(opportunity: OpportunityCreate, db: Session = Depends(get
         db.add(db_opp)
         db.flush()
 
+        # Generate candidates and allocate
+        from src.routes.geo_match import match_opportunity_to_profiles, get_public_profiles
+        from src.services.opportunity_allocator import opportunity_allocator
+
+        profiles = get_public_profiles(db)
+        matches = match_opportunity_to_profiles(db_opp, profiles)
+        allocation = opportunity_allocator.allocate(db_opp, matches)
+
+        # If we have an auto-assignment, persist it (assuming assigned_to_profile_id exists or we add it)
+        if allocation["status"] == "auto_assigned" and allocation["assigned_profile_id"]:
+            # Note: For v1, we just emit this in the payload, but later we would explicitly set db_opp.assigned_to_profile_id = allocation["assigned_profile_id"]
+            pass
+
         event = emit_continuity_event(
             db,
             business_owner_id=db_opp.created_by_profile_id,
@@ -49,6 +62,7 @@ def create_opportunity(opportunity: OpportunityCreate, db: Session = Depends(get
                 "surface": "opportunity",
                 "action": "created",
                 "summary_available": True,
+                "allocation": allocation
             },
             auto_commit=False
         )

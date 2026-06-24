@@ -68,6 +68,7 @@ def create_tables():
     ensure_sqlite_quotes_v2_schema()
     ensure_sqlite_payment_evidence_schema()
     ensure_sqlite_profiles_schema()
+    ensure_sqlite_leads_schema()
     ensure_postgres_profiles_schema()
     ensure_postgres_leads_schema()
     ensure_postgres_quotes_schema()
@@ -198,6 +199,12 @@ def ensure_sqlite_profiles_schema():
             connection.execute(text("ALTER TABLE profiles ADD COLUMN activated_at DATETIME"))
         if "company_logo_url" not in columns:
             connection.execute(text("ALTER TABLE profiles ADD COLUMN company_logo_url VARCHAR"))
+        if "place_id" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN place_id VARCHAR"))
+        if "canonical_name" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN canonical_name VARCHAR"))
+        if "municipality" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN municipality VARCHAR"))
 
 
 def ensure_sqlite_replay_schema():
@@ -222,6 +229,19 @@ def ensure_sqlite_replay_schema():
             )
         )
 
+def ensure_sqlite_leads_schema():
+    if engine.dialect.name != "sqlite":
+        return
+
+    inspector = inspect(engine)
+    if "leads" not in inspector.get_table_names():
+        return
+
+    columns = {column["name"] for column in inspector.get_columns("leads")}
+    with engine.begin() as connection:
+        if "customer_location" not in columns:
+            connection.execute(text("ALTER TABLE leads ADD COLUMN customer_location VARCHAR"))
+
 
 def ensure_postgres_leads_schema():
     if not DATABASE_URL or not DATABASE_URL.startswith("postgres"):
@@ -237,6 +257,7 @@ def ensure_postgres_leads_schema():
                 phone VARCHAR NOT NULL,
                 message TEXT,
                 service_needed VARCHAR,
+                customer_location VARCHAR,
                 status VARCHAR NOT NULL DEFAULT 'new',
                 source VARCHAR NOT NULL DEFAULT 'public_profile',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -246,6 +267,14 @@ def ensure_postgres_leads_schema():
             CREATE INDEX IF NOT EXISTS ix_leads_owner_id
             ON leads(owner_id)
         """))
+    
+    # Also alter table if it already exists
+    inspector = inspect(engine)
+    if "leads" in inspector.get_table_names():
+        columns = {column["name"] for column in inspector.get_columns("leads")}
+        with engine.begin() as connection:
+            if "customer_location" not in columns:
+                connection.execute(text("ALTER TABLE leads ADD COLUMN customer_location VARCHAR"))
 
 def ensure_postgres_profiles_schema():
     if engine.dialect.name != "postgresql":
@@ -266,6 +295,12 @@ def ensure_postgres_profiles_schema():
             connection.execute(text("ALTER TABLE profiles ADD COLUMN city VARCHAR"))
         if "suburb" not in columns:
             connection.execute(text("ALTER TABLE profiles ADD COLUMN suburb VARCHAR"))
+        if "place_id" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN place_id VARCHAR"))
+        if "canonical_name" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN canonical_name VARCHAR"))
+        if "municipality" not in columns:
+            connection.execute(text("ALTER TABLE profiles ADD COLUMN municipality VARCHAR"))
         if "whatsapp_number" not in columns:
             connection.execute(text("ALTER TABLE profiles ADD COLUMN whatsapp_number VARCHAR"))
         if "facebook_page_url" not in columns:

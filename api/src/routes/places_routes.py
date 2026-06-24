@@ -9,7 +9,7 @@ from src.models.place import Place
 
 router = APIRouter(prefix="/api/v1/places", tags=["places"])
 
-class PlaceOut(BaseModel):
+class LegacyPlaceOut(BaseModel):
     id: str
     place_code: str
     parent_place_code: str | None = None
@@ -21,10 +21,25 @@ class PlaceOut(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class PlaceOut(BaseModel):
+    id: str
+    name: str
+    full_name: str
+    province: str | None = None
+    municipality: str | None = None
+    type: str
+    lat: float | None = None
+    lng: float | None = None
 
-@router.get("/search", response_model=List[PlaceOut])
+    model_config = ConfigDict(from_attributes=True)
+
+class PlaceSearchResponse(BaseModel):
+    results: List[PlaceOut]
+
+
+@router.get("/search", response_model=PlaceSearchResponse)
 def search_places(
-    q: str = Query(..., min_length=3, description="Search query for place names"),
+    q: str = Query(..., min_length=2, description="Search query for place names"),
     db: Session = Depends(get_db)
 ):
     """
@@ -38,10 +53,32 @@ def search_places(
         .limit(50)
         .all()
     )
-    return results
+    
+    formatted_results = []
+    for p in results:
+        muni = p.municipality_name or p.district_name or ""
+        prov = p.province_name or ""
+        full = f"{p.name}"
+        if muni and prov:
+            full += f" ({muni}, {prov})"
+        elif prov:
+            full += f" ({prov})"
+            
+        formatted_results.append(PlaceOut(
+            id=p.place_code,
+            name=p.name,
+            full_name=full,
+            province=prov,
+            municipality=muni,
+            type=p.level,
+            lat=0.0,
+            lng=0.0
+        ))
+        
+    return PlaceSearchResponse(results=formatted_results)
 
 
-@router.get("/provinces", response_model=List[PlaceOut])
+@router.get("/provinces", response_model=List[LegacyPlaceOut])
 def get_provinces(db: Session = Depends(get_db)):
     """
     Get a list of all provinces.
@@ -49,7 +86,7 @@ def get_provinces(db: Session = Depends(get_db)):
     return db.query(Place).filter(Place.level == "province").order_by(Place.name).all()
 
 
-@router.get("/municipalities", response_model=List[PlaceOut])
+@router.get("/municipalities", response_model=List[LegacyPlaceOut])
 def get_municipalities(
     province_code: str = Query(..., description="The 'province:{code}' of the parent province"),
     db: Session = Depends(get_db)
@@ -65,7 +102,7 @@ def get_municipalities(
     )
 
 
-@router.get("/main-places", response_model=List[PlaceOut])
+@router.get("/main-places", response_model=List[LegacyPlaceOut])
 def get_main_places(
     municipality_code: str = Query(..., description="The 'municipality:{code}' of the parent municipality"),
     db: Session = Depends(get_db)
@@ -82,7 +119,7 @@ def get_main_places(
     )
 
 
-@router.get("/sub-places", response_model=List[PlaceOut])
+@router.get("/sub-places", response_model=List[LegacyPlaceOut])
 def get_sub_places(
     main_place_code: str = Query(..., description="The 'main_place:{code}' of the parent main place"),
     db: Session = Depends(get_db)

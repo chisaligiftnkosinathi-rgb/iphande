@@ -89,21 +89,33 @@ class ProfileOut(BaseModel):
     created_at: datetime
     operating_area: Optional[str] = None
     address_label: Optional[str] = None
-    location_is_public: Optional[bool] = False
-    is_public: Optional[bool] = False
-    service_radius_km: Optional[float] = None
-    service_area_notes: Optional[str] = None
+    location_is_public: bool
+    service_radius_km: Optional[float]
+    service_area_notes: Optional[str]
+
+    # V1 Public Visibility Layer
+    is_public: bool
+    place_id: Optional[str]
+    canonical_name: Optional[str]
+    province: Optional[str]
+    municipality: Optional[str]
+    city: Optional[str]
+    suburb: Optional[str]
+    whatsapp_number: Optional[str] = None
+    ward_id: Optional[str] = None
+    main_place_id: Optional[str] = None
+    sub_place_id: Optional[str] = None
+    business_line: Optional[str] = None
+    services: Optional[str] = None
+    contact_method: Optional[str] = None
+    offer_types: Optional[str] = None
+    pricing_style: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     provider_type: Optional[str] = None
     location: Optional[str] = None
     short_bio: Optional[str] = None
     business_category_key: Optional[str] = None
-    business_line: Optional[str] = None
-    services: Optional[str] = None
-    contact_method: Optional[str] = None
-    offer_types: Optional[str] = None
-    pricing_style: Optional[str] = None
     availability: Optional[str] = None
     languages: Optional[str] = None
     trust_posture: Optional[str] = None

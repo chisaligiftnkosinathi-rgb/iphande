@@ -13,7 +13,9 @@ from src.routes import (
     content_post_routes, places_routes,
     business_categories, business_content_rules, quote_request_routes, giving_routes,
     steward_timeline_routes, steward_annotations, referral_routes, public_routes,
-    advertisement_routes, expense_routes, share_routes, admin_routes, document_routes, steward_console_routes
+    advertisement_routes, expense_routes, share_routes, admin_routes, document_routes, steward_console_routes,
+    public_profiles, feed_geo, geo_match, engagement_events, action_delivery, feedback,
+    trust, demand, ws_actions, availability, routing
 )
 from src.routers.handshake import router as handshake_router
 from src.routers.financial_events import router as financial_events_router
@@ -28,17 +30,34 @@ from src.routes.river_routes import router as river_router
 from src.routes.river_stream_routes import router as river_stream_router
 
 from src.models.quote_request_model import QuoteRequest
-from src.database import create_tables, SessionLocal
+from src.database import create_tables, SessionLocal, engine, Base
 from src.routes.continuity_event_routes import router as continuity_event_router
 
 logger = logging.getLogger(__name__)
 
 
+# Real-time WebSockets
+from src.realtime.ws_gateway import redis_listener, manager
+from src.services.demand_pubsub import demand_pubsub
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    try:
-        create_tables()
+    # Base.metadata.drop_all(bind=engine)
+    print("Creating tables...")
+    Base.metadata.create_all(bind=engine)
+    print("Tables created.")
+    
+    # Start Redis Listener for WebSockets
+    pubsub = demand_pubsub.subscribe("demand.events")
+    pubsub.subscribe("geo.events")
+    pubsub.subscribe("match.events")
+    
+    listener_task = asyncio.create_task(
+        redis_listener(pubsub, manager)
+    )
 
+    try:
         # Patch existing leads table with the missing 'source' column
         try:
             db = SessionLocal()
@@ -100,9 +119,20 @@ app.include_router(invoices_router)
 app.include_router(payments_router)
 app.include_router(inventory_router)
 app.include_router(commissions_router)
+app.include_router(demand.router, prefix="/api/v1")
+app.include_router(trust.router, prefix="/api/v1")
+app.include_router(availability.router, prefix="/api/v1")
+app.include_router(routing.router, prefix="/api/v1")
+app.include_router(feedback.router, prefix="/api/v1")
+app.include_router(ws_actions.router, prefix="/api/v1")
+app.include_router(action_delivery.router, prefix="/api/v1")
+app.include_router(engagement_events.router, prefix="/api/v1")
+app.include_router(geo_match.router, prefix="/api/v1")
+app.include_router(feed_geo.router, prefix="/api/v1")
+app.include_router(public_profiles.router, prefix="/api/v1")
+app.include_router(public_routes.router, prefix="/api/v1")
 app.include_router(profile_routes.router, prefix="/api/v1")
 app.include_router(opportunity_routes.router, prefix="/api/v1")
-app.include_router(public_routes.router, prefix="/api/v1")
 app.include_router(health_routes.router, prefix="/api/v1")
 app.include_router(referral_routes.router, prefix="/api/v1")
 app.include_router(advertisement_routes.router, prefix="/api/v1")

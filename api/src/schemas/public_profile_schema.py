@@ -9,7 +9,11 @@ class PublicProfileOut(BaseModel):
     phone: Optional[str] = None
     operating_area: Optional[str] = None
     address_label: Optional[str] = None
+    is_public: bool = False
+    place_id: Optional[str] = None
+    canonical_name: Optional[str] = None
     province: Optional[str] = None
+    municipality: Optional[str] = None
     city: Optional[str] = None
     suburb: Optional[str] = None
     location_is_public: Optional[bool] = False
