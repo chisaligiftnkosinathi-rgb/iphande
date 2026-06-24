@@ -1,14 +1,13 @@
 import os
 import redis
+from src.utils.redis_config import get_redis_client
 import json
 from src.services.availability_engine import availability_engine
 # from src.services.trust_engine import get_trust_score
 
 class EconomicLoadBalancer:
     def __init__(self):
-        self.redis = redis.Redis(
-            host=os.getenv("REDIS_HOST", "localhost"),
-            port=6379,
+        self.redis = get_redis_client()
             decode_responses=True
         )
 

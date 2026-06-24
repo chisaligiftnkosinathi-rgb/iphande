@@ -3,12 +3,13 @@ from sqlalchemy.orm import Session
 from src.database import get_db
 import os
 import redis
+from src.utils.redis_config import get_redis_client
 
 router = APIRouter(prefix="/telemetry", tags=["System Telemetry"])
 
 # Helper for redis connection
 def get_redis():
-    return redis.Redis(host=os.getenv("REDIS_HOST", "localhost"), port=6379, decode_responses=True)
+    return get_redis_client()
 
 @router.get("/system-health")
 def get_system_health():

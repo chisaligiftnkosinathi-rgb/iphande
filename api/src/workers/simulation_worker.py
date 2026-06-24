@@ -1,6 +1,7 @@
 import time
 import os
 import redis
+from src.utils.redis_config import get_redis_client
 from src.simulations.drift_simulator import drift_simulator
 from src.simulations.scenarios.demand_spike import DemandSpikeScenario
 from src.simulations.scenarios.fraud_burst import FraudBurstScenario
@@ -16,7 +17,7 @@ scenarios_map = {
 
 def start_simulation_worker():
     print("Starting Simulation Worker...")
-    r = redis.Redis(host=os.getenv("REDIS_HOST", "localhost"), port=6379, decode_responses=True)
+    r = get_redis_client()
     
     while True:
         try:

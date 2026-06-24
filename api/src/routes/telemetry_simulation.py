@@ -4,10 +4,12 @@ import json
 import os
 import redis
 
+from src.utils.redis_config import get_redis_client
+
 router = APIRouter(prefix="/simulations", tags=["Drift Simulations"])
 
 # Expose control to the dashboard or internal tooling
-r = redis.Redis(host=os.getenv("REDIS_HOST", "localhost"), port=6379, decode_responses=True)
+r = get_redis_client()
 
 @router.post("/start")
 def start_simulation(config: dict):

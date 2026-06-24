@@ -1,13 +1,12 @@
 from src.services.fraud.fraud_scoring import fraud_scorer
 import os
 import redis
+from src.utils.redis_config import get_redis_client
 import json
 
 class FraudDetector:
     def __init__(self):
-        self.redis = redis.Redis(
-            host=os.getenv("REDIS_HOST", "localhost"),
-            port=6379,
+        self.redis = get_redis_client()
             decode_responses=True
         )
 

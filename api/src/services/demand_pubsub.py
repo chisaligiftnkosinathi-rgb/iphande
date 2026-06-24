@@ -4,13 +4,11 @@ import os
 import uuid
 from datetime import datetime
 
+from src.utils.redis_config import get_redis_client
+
 class DemandPubSub:
     def __init__(self):
-        self.redis = redis.Redis(
-            host=os.getenv("REDIS_HOST", "localhost"),
-            port=6379,
-            decode_responses=True
-        )
+        self.redis = get_redis_client()
 
     def publish(self, channel: str, event_type: str, entity_type: str, entity_id: str, geo_data: dict, payload: dict, source: str):
         # Enforce event envelope standard

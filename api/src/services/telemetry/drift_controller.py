@@ -4,10 +4,11 @@ from src.services.telemetry.damping_policy_engine import damping_policy_engine
 import json
 import os
 import redis
+from src.utils.redis_config import get_redis_client
 
 class DriftController:
     def __init__(self):
-        self.redis = redis.Redis(host=os.getenv("REDIS_HOST", "localhost"), port=6379, decode_responses=True)
+        self.redis = get_redis_client()
 
     def evaluate(self, telemetry_snapshot: dict) -> dict:
         

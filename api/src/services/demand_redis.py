@@ -1,12 +1,11 @@
 import redis
+from src.utils.redis_config import get_redis_client
 import json
 import os
 
 class DemandRedisCache:
     def __init__(self):
-        self.client = redis.Redis(
-            host=os.getenv("REDIS_HOST", "localhost"),
-            port=6379,
+        self.client = get_redis_client()
             decode_responses=True
         )
         self.ttl = 60  # seconds

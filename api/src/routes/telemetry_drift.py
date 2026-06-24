@@ -12,7 +12,8 @@ def get_current_drift():
     import json
     import os
     import redis
-    r = redis.Redis(host=os.getenv("REDIS_HOST", "localhost"), port=6379, decode_responses=True)
+from src.utils.redis_config import get_redis_client
+    r = get_redis_client()
     
     policy_str = r.get("active_drift_policy")
     if policy_str:
