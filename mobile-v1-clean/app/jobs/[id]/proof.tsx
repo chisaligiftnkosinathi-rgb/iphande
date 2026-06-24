@@ -2,9 +2,9 @@ import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { useAuth } from '../../../src/context/AuthContext';
-import { uploadWorkProof } from '../../../src/services/workProofUploadService';
-import { fetchWithAuth } from '../../../src/config/api';
+import { useAuth } from '../../../src/state/AuthContext';
+import { uploadWorkProof } from '../../../src/api/workProofUploadService';
+import { fetchWithAuth } from '../../../config/api';
 
 export default function ProofOfWorkScreen() {
     const { id } = useLocalSearchParams();

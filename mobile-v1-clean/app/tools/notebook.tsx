@@ -1,8 +1,8 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { fetchWithAuth } from '../../src/config/api';
-import { useSteward } from '../../src/context/StewardContext';
+import { fetchWithAuth } from '../../config/api';
+import { useSteward } from '../../src/state/StewardContext';
 
 export enum EventType {
     Observation = "Observation",

@@ -1,10 +1,10 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { useAuth } from '../../src/context/AuthContext';
-import { useSteward } from '../../src/context/StewardContext';
-import { ArchetypeGroup, getArchetypeGroups, TradeArchetype } from '../../src/domain/tradeArchetypeTree';
-import { updateMe } from '../../src/services/stewardApi';
+import { useAuth } from '../../src/state/AuthContext';
+import { useSteward } from '../../src/state/StewardContext';
+import { ArchetypeGroup, getArchetypeGroups, TradeArchetype } from '../../src/types/tradeArchetypeTree';
+import { updateMe } from '../../src/api/stewardApi';
 
 export default function OnboardingScreen() {
     const { user } = useAuth();
@@ -102,7 +102,7 @@ export default function OnboardingScreen() {
                             <Text style={styles.cardTitle}>What kind of steward are you?</Text>
                             <Text style={styles.cardSubtitle}>Select the group that best describes your work.</Text>
                             <View style={styles.pillContainer}>
-                                {archetypeGroups().map((group) => (
+                                {archetypeGroups.map((group) => (
                                     <TouchableOpacity
                                         key={group.key}
                                         style={styles.pill}

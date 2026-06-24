@@ -2,10 +2,10 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator,
 import { Stack, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Picker } from "@react-native-picker/picker";
-import { useAuth } from "../../src/context/AuthContext";
-import { useSteward } from "../../src/context/StewardContext";
-import { createExpense, getExpenseCategories } from "../../src/services/expenseApi";
-import { PageHeader } from '../../src/components/PageHeader';
+import { useAuth } from "../../src/state/AuthContext";
+import { useSteward } from "../../src/state/StewardContext";
+import { createExpense, getExpenseCategories } from "../../src/api/expenseApi";
+import { PageHeader } from '../components/PageHeader';
 
 export default function CreateExpenseScreen() {
     const router = useRouter();

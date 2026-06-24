@@ -1,10 +1,10 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { ShareButton } from '../../src/components/ShareButton';
-import { fetchWithAuth } from '../../src/config/api';
-import { useSteward } from '../../src/context/StewardContext';
-import { shareProofOfWork } from '../../src/services/shareApi';
+import { ShareButton } from '../components/ShareButton';
+import { fetchWithAuth } from '../../config/api';
+import { useSteward } from '../../src/state/StewardContext';
+import { shareProofOfWork } from '../../src/api/shareApi';
 
 export default function TimelineScreen() {
     const router = useRouter();

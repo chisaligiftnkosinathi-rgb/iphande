@@ -12,7 +12,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { API_BASE_URL } from '../../src/config/api';
+import { API_BASE_URL } from '../../config/api';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CONTENT_WIDTH = Math.min(SCREEN_WIDTH, 600);
@@ -225,6 +225,7 @@ export default function BusinessProfileScreen() {
     const [leadName, setLeadName] = useState('');
     const [leadPhone, setLeadPhone] = useState('');
     const [leadService, setLeadService] = useState('');
+    const [leadLocation, setLeadLocation] = useState('');
     const [leadMessage, setLeadMessage] = useState('');
     const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
     const [submitError, setSubmitError] = useState('');
@@ -299,6 +300,7 @@ export default function BusinessProfileScreen() {
                     name: leadName.trim(),
                     phone: leadPhone.trim(),
                     service_needed: leadService.trim() || undefined,
+                    customer_location: leadLocation.trim() || undefined,
                     message: leadMessage.trim() || undefined,
                     source: 'public_profile',
                 }),
@@ -428,6 +430,9 @@ export default function BusinessProfileScreen() {
                             <Text style={styles.label}>Service Needed</Text>
                             <TextInput style={styles.input} value={leadService} onChangeText={setLeadService}
                                 placeholder="e.g. Website development" placeholderTextColor="#9EAD9B" />
+                            <Text style={styles.label}>Your Location / Area</Text>
+                            <TextInput style={styles.input} value={leadLocation} onChangeText={setLeadLocation}
+                                placeholder="e.g. Hatfield, Pretoria" placeholderTextColor="#9EAD9B" />
                             <Text style={styles.label}>Message</Text>
                             <TextInput style={[styles.input, styles.textArea]} value={leadMessage}
                                 onChangeText={setLeadMessage}

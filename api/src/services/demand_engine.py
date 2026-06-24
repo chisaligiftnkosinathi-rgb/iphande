@@ -103,6 +103,19 @@ class DemandEngine:
             gc * self.weights["geo_cluster_growth"]
         )
 
+        from src.services.telemetry.drift_controller import drift_controller
+        drift = drift_controller.evaluate({
+            "demand": score
+        })
+
+        policy = drift.get("policy", {})
+
+        # SAFE damping only (no recalculation)
+        if policy.get("action") == "soft_damp":
+            score *= 0.97
+        elif policy.get("action") == "medium_damp":
+            score *= 0.9
+
         return {
             "demand_score": round(score, 4),
             "components": {

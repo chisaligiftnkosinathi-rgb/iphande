@@ -1,12 +1,12 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { FeatureLockedCard } from '../../src/components/FeatureLockedCard';
-import { PageHeader } from '../../src/components/PageHeader';
-import { ShareButton } from '../../src/components/ShareButton';
-import { fetchWithAuth } from '../../src/config/api';
-import { useSteward } from '../../src/context/StewardContext';
-import { shareQuote } from '../../src/services/shareApi';
+import { FeatureLockedCard } from '../components/FeatureLockedCard';
+import { PageHeader } from '../components/PageHeader';
+import { ShareButton } from '../components/ShareButton';
+import { fetchWithAuth } from '../../config/api';
+import { useSteward } from '../../src/state/StewardContext';
+import { shareQuote } from '../../src/api/shareApi';
 
 interface QuoteDocument {
     id: string;

@@ -1,10 +1,10 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { useAuth } from "../../src/context/AuthContext";
-import { getExpenses, getExpenseSummary } from "../../src/services/expenseApi";
+import { useAuth } from "../../src/state/AuthContext";
+import { getExpenses, getExpenseSummary } from "../../src/api/expenseApi";
 import { ExpenseOut, ExpenseSummaryOut } from "../../src/types";
-import { PageHeader } from '../../src/components/PageHeader';
+import { PageHeader } from '../components/PageHeader';
 
 export default function ExpensesScreen() {
     const router = useRouter();

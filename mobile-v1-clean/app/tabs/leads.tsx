@@ -11,8 +11,8 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { fetchWithAuth } from '../../src/config/api';
-import { useSteward } from '../../src/context/StewardContext';
+import { fetchWithAuth } from '../../config/api';
+import { useSteward } from '../../src/state/StewardContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -24,6 +24,7 @@ interface Lead {
     phone: string;
     message?: string;
     service_needed?: string;
+    customer_location?: string;
     status: LeadStatus;
     source?: string;
     profile_slug?: string;
@@ -95,6 +96,9 @@ function LeadCard({ lead, onUpdate, onCreateQuote }: LeadCardProps) {
             <Text style={styles.customerName}>{lead.name}</Text>
             <View style={styles.phoneRow}>
                 <Text style={styles.phoneText}>📱 {lead.phone}</Text>
+                {lead.customer_location ? (
+                    <Text style={styles.locationText}>📍 {lead.customer_location}</Text>
+                ) : null}
             </View>
 
             {/* Service needed */}
@@ -434,8 +438,9 @@ const styles = StyleSheet.create({
     timeText: { fontSize: 11, color: '#C5D9C2', marginTop: 1 },
 
     customerName: { fontSize: 20, fontWeight: '800', color: '#24352F', marginBottom: 6 },
-    phoneRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+    phoneRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 12, flexWrap: 'wrap' },
     phoneText: { fontSize: 14, color: '#6F7D75', fontWeight: '500' },
+    locationText: { fontSize: 14, color: '#4B5563', fontWeight: '500' },
 
     serviceBox: {
         backgroundColor: '#F9FAFB', borderRadius: 12, padding: 16, marginBottom: 12,

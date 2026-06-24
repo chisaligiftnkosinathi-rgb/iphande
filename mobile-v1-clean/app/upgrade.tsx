@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useSteward } from '../src/context/StewardContext';
+import { useSteward } from '../src/state/StewardContext';
 
 export default function UpgradeScreen() {
     const router = useRouter();

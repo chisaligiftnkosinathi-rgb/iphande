@@ -57,6 +57,22 @@ def match_opportunity(opportunity_id: str, db: Session = Depends(get_db)):
     # Re-sort since match scores changed
     matches = sorted(matches, key=lambda x: x["match_score"], reverse=True)
 
+    from src.services.telemetry.drift_controller import drift_controller
+
+    # 1. Evaluate drift based on match score distribution
+    drift = drift_controller.evaluate({
+        "match": sum([m["match_score"] for m in matches]) / len(matches) if matches else 0.0
+    })
+
+    policy = drift.get("policy", {})
+
+    # 2. Apply ONLY soft adjustments (no logic override)
+    if policy.get("action") == "soft_damp":
+        for m in matches:
+            m["match_score"] = round(m["match_score"] * 0.98, 2)
+    elif policy.get("action") == "medium_damp":
+        matches = [m for m in matches if m["match_score"] > 0.3]
+
     # Publish match computed event
     from src.services.demand_pubsub import demand_pubsub
     demand_pubsub.publish(

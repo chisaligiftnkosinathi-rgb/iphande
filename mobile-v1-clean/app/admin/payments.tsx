@@ -1,13 +1,13 @@
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useAuth } from '../../src/context/AuthContext';
+import { useAuth } from '../../src/state/AuthContext';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { getPendingReferrals, markReferralPaid, rejectReferral } from '../../src/services/stewardApi';
+import { getPendingReferrals, markReferralPaid, rejectReferral } from '../../src/api/stewardApi';
 import { Referral } from '../../src/types/steward';
-import { fetchPendingAdvertisements, approveAdvertisement, rejectAdvertisement } from '../../src/services/advertisementApi';
+import { fetchPendingAdvertisements, approveAdvertisement, rejectAdvertisement } from '../../src/api/advertisementApi';
 import { AdvertisementOut } from '../../src/types/advertisement';
-import { PageHeader } from '../../src/components/PageHeader';
-import { useSteward } from '../../src/context/StewardContext';
+import { PageHeader } from '../components/PageHeader';
+import { useSteward } from '../../src/state/StewardContext';
 
 export default function AdminControlRoomScreen() {
     const { user } = useAuth();

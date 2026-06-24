@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { fetchWithAuth } from '../src/config/api';
-import { useSteward } from '../src/context/StewardContext';
+import { fetchWithAuth } from '../config/api';
+import { useSteward } from '../src/state/StewardContext';
 
 export default function PaymentVerificationScreen() {
   const router = useRouter();

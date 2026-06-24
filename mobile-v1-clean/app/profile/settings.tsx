@@ -1,13 +1,14 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { useSteward } from '../../src/context/StewardContext';
-import { updateMe } from '../../src/services/stewardApi';
-import { useAuth } from '../../src/context/AuthContext';
+import { useSteward } from '../../src/state/StewardContext';
+import { updateMe } from '../../src/api/stewardApi';
+import { useAuth } from '../../src/state/AuthContext';
 import { Link } from 'expo-router';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
-import { PageHeader } from '../../src/components/PageHeader';
+import { PageHeader } from '../components/PageHeader';
+import StatsSaLocationPicker, { StatsSaPlace } from '../components/location/StatsSaLocationPicker';
 
 export default function AccountSettingsScreen() {
     const { profile, refreshProfile } = useSteward();
@@ -16,7 +17,21 @@ export default function AccountSettingsScreen() {
     const [name, setName] = useState(profile?.name || '');
     const [phone, setPhone] = useState(profile?.phone || '');
     const [whatsapp, setWhatsapp] = useState(profile?.whatsapp_number || profile?.whatsapp || '');
-    const [location, setLocation] = useState(profile?.operating_area || profile?.location || '');
+    
+    // Initialize with existing stats-sa place if available
+    const [location, setLocation] = useState<StatsSaPlace | null>(
+        profile?.operating_area ? {
+            id: profile.operating_area,
+            name: profile.operating_area,
+            full_name: profile.operating_area,
+            province: profile.province || '',
+            municipality: profile.city || '',
+            type: 'place',
+            lat: profile.latitude ?? undefined,
+            lng: profile.longitude ?? undefined
+        } : null
+    );
+
     const [latitude, setLatitude] = useState<number | null>(profile?.latitude || null);
     const [longitude, setLongitude] = useState<number | null>(profile?.longitude || null);
     const [locationLoading, setLocationLoading] = useState(false);
@@ -55,10 +70,12 @@ export default function AccountSettingsScreen() {
                 name: name.trim(), 
                 phone: phone.trim(),
                 whatsapp_number: whatsapp.trim(),
-                operating_area: location.trim(),
+                operating_area: location ? location.name : '',
+                province: location?.province || undefined,
+                city: location?.municipality || undefined,
                 company_logo_url: companyLogoUrl.trim(),
-                latitude,
-                longitude
+                latitude: location?.lat || latitude || undefined,
+                longitude: location?.lng || longitude || undefined
             });
             await refreshProfile();
             Alert.alert("Success", "Profile updated successfully.", [
@@ -143,13 +160,12 @@ export default function AccountSettingsScreen() {
                         />
                     </View>
 
-                    <View style={styles.fieldGroup}>
+                    <View style={[styles.fieldGroup, { zIndex: 100 }]}>
                         <Text style={styles.label}>Location / Operating Area</Text>
-                        <TextInput
-                            style={styles.input}
+                        <StatsSaLocationPicker
                             value={location}
-                            onChangeText={setLocation}
-                            placeholder="e.g. Soweto, Gauteng"
+                            onChange={setLocation}
+                            placeholder="Search city, suburb, or town..."
                         />
                     </View>
 
@@ -236,6 +252,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 2,
         elevation: 2,
+        marginBottom: 24,
     },
     fieldGroup: { marginBottom: 16 },
     label: { fontSize: 13, fontWeight: '700', color: '#374151', marginBottom: 6 },

@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { fetchMyQuotes, QuoteOut } from '../../src/services/quoteApi';
+import { fetchMyQuotes, QuoteOut } from '../../src/api/quoteApi';
 
 export default function QuotesScreen() {
     const router = useRouter();

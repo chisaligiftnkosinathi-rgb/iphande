@@ -2,10 +2,10 @@ import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAuth } from '../../src/context/AuthContext';
-import { useSteward } from '../../src/context/StewardContext';
-import { uploadPaymentProof } from '../../src/services/paymentProofUploadService';
-import { updateMe } from '../../src/services/stewardApi';
+import { useAuth } from '../../src/state/AuthContext';
+import { useSteward } from '../../src/state/StewardContext';
+import { uploadPaymentProof } from '../../src/api/paymentProofUploadService';
+import { updateMe } from '../../src/api/stewardApi';
 
 export default function ActivationScreen() {
     const router = useRouter();

@@ -1,302 +1,247 @@
-import { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { Link } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
-// Architectural Layer Communication Imports (Updated to use your path aliases)
-import { healthApi, HealthResponse } from '@/api/health';
-import { eventStream, EventItem } from '@/state/eventStream';
-import { SystemScoring } from '@/intelligence/systemScoring';
-import { AnomalyDetector } from '@/intelligence/anomalyDetector';
+import { apiService, HealthResponse } from '../services/api';
+
+type SystemState = 'loading' | 'online' | 'degraded' | 'offline';
 
 export default function DashboardScreen() {
   const [health, setHealth] = useState<HealthResponse | null>(null);
-  const [latency, setLatency] = useState<number>(0);
-  const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Telemetry Fetch Routine (Appends signatures directly to State Layer)
   const fetchHealth = async () => {
     setLoading(true);
+    setError(null);
 
     try {
-      eventStream.add({
-        type: 'API_CALL',
-        message: 'GET /health',
-      });
-
-      const result = await healthApi.fetchStatus();
-
-      setHealth(result.data);
-      setLatency(result.latencyMs);
-
-      eventStream.add({
-        type: 'API_SUCCESS',
-        message: 'Health response received',
-        meta: { latency: result.latencyMs },
-      });
-
-      eventStream.add({
-        type: 'LATENCY_SAMPLE',
-        message: `${result.latencyMs}ms payload register`,
-        meta: { latency: result.latencyMs },
-      });
-    } catch (e) {
-      setHealth(null);
-      eventStream.add({
-        type: 'API_ERROR',
-        message: 'Health endpoint failed or timed out',
-      });
+      const data = await apiService.getHealth();
+      setHealth(data);
+    } catch (err) {
+      setError('System unreachable. Check network or backend.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Wire Runtime Memory Channels on Mount
   useEffect(() => {
     fetchHealth();
-    const unsub = eventStream.subscribe(setEvents);
-    return () => unsub();
   }, []);
 
-  // 🧠 DETERMINISTIC INTELLIGENCE COMPUTATION LAYER
-  const systemScore = useMemo(() => {
-    return SystemScoring.calculateScore({
-      latencyMs: latency,
-      consecutiveFailures: events.filter(e => e.type === 'API_ERROR').length,
-      isUnreachable: !health,
-    });
-  }, [latency, events, health]);
+  // Normalize backend status → UI state
+  const systemState: SystemState = useMemo(() => {
+    if (loading) return 'loading';
+    if (error || !health) return 'offline';
 
-  const systemRating = useMemo(() => {
-    return SystemScoring.getTargetRating(systemScore);
-  }, [systemScore]);
+    if (health.status === 'alive') return 'online';
+    if (health.status === 'degraded') return 'degraded';
 
-  const anomaly = useMemo(() => {
-    return AnomalyDetector.analyzeStream(events);
-  }, [events]);
+    return 'offline';
+  }, [loading, error, health]);
 
-  // Dynamic Rating Colors
-  const ratingColor = useMemo(() => {
-    if (systemRating === 'OPTIMAL') return '#22c55e';
-    if (systemRating === 'DEGRADED') return '#f59e0b';
-    return '#ef4444';
-  }, [systemRating]);
+  const statusConfig = useMemo(() => {
+    switch (systemState) {
+      case 'online':
+        return {
+          label: 'Operational',
+          color: '#22c55e',
+        };
+      case 'degraded':
+        return {
+          label: 'Degraded',
+          color: '#f59e0b',
+        };
+      case 'offline':
+        return {
+          label: error ?? 'Offline',
+          color: '#ef4444',
+        };
+      default:
+        return {
+          label: 'Loading...',
+          color: '#94a3b8',
+        };
+    }
+  }, [systemState, error]);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-
+    <View style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
         <Text style={styles.title}>iPhande</Text>
-        <Text style={styles.subtitle}>Intelligence & Governance Platform</Text>
-      </View>
-
-      {/* SYSTEM HEALTH STATUS */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>System Health</Text>
-
-        {loading ? (
-          <ActivityIndicator color="#3b82f6" style={{ marginVertical: 12 }} />
-        ) : (
-          <View>
-            <Text style={styles.status}>
-              Status: <Text style={{ fontWeight: '600', color: health ? '#22c55e' : '#ef4444' }}>{health?.status ?? 'unreachable'}</Text>
-            </Text>
-
-            <Text style={styles.meta}>
-              Version: {health?.version ?? '-'}
-            </Text>
-
-            <Text style={styles.meta}>
-              Environment: {health?.environment ?? '-'}
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* INTELLIGENCE PANEL */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>System Intelligence</Text>
-
-        <View style={styles.metricRow}>
-          <Text style={styles.metricLabel}>Operational Score:</Text>
-          <Text style={[styles.metricValue, { color: ratingColor }]}>{systemScore}/100</Text>
-        </View>
-
-        <View style={styles.metricRow}>
-          <Text style={styles.metricLabel}>System Rating:</Text>
-          <Text style={[styles.metricValue, { color: ratingColor, fontSize: 14 }]}>{systemRating}</Text>
-        </View>
-
-        <View style={styles.metricRow}>
-          <Text style={styles.metricLabel}>Live Latency:</Text>
-          <Text style={styles.metricValue}>{loading ? '--' : `${latency}ms`}</Text>
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.metricRow}>
-          <Text style={styles.metricLabel}>Anomaly Signature:</Text>
-          <Text style={[styles.metricValue, { color: anomaly.hasAnomaly ? '#ef4444' : '#64748b', fontSize: 13 }]}>
-            {anomaly.type}
-          </Text>
-        </View>
-
-        <Text style={styles.anomalyDescription}>
-          {anomaly.description}
+        <Text style={styles.subtitle}>
+          Intelligence & Governance Platform
         </Text>
       </View>
 
-      {/* REAL-TIME EVENT LEDGER FEED */}
+      {/* SYSTEM STATUS CARD */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Live Event Ledger</Text>
+        <Text style={styles.cardTitle}>System Status</Text>
 
-        {events.length === 0 ? (
-          <Text style={styles.emptyEvent}>No stream telemetry captured</Text>
-        ) : (
-          events.slice(0, 5).map(e => (
-            <View key={e.id} style={styles.eventRow}>
-              <Text style={styles.eventTag}>[{e.type}]</Text>
-              <Text style={styles.eventText} numberOfLines={1}>{e.message}</Text>
-            </View>
-          ))
-        )}
+        <View style={styles.statusRow}>
+          {loading ? (
+            <ActivityIndicator />
+          ) : (
+            <View
+              style={[
+                styles.dot,
+                { backgroundColor: statusConfig.color },
+              ]}
+            />
+          )}
+
+          <Text style={styles.statusText}>
+            {statusConfig.label}
+          </Text>
+        </View>
+
+        {/* METADATA */}
+        <View style={styles.divider} />
+
+        <Text style={styles.metaText}>
+          Version: {health?.version ?? '-'}
+        </Text>
+
+        <Text style={styles.metaText}>
+          Environment: {health?.environment ?? '-'}
+        </Text>
+
+        {/* ACTION */}
+        <TouchableOpacity
+          style={styles.refreshButton}
+          onPress={fetchHealth}
+          disabled={loading}
+        >
+          <Text style={styles.refreshText}>
+            Refresh Status
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      {/* USER CONTROL LAYERS */}
-      <View style={styles.actions}>
-        <TouchableOpacity style={styles.button} onPress={fetchHealth} disabled={loading}>
-          <Text style={styles.buttonText}>Refresh Live Diagnostics</Text>
-        </TouchableOpacity>
-
+      {/* NAVIGATION */}
+      <View style={styles.navContainer}>
         <Link href="/tools" asChild>
-          <TouchableOpacity style={[styles.button, styles.primary]}>
-            <Text style={styles.buttonText}>Open Steward Tools</Text>
+          <TouchableOpacity style={styles.primaryButton}>
+            <Text style={styles.primaryButtonText}>
+              Open Steward Tools
+            </Text>
           </TouchableOpacity>
         </Link>
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
-/* ---------------- UI STYLES ---------------- */
+/* ---------------- STYLES ---------------- */
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0b1220'
+    backgroundColor: '#F8FAFC',
+    padding: 20,
+    justifyContent: 'center',
   },
-  contentContainer: {
-    padding: 16,
-    paddingBottom: 32
-  },
+
   header: {
-    marginTop: 40,
-    marginBottom: 20
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: 'white',
-    letterSpacing: 0.2
-  },
-  subtitle: {
-    color: '#94a3b8',
-    fontSize: 13,
-    marginTop: 2
-  },
-  card: {
-    backgroundColor: '#111827',
-    padding: 16,
-    borderRadius: 14,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#1f2937'
-  },
-  cardTitle: {
-    color: '#f8fafc',
-    marginBottom: 12,
-    fontWeight: '600',
-    fontSize: 14,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5
-  },
-  status: {
-    color: '#e5e7eb',
-    fontSize: 15
-  },
-  meta: {
-    color: '#94a3b8',
-    fontSize: 12,
-    marginTop: 6
-  },
-  metricRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 6
+    marginBottom: 30,
   },
-  metricLabel: {
-    color: '#94a3b8',
-    fontSize: 13
-  },
-  metricValue: {
-    color: '#f1f5f9',
+
+  title: {
+    fontSize: 34,
     fontWeight: '700',
-    fontSize: 15
+    color: '#0f172a',
   },
+
+  subtitle: {
+    fontSize: 13,
+    color: '#64748b',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 18,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 14,
+    color: '#0f172a',
+  },
+
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+
+  statusText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#334155',
+  },
+
   divider: {
     height: 1,
-    backgroundColor: '#1f2937',
-    marginVertical: 10
+    backgroundColor: '#e2e8f0',
+    marginVertical: 14,
   },
-  anomalyDescription: {
+
+  metaText: {
+    fontSize: 12,
     color: '#64748b',
-    fontSize: 12,
-    marginTop: 4,
-    fontStyle: 'italic'
+    marginBottom: 4,
   },
-  emptyEvent: {
-    color: '#4b5563',
-    fontSize: 12,
-    fontStyle: 'italic'
-  },
-  eventRow: {
-    flexDirection: 'row',
-    gap: 6,
-    marginTop: 6,
-    alignItems: 'center'
-  },
-  eventTag: {
-    color: '#3b82f6',
-    fontSize: 11,
-    fontWeight: '600',
-    width: 85
-  },
-  eventText: {
-    color: '#cbd5e1',
-    fontSize: 12,
-    flex: 1
-  },
-  actions: {
-    marginTop: 8
-  },
-  button: {
-    padding: 14,
-    backgroundColor: '#1f2937',
-    borderRadius: 12,
-    marginBottom: 8,
+
+  refreshButton: {
+    marginTop: 14,
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: '#f1f5f9',
     alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#374151'
   },
-  primary: {
-    backgroundColor: '#2563eb',
-    borderColor: '#3b82f6'
-  },
-  buttonText: {
-    color: 'white',
+
+  refreshText: {
+    fontSize: 13,
     fontWeight: '600',
-    fontSize: 14
+    color: '#334155',
+  },
+
+  navContainer: {
+    marginTop: 20,
+  },
+
+  primaryButton: {
+    backgroundColor: '#2563eb',
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: 'center',
+  },
+
+  primaryButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '600',
   },
 });

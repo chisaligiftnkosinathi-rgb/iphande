@@ -4,9 +4,9 @@ import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacit
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import * as Sharing from 'expo-sharing';
-import { getMyReferrals } from '../../src/services/stewardApi';
+import { getMyReferrals } from '../../src/api/stewardApi';
 import { ReferralMeResponse } from '../../src/types/steward';
-import { PageHeader } from '../../src/components/PageHeader';
+import { PageHeader } from '../components/PageHeader';
 
 export default function ReferralsScreen() {
     const [data, setData] = useState<ReferralMeResponse | null>(null);

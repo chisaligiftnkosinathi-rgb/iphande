@@ -4,10 +4,10 @@ import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { LocationPicker, LocationSelection } from '../../src/components/LocationPicker';
-import { API_BASE_URL } from '../../src/config/api';
-import { uploadToSupabaseStorage } from '../../src/lib/mediaUpload';
-import { supabase } from '../../src/lib/supabase';
+import { LocationPicker, LocationSelection } from '../components/LocationPicker';
+import { API_BASE_URL } from '../../config/api';
+import { uploadToSupabaseStorage } from '../../src/api/mediaUpload';
+import { supabase } from '../../src/api/supabase';
 
 export default function NewOpportunityScreen() {
     const router = useRouter();

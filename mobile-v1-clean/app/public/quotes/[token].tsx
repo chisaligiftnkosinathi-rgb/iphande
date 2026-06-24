@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { publicFetchQuoteDetail, publicAcceptQuote, QuoteOut } from '../../../src/services/quoteApi';
+import { publicFetchQuoteDetail, publicAcceptQuote, QuoteOut } from '../../../src/api/quoteApi';
 
 export default function PublicQuoteDetailScreen() {
     const { token } = useLocalSearchParams();

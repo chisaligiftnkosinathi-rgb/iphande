@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, SafeAreaView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useSteward } from '../../src/context/StewardContext';
-import { getAdminDashboard, DashboardStats } from '../../src/services/adminApi';
-import { theme } from '../../src/config/theme';
-import { PageHeader } from '../../src/components/PageHeader';
+import { useSteward } from '../../src/state/StewardContext';
+import { getAdminDashboard, DashboardStats } from '../../src/api/adminApi';
+import { theme } from '../../config/theme';
+import { PageHeader } from '../components/PageHeader';
 
 export default function AdminDashboardScreen() {
     const router = useRouter();

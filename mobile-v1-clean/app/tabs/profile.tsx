@@ -1,9 +1,9 @@
 import { Link, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { fetchWithAuth } from '../../src/config/api';
-import { useAuth } from '../../src/context/AuthContext';
-import { useSteward } from '../../src/context/StewardContext';
+import { fetchWithAuth } from '../../config/api';
+import { useAuth } from '../../src/state/AuthContext';
+import { useSteward } from '../../src/state/StewardContext';
 
 export default function ProfileScreen() {
     const { user, signOut } = useAuth();

@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { fetchWithAuth } from '../../src/config/api';
+import { fetchWithAuth } from '../../config/api';
 
 export default function NewQuoteScreen() {
     const { leadId, name, phone, service } = useLocalSearchParams<{ leadId: string, name: string, phone: string, service: string }>();

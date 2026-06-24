@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { fetchWithAuth } from '../../src/config/api';
+import { fetchWithAuth } from '../../config/api';
 
 export default function OpportunityDetailScreen() {
     const { id } = useLocalSearchParams();

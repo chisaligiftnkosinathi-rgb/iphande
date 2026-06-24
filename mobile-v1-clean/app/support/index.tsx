@@ -1,8 +1,8 @@
 import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useSteward } from '../../src/context/StewardContext';
-import { useAuth } from '../../src/context/AuthContext';
+import { useSteward } from '../../src/state/StewardContext';
+import { useAuth } from '../../src/state/AuthContext';
 import { Link } from 'expo-router';
-import { PageHeader } from '../../src/components/PageHeader';
+import { PageHeader } from '../components/PageHeader';
 
 export default function SupportScreen() {
     const { profile } = useSteward();

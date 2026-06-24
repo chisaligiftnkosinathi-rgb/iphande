@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
-import { StewardGate } from '../src/components/StewardGate';
-import { AuthProvider } from '../src/context/AuthContext';
-import { StewardProvider } from '../src/context/StewardContext';
+import { StewardGate } from './components/StewardGate';
+import { AuthProvider } from '../src/state/AuthContext';
+import { StewardProvider } from '../src/state/StewardContext';
 
 export default function RootLayout() {
     return (

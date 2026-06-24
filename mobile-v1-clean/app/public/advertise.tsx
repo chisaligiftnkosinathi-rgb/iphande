@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { createPublicAdvertisement } from '../../src/services/advertisementApi';
+import { createPublicAdvertisement } from '../../src/api/advertisementApi';
 import { AdvertisementCreate } from '../../src/types/advertisement';
 import { Picker } from '@react-native-picker/picker';
-import { PROVINCES, TOWNS_BY_PROVINCE, ARCHETYPES } from '../../src/data/southAfricaLocations';
-import { PageHeader } from '../../src/components/PageHeader';
+import { PROVINCES, TOWNS_BY_PROVINCE, ARCHETYPES } from '../../assets/data/southAfricaLocations';
+import { PageHeader } from '../components/PageHeader';
 
 export default function AdvertiseScreen() {
     const router = useRouter();

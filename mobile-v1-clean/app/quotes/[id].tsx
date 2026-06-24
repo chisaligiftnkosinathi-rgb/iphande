@@ -3,13 +3,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { API_BASE_URL } from '../../src/config/api';
-import { fetchQuoteDetail, acceptQuote, QuoteOut } from '../../src/services/quoteApi';
-import { fetchWithAuth } from '../../src/config/api';
-import { validateDocumentData } from '../../src/config/documentTemplates';
-import { useSteward } from '../../src/context/StewardContext';
+import { API_BASE_URL } from '../../config/api';
+import { fetchQuoteDetail, acceptQuote, QuoteOut } from '../../src/api/quoteApi';
+import { fetchWithAuth } from '../../config/api';
+import { validateDocumentData } from '../../config/documentTemplates';
+import { useSteward } from '../../src/state/StewardContext';
 import * as FileSystem from 'expo-file-system';
-import { supabase } from '../../src/lib/supabase';
+import { supabase } from '../../src/api/supabase';
 import * as Clipboard from 'expo-clipboard';
 
 export default function QuoteDetailScreen() {

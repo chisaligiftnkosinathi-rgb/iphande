@@ -1,10 +1,10 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, Platform } from 'react-native';
-import { fetchWithAuth } from '../../src/config/api';
-import { useSteward } from '../../src/context/StewardContext';
-import { PageHeader } from '../../src/components/PageHeader';
-import { FeatureLockedCard } from '../../src/components/FeatureLockedCard';
+import { fetchWithAuth } from '../../config/api';
+import { useSteward } from '../../src/state/StewardContext';
+import { PageHeader } from '../components/PageHeader';
+import { FeatureLockedCard } from '../components/FeatureLockedCard';
 
 export default function ProofOfWorkScreen() {
     const router = useRouter();

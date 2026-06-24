@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { fetchWithAuth } from '../../src/config/api';
+import { fetchWithAuth } from '../../config/api';
 
 // ─── The Backend Contract ────────────────────────────────────────────────
 

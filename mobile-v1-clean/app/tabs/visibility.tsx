@@ -1,8 +1,8 @@
 import { Link } from 'expo-router';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useSteward } from '../../src/context/StewardContext';
-import { ShareButton } from '../../src/components/ShareButton';
-import { shareProfile } from '../../src/services/shareApi';
+import { useSteward } from '../../src/state/StewardContext';
+import { ShareButton } from '../components/ShareButton';
+import { shareProfile } from '../../src/api/shareApi';
 
 // ─── Visibility Score Computation ─────────────────────────────────────────────
 

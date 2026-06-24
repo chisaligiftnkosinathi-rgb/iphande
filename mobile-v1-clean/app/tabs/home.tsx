@@ -2,10 +2,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { Link, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
-import { fetchWithAuth } from '../../src/config/api';
-import { useSteward } from '../../src/context/StewardContext';
-import { STEWARD_TOOL_REGISTRY, ToolKey } from '../../src/domain/stewardToolRegistry';
-import { DashboardStats, getAdminDashboard } from '../../src/services/adminApi';
+import { fetchWithAuth } from '../../config/api';
+import { useSteward } from '../../src/state/StewardContext';
+export type ToolKey = 'quote_builder' | 'documents' | 'proof_of_work' | 'inventory_tracker' | 'km_tracker' | 'notebook' | 'referrals' | 'materials_calculator' | 'travel_calculator' | 'before_after_proof' | 'expense_tracker' | 'lead_tracker' | 'commission_calculator' | 'whatsapp_followup' | 'receipt_capture' | 'project_milestone_tracker' | 'document_generator' | 'vba_console';
+
+const STEWARD_TOOL_REGISTRY: Record<string, { tools: ToolKey[] }> = {
+    general: {
+        tools: ['quote_builder', 'documents', 'proof_of_work', 'inventory_tracker', 'km_tracker', 'notebook']
+    }
+};
+import { DashboardStats, getAdminDashboard } from '../../src/api/adminApi';
 import { computeVisibilityScore } from './visibility';
 
 interface Tool {
@@ -49,6 +55,7 @@ export default function HomeScreen() {
     const [timelineActivityCount, setTimelineActivityCount] = useState<number | null>(null);
     const [adminStats, setAdminStats] = useState<DashboardStats | null>(null);
     const [visibleTools, setVisibleTools] = useState<Tool[]>([]);
+    const [drift, setDrift] = useState<any>(null);
 
     const [refreshing, setRefreshing] = useState(false);
 
@@ -103,6 +110,14 @@ export default function HomeScreen() {
             } catch (err) {
                 console.warn("Failed to fetch admin dashboard stats:", err);
             }
+
+            try {
+                const driftData = await fetchWithAuth('/api/v1/telemetry/drift');
+                setDrift(driftData);
+            } catch (err) {
+                console.warn("Failed to fetch drift data:", err);
+                setDrift(null);
+            }
         }
     };
 
@@ -141,6 +156,21 @@ export default function HomeScreen() {
                 <Text style={styles.kicker}>Home</Text>
                 <Text style={styles.title}>{isCreator ? "System Creator" : "Today's Summary"}</Text>
                 <Text style={styles.subtitle}>{isCreator ? "Platform management & owner console." : "Your business at a glance."}</Text>
+                
+                {isAdmin && drift && (
+                    <View style={{ marginTop: 12, flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+                        <Text style={{ fontSize: 12, opacity: 0.7 }}>
+                            System Stability: {drift?.overall_drift?.toFixed(2)}
+                        </Text>
+                        {drift?.policy?.action !== "none" && (
+                            <View style={{ padding: 6, backgroundColor: "#222", borderRadius: 4 }}>
+                                <Text style={{ color: "orange", fontSize: 10, fontWeight: "bold" }}>
+                                    DAMPING: {drift.policy.action}
+                                </Text>
+                            </View>
+                        )}
+                    </View>
+                )}
             </View>
 
             {/* Profile Status Banner */}

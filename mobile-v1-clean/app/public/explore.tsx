@@ -3,9 +3,9 @@ import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Linking, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { LocationPicker, LocationSelection } from '../../src/components/LocationPicker';
-import { API_BASE_URL } from '../../src/config/api';
-import { calculateDistanceKm } from '../../src/lib/location';
+import { LocationPicker, LocationSelection } from '../components/LocationPicker';
+import { API_BASE_URL } from '../../config/api';
+import { calculateDistanceKm } from '../../src/utils/location';
 
 type OpportunityGroup = {
     archetype: string;

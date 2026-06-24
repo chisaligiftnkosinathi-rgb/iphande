@@ -1,5 +1,5 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { PageHeader } from '../../src/components/PageHeader';
+import { PageHeader } from '../components/PageHeader';
 
 export default function PrivacyScreen() {
     return (

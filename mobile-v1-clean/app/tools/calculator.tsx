@@ -3,10 +3,10 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { useState, useEffect } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, Platform } from 'react-native';
-import { fetchWithAuth } from '../../src/config/api';
-import { validateDocumentData } from '../../src/config/documentTemplates';
-import { useSteward } from '../../src/context/StewardContext';
-import { PageHeader } from '../../src/components/PageHeader';
+import { fetchWithAuth } from '../../config/api';
+import { validateDocumentData } from '../../config/documentTemplates';
+import { useSteward } from '../../src/state/StewardContext';
+import { PageHeader } from '../components/PageHeader';
 
 interface LineItem {
     id: string;
