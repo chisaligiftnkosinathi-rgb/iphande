@@ -15,7 +15,7 @@ from src.routes import (
     steward_timeline_routes, steward_annotations, referral_routes, public_routes,
     advertisement_routes, expense_routes, share_routes, admin_routes, document_routes, steward_console_routes,
     public_profiles, feed_geo, geo_match, engagement_events, action_delivery, feedback,
-    trust, demand, ws_actions, availability, routing
+    trust, demand, ws_actions, availability, routing, telemetry
 )
 from src.routers.handshake import router as handshake_router
 from src.routers.financial_events import router as financial_events_router
@@ -123,6 +123,7 @@ app.include_router(demand.router, prefix="/api/v1")
 app.include_router(trust.router, prefix="/api/v1")
 app.include_router(availability.router, prefix="/api/v1")
 app.include_router(routing.router, prefix="/api/v1")
+app.include_router(telemetry.router, prefix="/api/v1")
 app.include_router(feedback.router, prefix="/api/v1")
 app.include_router(ws_actions.router, prefix="/api/v1")
 app.include_router(action_delivery.router, prefix="/api/v1")
