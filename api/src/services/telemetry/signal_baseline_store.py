@@ -6,8 +6,6 @@ import json
 class SignalBaselineStore:
     def __init__(self):
         self.redis = get_redis_client()
-            decode_responses=True
-        )
 
     def get_baseline(self, signal_type: str) -> float:
         # Default healthy baselines

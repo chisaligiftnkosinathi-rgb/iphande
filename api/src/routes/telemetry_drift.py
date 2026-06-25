@@ -12,7 +12,7 @@ def get_current_drift():
     import json
     import os
     import redis
-from src.utils.redis_config import get_redis_client
+    from src.utils.redis_config import get_redis_client
     r = get_redis_client()
     
     policy_str = r.get("active_drift_policy")

@@ -6,8 +6,6 @@ import os
 class DemandRedisCache:
     def __init__(self):
         self.client = get_redis_client()
-            decode_responses=True
-        )
         self.ttl = 60  # seconds
 
     def get(self, geo_cell: str, archetype: str):

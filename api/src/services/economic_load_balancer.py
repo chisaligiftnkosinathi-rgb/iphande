@@ -8,8 +8,6 @@ from src.services.availability_engine import availability_engine
 class EconomicLoadBalancer:
     def __init__(self):
         self.redis = get_redis_client()
-            decode_responses=True
-        )
 
     def compute(self, profile_id: str) -> dict:
         # Check cache first for high speed

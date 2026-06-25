@@ -7,8 +7,6 @@ import json
 class FraudDetector:
     def __init__(self):
         self.redis = get_redis_client()
-            decode_responses=True
-        )
 
     def classify_and_record(self, profile_id: str, event):
         score = fraud_scorer.compute_score(event)
