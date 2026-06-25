@@ -50,14 +50,19 @@ async def lifespan(app: FastAPI):
     print("Tables created.")
     
     # Start Redis Listener for WebSockets
-    pubsub = demand_pubsub.subscribe("demand.events")
-    pubsub.subscribe("geo.events")
-    pubsub.subscribe("match.events")
-    
-    listener_task = asyncio.create_task(
-        redis_listener(pubsub, manager)
-    )
-
+    import redis
+    try:
+        pubsub = demand_pubsub.subscribe("demand.events")
+        pubsub.subscribe("geo.events")
+        pubsub.subscribe("match.events")
+        
+        listener_task = asyncio.create_task(
+            redis_listener(pubsub, manager)
+        )
+    except redis.exceptions.ConnectionError:
+        print("WARNING: Redis is not running. WebSockets and Pub/Sub will be disabled.")
+        listener_task = None
+        
     try:
         # Patch existing leads table with the missing 'source' column
         try:
@@ -89,6 +94,9 @@ async def lifespan(app: FastAPI):
             "continuing so /health can report application liveness."
         )
     yield
+    
+    if listener_task:
+        listener_task.cancel()
 
 
 app = FastAPI(
