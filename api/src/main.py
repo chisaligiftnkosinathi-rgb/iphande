@@ -78,32 +78,32 @@ from src.services.demand_pubsub import demand_pubsub
 async def _init_background():
     """
     LAYER 2: BACKGROUND INITIALIZATION
-    
+
     Runs after app boots. Initializes all financial safety systems:
     - Immutability guard registration (CRITICAL)
     - Database connection validation
     - Optional schema creation (only if AUTO_CREATE_SCHEMA=True)
-    
+
     Does NOT block app startup. App is healthy even if this fails.
     """
     try:
         logger.info("⚙️  Background initialization started")
-        
+
         # Optional schema creation (only in dev, not production)
         if settings.AUTO_CREATE_SCHEMA:
             logger.info("📦 Creating/verifying database schema...")
             Base.metadata.create_all(bind=engine)
             logger.info("✅ Schema verified")
-        
+
         # CRITICAL: Register immutability guards for ledger protection
         logger.info("🔐 Registering immutability guards...")
         register_immutability_guards()
         logger.info("✅ Immutability guards ACTIVE (ledger writes now protected)")
-        
+
         # Mark system as ready for financial operations
         _app_state["ready"] = True
         logger.info("✅ Financial system READY — payments can now be accepted")
-        
+
     except Exception as e:
         logger.error(f"❌ CRITICAL: Background initialization failed: {e}", exc_info=True)
         _app_state["ready"] = False
@@ -114,37 +114,37 @@ async def _init_background():
 async def lifespan(app: FastAPI):
     """
     3-LAYER LIFECYCLE MANAGER
-    
+
     Defines when a financial system is safe to accept money.
-    
+
     LAYER 1 (FAST BOOT): App starts immediately (<500ms target)
     - No DB writes
     - No schema creation
     - No immutability registration
     - Only routing + config
-    
+
     LAYER 2 (BACKGROUND INIT): Critical systems initialized
     - Starts after app boots
     - Does NOT block /health or routing
     - Registers immutability guards (CRITICAL)
     - Validates DB connection
-    
+
     LAYER 3 (READINESS GATE): Payment safety check
     - GET /api/v1/ready (new endpoint)
     - Payment routes MUST check readiness before executing
     """
-    
+
     import datetime
     _app_state["boot_time"] = datetime.datetime.now(datetime.timezone.utc)
-    
+
     logger.info(f"🚀 LAYER 1: App booting (fast path, non-blocking)")
     logger.info(f"   DEPLOYMENT_MODE={settings.DEPLOYMENT_MODE}")
     logger.info(f"   AUTO_CREATE_SCHEMA={settings.AUTO_CREATE_SCHEMA}")
-    
+
     # Start background initialization task
     # Does NOT block app from responding to /health or routing
     bg_init_task = asyncio.create_task(_init_background())
-    
+
     listener_task = None
     # import redis
     # try:
@@ -163,10 +163,10 @@ async def lifespan(app: FastAPI):
 
     # Shutdown
     logger.info("🛑 App shutdown initiated")
-    
+
     if bg_init_task:
         bg_init_task.cancel()
-    
+
     if listener_task:
         listener_task.cancel()
 
@@ -201,7 +201,6 @@ app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 if settings.DEPLOYMENT_MODE == "pilot":
     # PILOT MODE: Core loop only
     app.include_router(health_routes.router)
-    app.include_router(health_routes.router, prefix="/api/v1")
     app.include_router(auth_routes.router)
     app.include_router(profile_routes.router, prefix="/api/v1")
     app.include_router(media_routes.router, prefix="/api/v1")
@@ -238,7 +237,6 @@ else:
     app.include_router(public_routes.router, prefix="/api/v1")
     app.include_router(profile_routes.router, prefix="/api/v1")
     app.include_router(opportunity_routes.router, prefix="/api/v1")
-    app.include_router(health_routes.router, prefix="/api/v1")
     app.include_router(referral_routes.router, prefix="/api/v1")
     app.include_router(advertisement_routes.router, prefix="/api/v1")
     app.include_router(timeline_routes.router, prefix="/api/v1")
