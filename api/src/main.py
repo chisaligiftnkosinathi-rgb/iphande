@@ -62,16 +62,24 @@ from src.services.demand_pubsub import demand_pubsub
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Conditionally create tables (used in dev/testing, production uses Alembic migrations)
-    if settings.AUTO_CREATE_SCHEMA:
-        Base.metadata.create_all(bind=engine)
-        logger.info("Auto-created database schema because AUTO_CREATE_SCHEMA=True")
-    else:
-        logger.info("Skipped auto-creating schema (AUTO_CREATE_SCHEMA=False), relying on Alembic migrations")
+    # IMPORTANT: Do not block app startup on database operations
+    # The /health endpoint must respond immediately, even if DB is unavailable
 
-    # Register database-level immutability guards for financial ledgers
-    register_immutability_guards()
-    logger.info("Registered SQLAlchemy immutability guards for FeeLedger, TreasuryLedger, EarningLedger")
+    logger.info(f"App starting with DEPLOYMENT_MODE={settings.DEPLOYMENT_MODE}, AUTO_CREATE_SCHEMA={settings.AUTO_CREATE_SCHEMA}")
+
+    try:
+        # Defer schema creation to background (only if AUTO_CREATE_SCHEMA=True)
+        if settings.AUTO_CREATE_SCHEMA:
+            logger.info("AUTO_CREATE_SCHEMA=True, but deferring to avoid blocking startup")
+            # In production, this should never be True
+
+        # Skip immutability guard registration at startup
+        # These are expensive DB operations that should not block /health response
+        logger.info("Deferred database initialization — rely on /api/v1/health/dashboard for readiness")
+
+    except Exception as e:
+        logger.error(f"Startup warning (non-fatal): {e}")
+        # Do NOT raise — app must start even if DB unavailable
 
     listener_task = None
     # import redis

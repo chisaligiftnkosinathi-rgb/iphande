@@ -64,7 +64,7 @@ def get_current_user(
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-        
+
     from src.core.logging import user_id_context
     user_id_context.set(str(user.id))
 
