@@ -2,13 +2,17 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.orm import Session
 from typing import Optional
 import math
+from sqlalchemy import case
 from src.database import SessionLocal, replay_transaction, get_db
 from src.models.opportunity import Opportunity
 from src.schemas.opportunity_schema import OpportunityCreate, OpportunityOut, OpportunityUpdate
 from src.services.continuity_event_service import emit_continuity_event
 from src.services.verification_service import require_verified_steward_or_platform_admin
 from src.models.profile import Profile
+from src.models.media import Media
+import logging
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -85,6 +89,12 @@ def list_opportunities(
     query = db.query(Opportunity)
     if profile_id:
         query = query.filter(Opportunity.created_by_profile_id == profile_id)
+        
+        # Soft validation read hook
+        profile = db.query(Profile).filter(Profile.id == profile_id).first()
+        if profile and getattr(profile, 'visibility_state', 'anonymous') == 'anonymous':
+            logger.info("Anonymous user accessed opportunities feed", extra={"event": "anonymous_feed_access"})
+            
     if province:
         query = query.filter(Opportunity.province == province)
     if town_or_city:
@@ -97,7 +107,15 @@ def list_opportunities(
         search = f"%{q}%"
         query = query.filter((Opportunity.title.like(search)) | (Opportunity.description.like(search)) | (Opportunity.service_needed.like(search)))
 
-    return query.order_by(Opportunity.created_at.desc()).all()
+    visibility_rank = case(
+        (Profile.visibility_state == 'trusted', 4),
+        (Profile.visibility_state == 'activated', 3),
+        (Profile.visibility_state == 'registered', 2),
+        else_=1
+    )
+
+    query = query.join(Profile, Opportunity.created_by_profile_id == Profile.id)
+    return query.order_by(visibility_rank.desc(), Opportunity.created_at.desc()).all()
 
 @router.get("/opportunities/nearby", response_model=list[OpportunityOut])
 def list_nearby_opportunities(
@@ -122,7 +140,15 @@ def list_nearby_opportunities(
         Opportunity.longitude <= lng + lng_degree_approx
     )
 
-    opportunities = query.order_by(Opportunity.created_at.desc()).all()
+    visibility_rank = case(
+        (Profile.visibility_state == 'trusted', 4),
+        (Profile.visibility_state == 'activated', 3),
+        (Profile.visibility_state == 'registered', 2),
+        else_=1
+    )
+
+    query = query.join(Profile, Opportunity.created_by_profile_id == Profile.id)
+    opportunities = query.order_by(visibility_rank.desc(), Opportunity.created_at.desc()).all()
 
     return [
         opp for opp in opportunities
@@ -162,6 +188,21 @@ def update_opportunity(opportunity_id: str, update: OpportunityUpdate, db: Sessi
                 event_type = "opportunity_quoted"
             elif update_data["status"] == "closed":
                 event_type = "opportunity_closed"
+                
+                # Soft validation for work proof
+                proof_exists = db.query(Media).filter(
+                    Media.linked_entity_id == opportunity_id,
+                    Media.proof_type == "work"
+                ).first()
+
+                if not proof_exists:
+                    logger.warning(
+                        "Opportunity completed without work proof",
+                        extra={
+                            "event": "missing_work_proof",
+                            "opportunity_id": opportunity_id
+                        }
+                    )
 
         event = emit_continuity_event(
             db,
@@ -184,4 +225,13 @@ def update_opportunity(opportunity_id: str, update: OpportunityUpdate, db: Sessi
             opp.continuity_event_id = str(event.id)
         db.flush()
         db.refresh(opp)
+        
+        # Synchronous Trust Engine update if closed
+        if event_type == "opportunity_closed":
+            try:
+                from src.services.trust_engine import update_trust_score
+                update_trust_score(db, opp.created_by_profile_id, event_type="opportunity_closed")
+            except Exception as e:
+                logger.error(f"Failed to update trust score: {str(e)}", exc_info=True)
+                
     return opp

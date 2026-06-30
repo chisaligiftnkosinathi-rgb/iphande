@@ -22,6 +22,7 @@ class Profile(Base):
     service_area_notes = Column(String, nullable=True)
 
     # V1 Public Visibility Layer
+    visibility_state = Column(String, default="anonymous", nullable=False)
     is_public = Column(Boolean, default=True, nullable=False)
     place_id = Column(String, nullable=True)
     canonical_name = Column(String, nullable=True)
@@ -75,3 +76,22 @@ class Profile(Base):
     # Referral Program V1
     referral_code = Column(String, unique=True, nullable=True)
     referred_by_code = Column(String, nullable=True)
+
+VISIBILITY_FLOW = {
+    "anonymous": 0,
+    "registered": 1,
+    "activated": 2,
+    "trusted": 3
+}
+
+from sqlalchemy import event
+
+def set_visibility_state_from_legacy(mapper, connection, target):
+    # Backward compatibility hook (Phase 1)
+    if target.is_verified:
+        target.visibility_state = "registered"
+    if target.is_active:
+        target.visibility_state = "activated"
+
+event.listen(Profile, 'before_insert', set_visibility_state_from_legacy)
+event.listen(Profile, 'before_update', set_visibility_state_from_legacy)

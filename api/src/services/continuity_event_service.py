@@ -27,6 +27,22 @@ def emit_continuity_event(
         if not parent_event:
             raise ValueError(f"Parent event {parent_event_id} not found. Cannot enforce causality.")
 
+    if payload is None:
+        payload = {}
+
+    # Ensure standardization (Phase 1 soft constraint)
+    if "before_state" not in payload:
+        payload["before_state"] = {}
+    if "after_state" not in payload:
+        payload["after_state"] = {}
+
+    from src.core.logging import request_id_context
+    try:
+        if "trace_id" not in payload or not payload["trace_id"]:
+            payload["trace_id"] = request_id_context.get()
+    except Exception:
+        pass
+
     event = ContinuityEvent(
         business_owner_id=business_owner_id,
         business_category_key=business_category_key,
@@ -41,7 +57,7 @@ def emit_continuity_event(
         title=title,
         description=description,
         source=source,
-        payload_json=payload if payload is not None else None,
+        payload_json=payload,
     )
     db.add(event)
     if auto_commit:

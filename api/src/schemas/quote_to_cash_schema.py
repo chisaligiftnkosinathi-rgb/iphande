@@ -141,7 +141,7 @@ class PaymentIntentOut(BaseModel):
     id: UUID
     business_owner_id: str
     invoice_id: UUID | None = None
-    quote_id: UUID
+    quote_id: UUID | None = None
     provider_name: str
     payment_reference: str
     payer_reference: str | None = None

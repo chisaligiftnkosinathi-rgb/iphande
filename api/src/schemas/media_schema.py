@@ -5,10 +5,12 @@ from datetime import datetime
 # Minimal upload output schema for continuity evidence
 class MediaUploadOut(BaseModel):
     media_id: str
-    media_url: str
+    file_url: str
     filename: str
-    content_type: str
+    mime_type: str
+    size: int
     created_at: datetime
+    support_trace_id: str | None = None
 from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime

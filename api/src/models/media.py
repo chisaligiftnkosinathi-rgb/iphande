@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, Boolean
+from sqlalchemy import Column, String, DateTime, Boolean, Integer
 from src.database import Base
 import uuid
 from datetime import datetime
@@ -12,6 +12,12 @@ class Media(Base):
     media_type = Column(String, nullable=False)
     file_url = Column(String, nullable=False)
     local_file_path = Column(String, nullable=True)
+    size = Column(Integer, nullable=True)
+    
+    proof_type = Column(String, default="context")  # identity | work | context
+    linked_entity_type = Column(String, nullable=True)
+    linked_entity_id = Column(String, nullable=True)
+    
     storage_origin = Column(String, nullable=False, default="human_device")
     storage_provider = Column(String, nullable=False, default="local")
     allow_exif_processing = Column(Boolean, nullable=False, default=False)

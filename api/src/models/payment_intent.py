@@ -25,7 +25,8 @@ class PaymentIntent(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
     business_owner_id = Column(String, nullable=False, index=True)
     invoice_id = Column(UUID(as_uuid=True), ForeignKey("invoices.id"), nullable=True)
-    quote_id = Column(UUID(as_uuid=True), ForeignKey("quotes.id"), nullable=False)
+    quote_id = Column(UUID(as_uuid=True), ForeignKey("quotes.id"), nullable=True)
+    opportunity_id = Column(String, ForeignKey("opportunities.id"), nullable=True)
     provider_name = Column(String, nullable=False, default="demo")
     payment_reference = Column(String, nullable=False, unique=True)
     payer_reference = Column(String, nullable=True)
@@ -37,6 +38,13 @@ class PaymentIntent(Base):
     financial_event_id = Column(UUID(as_uuid=True), nullable=True)
     receipt_number = Column(String, nullable=True)
     receipt_continuity_event_id = Column(UUID(as_uuid=True), nullable=True)
+
+    # Idempotency & Event Tracking (Ledger Safety Layer)
+    # Prevents duplicate webhook processing (critical for PayFast ITN safety)
+    idempotency_key = Column(String, nullable=True, unique=True, index=True)
+    provider_event_id = Column(String, nullable=True, index=True)  # PayFast event reference
+    ledger_processed_at = Column(DateTime(timezone=True), nullable=True)  # When payment → ledger conversion happened
+
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     confirmed_at = Column(DateTime(timezone=True), nullable=True)
 
