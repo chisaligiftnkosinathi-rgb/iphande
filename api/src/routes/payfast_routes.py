@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from src.config.payments import payment_config
+from src.core.payment_config import payment_config
 from src.database import get_db, replay_transaction
 from src.models.invoice import Invoice, InvoiceStatus
 from src.models.opportunity import Opportunity

@@ -1,11 +1,5 @@
 from src.models.feedback_event import FeedbackEvent
-from src.services.trust_engine import (
-    increase_exposure_confidence,
-    increase_engagement_trust,
-    boost_reliability,
-    massively_increase_all_trust,
-    slightly_reduce_relevance_bias
-)
+from src.services.trust_engine import update_trust_score
 from src.services.presence_manager import presence_manager
 
 from src.services.fraud.signal_validity_engine import fraud_engine
@@ -35,21 +29,8 @@ def process_feedback(db, event: FeedbackEvent):
         # Failed or ignored - increase load pressure to cool them down
         economic_load_balancer.record_abandonment(event.profile_id)
 
-    # Dynamic system adaptation
-    if event.event_type == "DISMISSED":
-        slightly_reduce_relevance_bias(db, event.profile_id, svs=svs)
-
-    if event.event_type == "CLICKED":
-        increase_engagement_trust(db, event.profile_id, svs=svs)
-
-    if event.event_type == "NAVIGATED":
-        boost_reliability(db, event.profile_id, svs=svs)
-
-    if event.event_type == "CONVERTED":
-        massively_increase_all_trust(db, event.profile_id, svs=svs)
-        
-    if event.event_type == "VIEWED":
-        increase_exposure_confidence(db, event.profile_id, svs=svs)
+    # Dynamic system adaptation (replaced magic ML with deterministic sync)
+    update_trust_score(db, event.profile_id, event_type=event.event_type)
 
     # Publish to demand pub/sub event stream
     from src.services.demand_pubsub import demand_pubsub

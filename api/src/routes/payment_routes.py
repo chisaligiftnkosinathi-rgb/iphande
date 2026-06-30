@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from src.config.payments import payment_config
+from src.core.payment_config import payment_config
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 

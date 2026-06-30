@@ -31,23 +31,27 @@ from src.routes import (
     advertisement_routes, expense_routes, share_routes, admin_routes, document_routes, steward_console_routes,
     public_profiles, feed_geo, geo_match, engagement_events, action_delivery, feedback,
     trust, demand, ws_actions, availability, routing, telemetry, telemetry_drift,
-    telemetry_simulation
+    telemetry_simulation, dashboard_routes
 )
 from src.routers.handshake import router as handshake_router
 from src.routers.financial_events import router as financial_events_router
 from src.routers.quotes import router as quotes_router
 from src.routers.invoices import router as invoices_router
 from src.routers.payments import router as payments_router
+from src.routers.reconciliation import router as reconciliation_router
 from src.routers.inventory import router as inventory_router
 from src.routers.commissions import router as commissions_router
 from src.routes.continuity_capture_routes import router as continuity_capture_router
 from src.routes.lead_routes import router as lead_router
 from src.routes.river_routes import router as river_router
 from src.routes.river_stream_routes import router as river_stream_router
+from src.routes.payment_routes import router as payment_config_router
+from src.routes.payfast_routes import router as payfast_router
 from src.routes import auth_routes
 
 from src.models.quote_request_model import QuoteRequest
 from src.database import create_tables, SessionLocal, engine, Base
+from src.database_immutability import register_immutability_guards
 from src.routes.continuity_event_routes import router as continuity_event_router
 
 
@@ -64,23 +68,27 @@ async def lifespan(app: FastAPI):
         logger.info("Auto-created database schema because AUTO_CREATE_SCHEMA=True")
     else:
         logger.info("Skipped auto-creating schema (AUTO_CREATE_SCHEMA=False), relying on Alembic migrations")
-    
+
+    # Register database-level immutability guards for financial ledgers
+    register_immutability_guards()
+    logger.info("Registered SQLAlchemy immutability guards for FeeLedger, TreasuryLedger, EarningLedger")
+
     listener_task = None
     # import redis
     # try:
     #     pubsub = demand_pubsub.subscribe("demand.events")
     #     pubsub.subscribe("geo.events")
     #     pubsub.subscribe("match.events")
-    #     
+    #
     #     listener_task = asyncio.create_task(
     #         redis_listener(pubsub, manager)
     #     )
     # except redis.exceptions.RedisError:
     #     logger.warning("WARNING: Redis is not running or timed out. WebSockets and Pub/Sub will be disabled.")
     #     listener_task = None
-        
+
     yield
-    
+
     if listener_task:
         listener_task.cancel()
 
@@ -119,14 +127,19 @@ if settings.DEPLOYMENT_MODE == "pilot":
     app.include_router(auth_routes.router)
     app.include_router(profile_routes.router, prefix="/api/v1")
     app.include_router(media_routes.router, prefix="/api/v1")
+    app.include_router(dashboard_routes.router)
 else:
     # DEV / RC / PROD MODE: Full surface
     app.include_router(health_routes.router)
+    app.include_router(dashboard_routes.router)
     app.include_router(handshake_router)
     app.include_router(financial_events_router)
     app.include_router(quotes_router)
     app.include_router(invoices_router)
     app.include_router(payments_router)
+    app.include_router(reconciliation_router)
+    app.include_router(payment_config_router)
+    app.include_router(payfast_router)
     app.include_router(inventory_router)
     app.include_router(commissions_router)
     app.include_router(demand.router, prefix="/api/v1")
@@ -155,7 +168,7 @@ else:
     app.include_router(lead_router, prefix="/api/v1", tags=["leads"])
     app.include_router(admin_routes.router)
     app.include_router(admin_routes.admin_router)
-    
+
     app.include_router(business_categories.router)
     app.include_router(business_content_rules.router)
     app.include_router(media_routes.router, prefix="/api/v1")
