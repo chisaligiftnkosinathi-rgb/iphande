@@ -165,7 +165,6 @@ def register_immutability_guards():
 
     Call this during application startup to enable DB-level write protection.
     """
-    from sqlalchemy.orm import listen
     from sqlalchemy import event
 
     # Register before_update events
