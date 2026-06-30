@@ -13,7 +13,7 @@ from src.models.profile import Profile
 from src.database import get_db
 from src.services.continuity_event_service import emit_continuity_event
 from src.services.verification_service import require_verified_steward_or_platform_admin
-from src.auth.supabase_auth import get_current_user
+from src.core.security import get_current_user
 
 router = APIRouter()
 
@@ -52,8 +52,12 @@ def create_event(
     return db_event
 
 @router.get("/", response_model=List[ContinuityEventResponse])
-def list_events(db: Session = Depends(get_db)):
-    events = db.query(ContinuityEvent).order_by(ContinuityEvent.lineage_sequence.asc()).all()
+def list_events(
+    limit: int = Query(25, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db)
+):
+    events = db.query(ContinuityEvent).order_by(ContinuityEvent.lineage_sequence.asc()).offset(offset).limit(limit).all()
     return events
 
 @router.get("/{event_id}/graph", response_model=ContinuityEventGraphResponse)
@@ -147,11 +151,17 @@ def get_event_graph(
     )
 
 @router.get("/entity/{entity_id}", response_model=List[ContinuityEventResponse])
-def get_events_for_entity(entity_id: str, db: Session = Depends(get_db)):
+def get_events_for_entity(
+    entity_id: str,
+    limit: int = Query(25, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db)
+):
     events = (
         db.query(ContinuityEvent)
         .filter(ContinuityEvent.related_entity_id == entity_id)
         .order_by(ContinuityEvent.lineage_sequence.asc())
+        .offset(offset).limit(limit)
         .all()
     )
     return events
@@ -159,6 +169,8 @@ def get_events_for_entity(entity_id: str, db: Session = Depends(get_db)):
 @router.get("/business/{business_owner_id}", response_model=List[ContinuityEventResponse])
 def get_events_for_business(
     business_owner_id: str,
+    limit: int = Query(25, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
@@ -174,12 +186,29 @@ def get_events_for_business(
             raise HTTPException(status_code=403, detail="Not allowed to view this timeline")
         require_verified_steward_or_platform_admin(requester)
 
-    events = db.query(ContinuityEvent).filter(ContinuityEvent.business_owner_id == business_owner_id).order_by(ContinuityEvent.lineage_sequence.asc()).all()
+    events = (
+        db.query(ContinuityEvent)
+        .filter(ContinuityEvent.business_owner_id == business_owner_id)
+        .order_by(ContinuityEvent.lineage_sequence.asc())
+        .offset(offset).limit(limit)
+        .all()
+    )
     return events
 
 @router.get("/parent/{event_id}/children", response_model=List[ContinuityEventResponse])
-def get_event_children(event_id: UUID, db: Session = Depends(get_db)):
-    events = db.query(ContinuityEvent).filter(ContinuityEvent.parent_event_id == event_id).order_by(ContinuityEvent.lineage_sequence.asc()).all()
+def get_event_children(
+    event_id: UUID,
+    limit: int = Query(25, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db)
+):
+    events = (
+        db.query(ContinuityEvent)
+        .filter(ContinuityEvent.parent_event_id == event_id)
+        .order_by(ContinuityEvent.lineage_sequence.asc())
+        .offset(offset).limit(limit)
+        .all()
+    )
     return events
 
 @router.get("/{event_id}", response_model=ContinuityEventResponse)

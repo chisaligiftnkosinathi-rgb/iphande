@@ -10,7 +10,7 @@ from src.schemas.profile_schema import ProfileCreate, ProfileOut, ProfileUpdate
 from src.schemas.public_profile_schema import PublicProfileOut
 from src.schemas.profile_location_schema import ProfileLocationUpdate
 from src.services.continuity_event_service import emit_continuity_event
-from src.auth.supabase_auth import get_current_user
+from src.core.security import get_current_user
 from src.models.referral import Referral
 import string
 import random
@@ -150,7 +150,12 @@ router = APIRouter()
 
 
 @router.post("/profiles", response_model=ProfileOut)
-def create_profile(profile: ProfileCreate, db: Session = Depends(get_db)):
+def create_profile(profile: ProfileCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    if profile.owner_id and profile.owner_id != current_user.get("uid"):
+        raise HTTPException(status_code=403, detail="Cannot create profile for another user")
+    
+    # Force owner_id to current_user
+    profile.owner_id = current_user.get("uid")
     existing_profile = None
     if profile.owner_id:
         existing_profile = db.query(Profile).filter(Profile.owner_id == profile.owner_id).first()
@@ -516,10 +521,13 @@ def get_public_profile(slug: str, db: Session = Depends(get_db)):
 
 # PATCH /api/v1/profiles/{profile_id}/location
 @router.patch("/profiles/{profile_id}/location", response_model=ProfileOut)
-def update_profile_location(profile_id: str, data: ProfileLocationUpdate, db: Session = Depends(get_db)):
+def update_profile_location(profile_id: str, data: ProfileLocationUpdate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     profile = db.query(Profile).filter(Profile.id == profile_id).first()
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
+
+    if profile.owner_id != current_user.get("uid"):
+        raise HTTPException(status_code=403, detail="Not authorized to modify this profile")
 
     update_data = data.dict(exclude_unset=True)
     if not update_data:
@@ -575,10 +583,13 @@ class ProfileVisibilityUpdate(BaseModel):
     is_public: Optional[bool] = None
 
 @router.patch("/profiles/{profile_id}/visibility")
-def update_profile_visibility(profile_id: str, payload: ProfileVisibilityUpdate, db: Session = Depends(get_db)):
+def update_profile_visibility(profile_id: str, payload: ProfileVisibilityUpdate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     profile = db.query(Profile).filter(Profile.id == profile_id).first()
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
+
+    if profile.owner_id != current_user.get("uid"):
+        raise HTTPException(status_code=403, detail="Not authorized to modify this profile")
 
     update_data = payload.model_dump(exclude_unset=True) if hasattr(payload, 'model_dump') else payload.dict(exclude_unset=True)
 

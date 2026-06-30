@@ -1,18 +1,20 @@
 from fastapi import APIRouter
 from sqlalchemy import text
+import logging
 
-from src.config import APP_NAME, API_VERSION, ENVIRONMENT
+from src.config import settings
 from src.database import engine
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 @router.get("/health")
 def health_check():
     return {
         "status": "alive",
-        "app": APP_NAME,
-        "version": API_VERSION,
-        "environment": ENVIRONMENT,
+        "app": settings.APP_NAME,
+        "version": settings.API_VERSION,
+        "environment": settings.ENVIRONMENT,
     }
 
 
@@ -22,13 +24,22 @@ def db_health_check():
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
     except Exception as exc:
+        logger.error("Database health check failed", exc_info=True, extra={"event": "db_health_check_failed"})
         return {
             "status": "degraded",
-            "database": "unreachable",
-            "detail": str(exc),
+            "database": "unreachable"
         }
 
     return {
         "status": "ok",
         "database": "reachable",
+    }
+
+@router.get("/version")
+def version_check():
+    return {
+        "name": settings.APP_NAME,
+        "version": settings.API_VERSION,
+        "build": "local" if settings.ENVIRONMENT == "development" else "unknown",
+        "environment": settings.ENVIRONMENT
     }

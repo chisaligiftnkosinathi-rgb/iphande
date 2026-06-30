@@ -5,7 +5,7 @@ from src.database import get_db
 from src.models.profile import Profile
 from src.models.continuity_event_model import ContinuityEvent
 from src.domain.trust_engine import calculate_trust_profile
-from src.auth.supabase_auth import get_current_user
+from src.core.security import get_current_user
 
 router = APIRouter()
 

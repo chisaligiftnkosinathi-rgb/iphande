@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 import uuid
 
 from src.database import get_db
-from src.auth.supabase_auth import get_current_user
+from src.core.security import get_current_user
 from src.services.verification_service import require_verified_steward_or_platform_admin
 from src.models.profile import Profile
 from src.models.quote import Quote

@@ -2,12 +2,12 @@
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 from contextlib import contextmanager
-from src.config import DATA_DIR, DATABASE_URL
+from src.config import DATA_DIR, settings
 
 DATA_DIR.mkdir(exist_ok=True)
 
-connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
-engine = create_engine(DATABASE_URL, connect_args=connect_args)
+connect_args = {"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {}
+engine = create_engine(settings.DATABASE_URL, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -244,7 +244,7 @@ def ensure_sqlite_leads_schema():
 
 
 def ensure_postgres_leads_schema():
-    if not DATABASE_URL or not DATABASE_URL.startswith("postgres"):
+    if not settings.DATABASE_URL or not settings.DATABASE_URL.startswith("postgres"):
         return
 
     with engine.begin() as conn:

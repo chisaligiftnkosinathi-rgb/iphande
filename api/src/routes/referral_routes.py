@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from src.database import SessionLocal, replay_transaction, get_db
-from src.auth.supabase_auth import get_current_user
+from src.core.security import get_current_user
 from src.models.profile import Profile
 from src.models.referral import Referral
 from pydantic import BaseModel, ConfigDict

@@ -31,12 +31,12 @@ class MediaCreate(BaseModel):
     is_public: Optional[bool] = False
 
 class MediaUpdate(BaseModel):
-    title: Optional[str]
-    description: Optional[str]
-    media_type: Optional[str]
-    file_url: Optional[str]
-    local_file_path: Optional[str]
-    is_public: Optional[bool]
+    title: Optional[str] = None
+    description: Optional[str] = None
+    media_type: Optional[str] = None
+    file_url: Optional[str] = None
+    local_file_path: Optional[str] = None
+    is_public: Optional[bool] = None
 
 class MediaOut(BaseModel):
     id: str
