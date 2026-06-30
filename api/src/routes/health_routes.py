@@ -54,6 +54,35 @@ def version_check():
     }
 
 
+@router.get("/api/v1/ready")
+def readiness_check():
+    """
+    LAYER 3: READINESS GATE
+    
+    Tells you when the financial system is safe to accept money.
+    
+    Returns:
+      - ready: true = all safety systems initialized, ok to process payments
+      - ready: false = app is booting, defer financial operations
+      - status: "ok" or "starting"
+    
+    Use this to:
+      1. Block payment operations until ready=true
+      2. Show "system starting..." UI during boot
+      3. Prevent race conditions during cold starts
+    
+    Mobile should check this before sending payment requests.
+    """
+    from src.main import _app_state
+    
+    ready = _app_state.get("ready", False)
+    return {
+        "ready": ready,
+        "status": "ok" if ready else "starting",
+        "immutability": "active" if ready else "initializing",
+    }
+
+
 # ---------------------------------------------------------------------------
 # Probe helpers — all use SELECT 1, never COUNT(*) or joins
 # ---------------------------------------------------------------------------
@@ -205,3 +234,34 @@ def dashboard_readiness_check():
     _DASHBOARD_CACHE["response"] = response
 
     return response
+
+
+# ---------------------------------------------------------------------------
+# PAYMENT SAFETY GUARD
+# ---------------------------------------------------------------------------
+
+def require_ready():
+    """
+    PAYMENT SAFETY CHECK
+    
+    MUST be called at the start of any payment/financial operation endpoint.
+    
+    Raises HTTPException(503) if financial system is not ready.
+    
+    Usage in payment routes:
+        from src.routes.health_routes import require_ready
+        
+        @router.post("/api/v1/payments")
+        async def create_payment(...):
+            require_ready()  # Check before any payment logic
+            ...
+    """
+    from fastapi import HTTPException
+    from src.main import _app_state
+    
+    if not _app_state.get("ready", False):
+        raise HTTPException(
+            status_code=503,
+            detail="Financial system not ready. Immutability guards still initializing. Retry in a few seconds."
+        )
+
