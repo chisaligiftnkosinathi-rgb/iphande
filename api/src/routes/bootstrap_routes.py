@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from src.database import get_db
-from src.core.security import get_current_user
+from src.auth.supabase_auth import get_current_user
 from src.schemas.bootstrap_schema import BootstrapResponse, IdentitySchema, BusinessSchema, SystemSchema
 from src.models.profile import Profile
 from src.services.dashboard_service import DashboardService
@@ -49,7 +49,18 @@ def get_bootstrap(db: Session = Depends(get_db), current_user: dict = Depends(ge
     )
 
     return BootstrapResponse(
+        session={},
         identity=identity,
+        business={},
+        application=ApplicationState(stage="growth"),
+        setup=SetupState(
+            exists=profile is not None,
+            completed=False,
+            current_step=1,
+            total_steps=5
+        ),
+        subscription=SubscriptionState(status="active", plan=profile.plan_code if profile else "free"),
+        workspace=None, # For now, return None or mock to prevent crashing
         businesses=businesses,
         selectedBusinessId=selected_business_id,
         permissions=[],

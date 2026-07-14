@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from src.database import get_db
-from src.core.security import get_current_user
+from src.auth.supabase_auth import get_current_user
 
 from src.services.lifecycle_engine import run_lifecycle
 

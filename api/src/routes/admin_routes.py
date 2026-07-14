@@ -7,7 +7,7 @@ from datetime import datetime
 from src.database import get_db, replay_transaction
 from src.models.profile import Profile
 from src.models.opportunity import Opportunity
-from src.core.security import get_current_user
+from src.auth.supabase_auth import get_current_user
 from src.services.continuity_event_service import emit_continuity_event
 from src.config import BOOTSTRAP_ADMIN_EMAILS
 from pydantic import BaseModel

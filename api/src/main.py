@@ -201,6 +201,7 @@ app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 if settings.DEPLOYMENT_MODE == "pilot":
     # PILOT MODE: Core loop only
     app.include_router(health_routes.router)
+    app.include_router(handshake_router)
     app.include_router(auth_routes.router)
     app.include_router(profile_routes.router, prefix="/api/v1")
     app.include_router(media_routes.router, prefix="/api/v1")

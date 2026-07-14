@@ -15,7 +15,7 @@ import time
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from src.core.security import get_current_user
+from src.auth.supabase_auth import get_current_user
 from src.database import get_db
 from src.services.dashboard_service import DashboardService
 from src.schemas.dashboard_schema import DashboardResponse

@@ -7,7 +7,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 
 from src.database import get_db
-from src.core.security import get_current_user
+from src.auth.supabase_auth import get_current_user
 from src.services.verification_service import require_verified_steward_or_platform_admin
 from src.models.profile import Profile
 from src.services.document_engine import draw_header, draw_footer

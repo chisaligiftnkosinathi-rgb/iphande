@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends, Form, Request
 from fastapi.responses import FileResponse
-from src.core.security import get_current_user
+from src.auth.supabase_auth import get_current_user
 from src.models.profile import Profile
 from sqlalchemy.orm import Session
 from datetime import datetime

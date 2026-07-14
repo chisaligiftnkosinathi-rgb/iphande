@@ -13,7 +13,7 @@ from src.models.profile import Profile
 from src.database import get_db
 from src.services.continuity_event_service import emit_continuity_event
 from src.services.verification_service import require_verified_steward_or_platform_admin
-from src.core.security import get_current_user
+from src.auth.supabase_auth import get_current_user
 
 router = APIRouter()
 

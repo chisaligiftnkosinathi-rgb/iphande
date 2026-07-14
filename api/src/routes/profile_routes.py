@@ -10,7 +10,7 @@ from src.schemas.profile_schema import ProfileCreate, ProfileOut, ProfileUpdate
 from src.schemas.public_profile_schema import PublicProfileOut
 from src.schemas.profile_location_schema import ProfileLocationUpdate
 from src.services.continuity_event_service import emit_continuity_event
-from src.core.security import get_current_user
+from src.auth.supabase_auth import get_current_user
 from src.models.referral import Referral
 import string
 import random

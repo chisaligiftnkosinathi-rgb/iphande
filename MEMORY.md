@@ -24,6 +24,16 @@ TRUTH + MEMORY = TRUST | TRUST + WORK = VALUE | VALUE + DISCIPLINE = PROVISION |
 - **iPhande:** Measures PROVISION (Marketplace of Service).
 - **Shared DNA:** TRUTH + MEMORY = TRUST.
 
+## 🧭 The Core Purpose (Locked July 2026)
+- **The Ultimate Motivation:** To simplify complexity so people can focus on what truly matters. People should not have to wrestle with unnecessary complexity to live meaningful lives.
+- **The Mandate:** Build and steward systems that faithfully serve people, by making truth, quality, and care more dependable.
+- **The Triad of Hope (The Genesis):**
+  1. **Truth:** This is how things are.
+  2. **Discernment:** It shouldn't be like this.
+  3. **Hope:** One day it will all be well.
+- **The Expanded Continuity Framework:** Observation → Truth → Discernment → Stewardship → Hope.
+- **The Journey:** From observing a town (Carolina) generating global wealth but lacking local water, to working inside a struggling system (Imbally), to building the systems of tomorrow (AXIONYX / iPhande) that remember and care for the truthful worker.
+
 ## Governing Principles (Stewardship Foundation)
 1. **Provision First:** The software must prioritize feeding the household before asking for generosity.
 2. **Truth Before Scale:** Growth must never outrun integrity.

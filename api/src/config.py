@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     AXIONYX_API_URL: str = "http://axionyx.railway.internal:8000"
     
     BOOTSTRAP_ADMIN_EMAILS: str = ""
+    SYSTEM_CREATOR_EMAIL: str = ""  # The one person who bootstraps the platform on first sign-in
     
     @property
     def cors_origins_list(self) -> list[str]:
@@ -49,3 +50,4 @@ JWT_SECRET = settings.JWT_SECRET
 AXIONYX_API_URL = settings.AXIONYX_API_URL
 CORS_ORIGINS = settings.cors_origins_list
 BOOTSTRAP_ADMIN_EMAILS = settings.bootstrap_admin_emails_list
+SYSTEM_CREATOR_EMAIL = settings.SYSTEM_CREATOR_EMAIL.strip().lower()
