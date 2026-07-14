@@ -41,7 +41,7 @@ from src.routes import (
     advertisement_routes, expense_routes, share_routes, admin_routes, document_routes, steward_console_routes,
     public_profiles, feed_geo, geo_match, engagement_events, action_delivery, feedback,
     trust, demand, ws_actions, availability, routing, telemetry, telemetry_drift,
-    telemetry_simulation, dashboard_routes
+    telemetry_simulation, dashboard_routes, bootstrap_routes
 )
 from src.routers.handshake import router as handshake_router
 from src.routers.financial_events import router as financial_events_router
@@ -205,10 +205,12 @@ if settings.DEPLOYMENT_MODE == "pilot":
     app.include_router(profile_routes.router, prefix="/api/v1")
     app.include_router(media_routes.router, prefix="/api/v1")
     app.include_router(dashboard_routes.router)
+    app.include_router(bootstrap_routes.router, prefix="/api/v1")
 else:
     # DEV / RC / PROD MODE: Full surface
     app.include_router(health_routes.router)
     app.include_router(dashboard_routes.router)
+    app.include_router(bootstrap_routes.router, prefix="/api/v1")
     app.include_router(handshake_router)
     app.include_router(financial_events_router)
     app.include_router(quotes_router)
