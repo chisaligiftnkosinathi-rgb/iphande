@@ -1809,3 +1809,20 @@ And that fits perfectly with the spirit of the Book of Observations.
 **End of Volume I**
 **Book of Observations**
 **Truth • Memory • Lineage • Evidence • Stewardship**
+
+---
+
+## Observation Record: Suzuki Battery Replacements
+**Date:** 2026-07-04
+**Context:** Vehicle maintenance
+**Observation:** Purchased the third battery for the Suzuki within approximately three years.
+**Evidence Status:** Personal observation.
+
+### Questions:
+* Why are batteries failing this frequently?
+* Is the cause the battery itself, the charging system, driving patterns (e.g. short trips), parasitic electrical drain, climate, or another electrical issue?
+
+### Follow-up:
+Monitor battery brand, installation date, warranty, charging voltage, and future performance before drawing conclusions. 
+
+**Insight:** This follows the same philosophy we've been building for businesses: *Observe → Preserve → Investigate → Understand.*

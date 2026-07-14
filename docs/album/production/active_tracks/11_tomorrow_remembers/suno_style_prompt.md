@@ -1,3 +1,0 @@
-# Suno Style Prompt — IPH-011
-
-Expansive, luminous, timeless, and deeply peaceful track. Gentle piano, luminous choir, ambient wind, echoes of memory, and emotionally spacious pacing. The song should feel like a message carried safely into the future — hope surviving time itself. Themes of legacy, preserved wisdom, protected dignity, truthful continuity, and intergenerational hope. No commercial anthem energy. No dramatic overproduction. No ego-centered triumph. Preserve silence, warmth, breathing room, humility, emotional sincerity, and documentary realism. The emotional feeling should be: hope and humanity carried forward for future generations.

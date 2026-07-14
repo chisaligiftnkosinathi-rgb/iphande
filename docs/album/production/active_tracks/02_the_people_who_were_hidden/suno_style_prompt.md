@@ -1,3 +1,0 @@
-# Suno Style Prompt — IPH-002
-
-Cinematic African memorial storytelling track with spoken-word soul atmosphere. Warm piano, subtle African percussion, ambient marketplace textures, restrained emotional choir layers, documentary realism, reflective narration, and soft emotional pacing. The song should feel compassionate, observant, and deeply human. Themes of invisible labor, overlooked dignity, hidden builders, and ordinary people carrying communities quietly. No commercial pop energy. No aggressive drums. No exaggerated sadness. Preserve warmth, breathing room, emotional sincerity, humility, and cinematic realism. The emotional feeling should be: discovering sacred dignity in unseen people.
