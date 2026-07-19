@@ -97,6 +97,24 @@
         "summary": "Get Dashboard",
         "description": "Get complete steward dashboard snapshot.\n\nAggregates merchant, trust, wallet, opportunities, notifications, and platform\ninformation into a single response optimized for the mobile dashboard screen.\n\n**Response Contract:**\n\n- `schema_version`: Bump when response structure changes (enables client migrations)\n- `timestamp`: UTC time when snapshot was generated\n- `generated_in_ms`: Backend latency for performance monitoring\n- Each section is wrapped in a `DashboardSection` envelope with `status`, `data`, `error`\n\n**Graceful Degradation:**\n\nIf merchant service fails, trust/wallet/notifications still load.\nIf notifications fail, merchant/trust/wallet still load.\nThis allows partial renders on the mobile app.\n\n**Performance:**\n\nTarget: < 500ms total latency\n- Merchant fetch: ~50ms\n- Trust recalculation: ~150ms\n- Wallet aggregation: ~50ms\n- Opportunities: ~30ms\n- Notifications: ~30ms\n- Platform: ~10ms\n\n**Caching Opportunity:**\n\nMerchant and trust could be cached for 5 minutes if recalculation is expensive.\nSee phase 2 optimization if response time exceeds targets.\n\nArgs:\n    db: Database session\n    current_user: Authenticated user dict (from JWT token)\n\nReturns:\n    DashboardResponse with all sections\n\nRaises:\n    HTTPException 401: If not authenticated\n    HTTPException 500: Should not happen\u2014service returns partial data instead",
         "operationId": "get_dashboard_api_v1_dashboard_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -107,13 +125,18 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/bootstrap": {
@@ -123,6 +146,24 @@
         ],
         "summary": "Get Bootstrap",
         "operationId": "get_bootstrap_api_v1_bootstrap_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -133,13 +174,18 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/mobile/handshake": {
@@ -2867,9 +2913,22 @@
       "post": {
         "summary": "Create Profile",
         "operationId": "create_profile_api_v1_profiles_post",
-        "security": [
+        "parameters": [
           {
-            "HTTPBearer": []
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
           }
         ],
         "requestBody": {
@@ -2958,6 +3017,24 @@
       "post": {
         "summary": "Bootstrap Profile",
         "operationId": "bootstrap_profile_api_v1_profiles_bootstrap_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -2968,19 +3045,42 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/profiles/me": {
       "get": {
         "summary": "Get My Profile",
         "operationId": "get_my_profile_api_v1_profiles_me_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -2991,26 +3091,49 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       },
       "patch": {
         "summary": "Update My Profile",
         "operationId": "update_my_profile_api_v1_profiles_me_patch",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ProfileUpdate"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -3033,18 +3156,31 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/profiles/me/onboarding-state": {
       "get": {
         "summary": "Get My Onboarding State",
         "operationId": "get_my_onboarding_state_api_v1_profiles_me_onboarding_state_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -3053,13 +3189,18 @@
                 "schema": {}
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/profiles/{profile_id}": {
@@ -3183,11 +3324,6 @@
       "patch": {
         "summary": "Update Profile Location",
         "operationId": "update_profile_location_api_v1_profiles__profile_id__location_patch",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "profile_id",
@@ -3196,6 +3332,22 @@
             "schema": {
               "type": "string",
               "title": "Profile Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -3237,11 +3389,6 @@
       "patch": {
         "summary": "Update Profile Visibility",
         "operationId": "update_profile_visibility_api_v1_profiles__profile_id__visibility_patch",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "profile_id",
@@ -3250,6 +3397,22 @@
             "schema": {
               "type": "string",
               "title": "Profile Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -3338,15 +3501,33 @@
       "post": {
         "summary": "Submit Payment Proof",
         "operationId": "submit_payment_proof_api_v1_profiles_me_payment_proof_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/PaymentProofCreate"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -3367,18 +3548,31 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/profiles/me/payment-status": {
       "get": {
         "summary": "Get Payment Status",
         "operationId": "get_payment_status_api_v1_profiles_me_payment_status_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -3387,13 +3581,18 @@
                 "schema": {}
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/opportunities": {
@@ -3730,6 +3929,24 @@
       "get": {
         "summary": "Get My Referrals",
         "operationId": "get_my_referrals_api_v1_referrals_me_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -3740,51 +3957,74 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/referrals/pending": {
       "get": {
         "summary": "Get Pending Referrals",
         "operationId": "get_pending_referrals_api_v1_admin_referrals_pending_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
+                  "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/ReferralOut"
                   },
-                  "type": "array",
                   "title": "Response Get Pending Referrals Api V1 Admin Referrals Pending Get"
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/referrals/{referral_id}/pay": {
       "patch": {
         "summary": "Mark Referral Paid",
         "operationId": "mark_referral_paid_api_v1_admin_referrals__referral_id__pay_patch",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "referral_id",
@@ -3793,6 +4033,22 @@
             "schema": {
               "type": "string",
               "title": "Referral Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -3824,11 +4080,6 @@
       "patch": {
         "summary": "Reject Referral",
         "operationId": "reject_referral_api_v1_admin_referrals__referral_id__reject_patch",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "referral_id",
@@ -3837,6 +4088,22 @@
             "schema": {
               "type": "string",
               "title": "Referral Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -4337,27 +4604,50 @@
         ],
         "summary": "Get My Leads",
         "operationId": "get_my_leads_api_v1_leads_me_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
+                  "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/LeadOut"
                   },
-                  "type": "array",
                   "title": "Response Get My Leads Api V1 Leads Me Get"
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/leads/{lead_id}": {
@@ -4367,11 +4657,6 @@
         ],
         "summary": "Update Lead Status",
         "operationId": "update_lead_status_api_v1_leads__lead_id__patch",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "lead_id",
@@ -4380,6 +4665,22 @@
             "schema": {
               "type": "string",
               "title": "Lead Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -4424,6 +4725,24 @@
         ],
         "summary": "Get Admin Dashboard",
         "operationId": "get_admin_dashboard_api_v1_admin_dashboard_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -4434,13 +4753,18 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/profiles/payment-proofs": {
@@ -4450,11 +4774,6 @@
         ],
         "summary": "List Payment Proofs",
         "operationId": "list_payment_proofs_api_v1_admin_profiles_payment_proofs_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "status",
@@ -4473,6 +4792,22 @@
               "title": "Status"
             },
             "description": "Filter by status, e.g. pending_review"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
           }
         ],
         "responses": {
@@ -4510,11 +4845,6 @@
         ],
         "summary": "Approve Payment",
         "operationId": "approve_payment_api_v1_admin_profiles__profile_id__approve_payment_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "profile_id",
@@ -4523,6 +4853,22 @@
             "schema": {
               "type": "string",
               "title": "Profile Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -4555,11 +4901,6 @@
         ],
         "summary": "Reject Payment",
         "operationId": "reject_payment_api_v1_admin_profiles__profile_id__reject_payment_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "profile_id",
@@ -4568,6 +4909,22 @@
             "schema": {
               "type": "string",
               "title": "Profile Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -4610,11 +4967,6 @@
         ],
         "summary": "Update Profile Plan",
         "operationId": "update_profile_plan_api_v1_admin_profiles__profile_id__plan_patch",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "profile_id",
@@ -4623,6 +4975,22 @@
             "schema": {
               "type": "string",
               "title": "Profile Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -4665,27 +5033,50 @@
         ],
         "summary": "List Users",
         "operationId": "list_users_api_v1_admin_users_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
+                  "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/UserOut"
                   },
-                  "type": "array",
                   "title": "Response List Users Api V1 Admin Users Get"
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/users/{profile_id}/promote-admin": {
@@ -4695,11 +5086,6 @@
         ],
         "summary": "Promote Admin",
         "operationId": "promote_admin_api_v1_admin_users__profile_id__promote_admin_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "profile_id",
@@ -4708,6 +5094,22 @@
             "schema": {
               "type": "string",
               "title": "Profile Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -4740,11 +5142,6 @@
         ],
         "summary": "Demote Admin",
         "operationId": "demote_admin_api_v1_admin_users__profile_id__demote_admin_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "profile_id",
@@ -4753,6 +5150,22 @@
             "schema": {
               "type": "string",
               "title": "Profile Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -4896,15 +5309,33 @@
       "post": {
         "summary": "Upload Media",
         "operationId": "upload_media_api_v1_upload_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "multipart/form-data": {
               "schema": {
                 "$ref": "#/components/schemas/Body_upload_media_api_v1_upload_post"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -4927,12 +5358,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/files/{media_id}": {
@@ -4976,11 +5402,6 @@
       "post": {
         "summary": "Analyze Media",
         "operationId": "analyze_media_api_v1_media__media_id__analyze_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "media_id",
@@ -4989,6 +5410,22 @@
             "schema": {
               "type": "string",
               "title": "Media Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -5079,11 +5516,6 @@
       "patch": {
         "summary": "Update Media",
         "operationId": "update_media_api_v1_media__media_id__patch",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "media_id",
@@ -5092,6 +5524,22 @@
             "schema": {
               "type": "string",
               "title": "Media Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -5131,11 +5579,6 @@
       "delete": {
         "summary": "Delete Media",
         "operationId": "delete_media_api_v1_media__media_id__delete",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "media_id",
@@ -5144,6 +5587,22 @@
             "schema": {
               "type": "string",
               "title": "Media Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -7585,11 +8044,6 @@
         ],
         "summary": "Download Quote Pdf",
         "operationId": "download_quote_pdf_api_v1_documents_quotes__document_id__pdf_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "document_id",
@@ -7598,6 +8052,22 @@
             "schema": {
               "type": "string",
               "title": "Document Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -7630,11 +8100,6 @@
         ],
         "summary": "Download Invoice Pdf",
         "operationId": "download_invoice_pdf_api_v1_documents_invoices__document_id__pdf_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "document_id",
@@ -7643,6 +8108,22 @@
             "schema": {
               "type": "string",
               "title": "Document Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -7675,9 +8156,22 @@
         ],
         "summary": "Create Event",
         "operationId": "create_event_api_v1_continuity_events__post",
-        "security": [
+        "parameters": [
           {
-            "HTTPBearer": []
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
           }
         ],
         "requestBody": {
@@ -7917,11 +8411,6 @@
         ],
         "summary": "Get Events For Business",
         "operationId": "get_events_for_business_api_v1_continuity_events_business__business_owner_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "parameters": [
           {
             "name": "business_owner_id",
@@ -7953,6 +8442,22 @@
               "minimum": 0,
               "default": 0,
               "title": "Offset"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -8454,6 +8959,24 @@
         ],
         "summary": "Export Steward Console",
         "operationId": "export_steward_console_api_v1_steward_console_export_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -8462,13 +8985,18 @@
                 "schema": {}
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/river/event": {
@@ -8555,6 +9083,32 @@
             "content": {
               "application/json": {
                 "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/policies": {
+      "get": {
+        "tags": [
+          "Constitution"
+        ],
+        "summary": "List Policies",
+        "description": "Returns the current policies evaluating institutional rules.",
+        "operationId": "list_policies_api_v1_policies_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Policy"
+                  },
+                  "type": "array",
+                  "title": "Response List Policies Api V1 Policies Get"
+                }
               }
             }
           }
@@ -8799,6 +9353,19 @@
         ],
         "title": "AdvertisementOut"
       },
+      "ApplicationState": {
+        "properties": {
+          "stage": {
+            "type": "string",
+            "title": "Stage"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stage"
+        ],
+        "title": "ApplicationState"
+      },
       "Body_upload_media_api_v1_upload_post": {
         "properties": {
           "file": {
@@ -8880,8 +9447,35 @@
       },
       "BootstrapResponse": {
         "properties": {
+          "session": {
+            "title": "Session",
+            "default": {}
+          },
           "identity": {
             "$ref": "#/components/schemas/IdentitySchema"
+          },
+          "business": {
+            "title": "Business",
+            "default": {}
+          },
+          "application": {
+            "$ref": "#/components/schemas/ApplicationState"
+          },
+          "setup": {
+            "$ref": "#/components/schemas/SetupState"
+          },
+          "subscription": {
+            "$ref": "#/components/schemas/SubscriptionState"
+          },
+          "workspace": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkspaceSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "businesses": {
             "items": {
@@ -8944,6 +9538,9 @@
         "type": "object",
         "required": [
           "identity",
+          "application",
+          "setup",
+          "subscription",
           "businesses",
           "selectedBusinessId",
           "permissions",
@@ -13992,6 +14589,128 @@
         "title": "PlatformInfo",
         "description": "Platform status and metadata"
       },
+      "Policy": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "current_version": {
+            "type": "string",
+            "title": "Current Version"
+          },
+          "versions": {
+            "items": {
+              "$ref": "#/components/schemas/PolicyVersion"
+            },
+            "type": "array",
+            "title": "Versions"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "current_version",
+          "versions",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Policy"
+      },
+      "PolicyRule": {
+        "properties": {
+          "condition": {
+            "type": "object",
+            "title": "Condition"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          }
+        },
+        "type": "object",
+        "required": [
+          "condition",
+          "action"
+        ],
+        "title": "PolicyRule"
+      },
+      "PolicyVersion": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "rules": {
+            "items": {
+              "$ref": "#/components/schemas/PolicyRule"
+            },
+            "type": "array",
+            "title": "Rules"
+          },
+          "approved_by": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Approved By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "effective_from",
+          "rules",
+          "approved_by"
+        ],
+        "title": "PolicyVersion"
+      },
       "ProfileCreate": {
         "properties": {
           "name": {
@@ -17982,6 +18701,34 @@
         ],
         "title": "SetupFeeReview"
       },
+      "SetupState": {
+        "properties": {
+          "exists": {
+            "type": "boolean",
+            "title": "Exists"
+          },
+          "completed": {
+            "type": "boolean",
+            "title": "Completed"
+          },
+          "current_step": {
+            "type": "integer",
+            "title": "Current Step"
+          },
+          "total_steps": {
+            "type": "integer",
+            "title": "Total Steps"
+          }
+        },
+        "type": "object",
+        "required": [
+          "exists",
+          "completed",
+          "current_step",
+          "total_steps"
+        ],
+        "title": "SetupState"
+      },
       "ShareResponseOut": {
         "properties": {
           "share_text": {
@@ -18183,6 +18930,24 @@
           "epistemic_boundary"
         ],
         "title": "StewardTimelineEventOut"
+      },
+      "SubscriptionState": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "plan": {
+            "type": "string",
+            "title": "Plan"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "plan"
+        ],
+        "title": "SubscriptionState"
       },
       "SystemSchema": {
         "properties": {
@@ -18524,12 +19289,83 @@
         ],
         "title": "WalletInfo",
         "description": "Financial summary"
-      }
-    },
-    "securitySchemes": {
-      "HTTPBearer": {
-        "type": "http",
-        "scheme": "bearer"
+      },
+      "WorkspaceSchema": {
+        "properties": {
+          "priority": {
+            "type": "string",
+            "title": "Priority"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/WorkspaceSnapshotSchema"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/WorkspaceSummarySchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "priority",
+          "snapshot",
+          "summary"
+        ],
+        "title": "WorkspaceSchema"
+      },
+      "WorkspaceSnapshotSchema": {
+        "properties": {
+          "visibility": {
+            "type": "string",
+            "title": "Visibility"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location"
+          },
+          "subscription_plan": {
+            "type": "string",
+            "title": "Subscription Plan"
+          }
+        },
+        "type": "object",
+        "required": [
+          "visibility",
+          "category",
+          "location",
+          "subscription_plan"
+        ],
+        "title": "WorkspaceSnapshotSchema"
+      },
+      "WorkspaceSummarySchema": {
+        "properties": {
+          "leads": {
+            "type": "integer",
+            "title": "Leads"
+          },
+          "quotes": {
+            "type": "integer",
+            "title": "Quotes"
+          },
+          "views": {
+            "type": "integer",
+            "title": "Views"
+          },
+          "followups": {
+            "type": "integer",
+            "title": "Followups"
+          }
+        },
+        "type": "object",
+        "required": [
+          "leads",
+          "quotes",
+          "views",
+          "followups"
+        ],
+        "title": "WorkspaceSummarySchema"
       }
     }
   }

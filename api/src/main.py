@@ -269,3 +269,19 @@ else:
     app.include_router(steward_console_routes.router)
     app.include_router(river_router, prefix="/api/v1")
     app.include_router(river_stream_router, prefix="/api/v1")
+
+
+# --- Canonical Runtime Adoption ---
+import sys
+import os
+# The canonical package is now installed in the venv, but we keep sys.path just in case for local dev without install
+canonical_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../axis_clean/packages/canonical-schema"))
+if canonical_path not in sys.path:
+    sys.path.append(canonical_path)
+
+from canonical_schema.models.policy import Policy
+
+@app.get("/api/v1/policies", response_model=list[Policy], tags=["Constitution"])
+def list_policies():
+    """Returns the current policies evaluating institutional rules."""
+    return []
