@@ -31,36 +31,15 @@ def upgrade():
         'promotional',
         name='config_scope'
     )
-    config_scope_enum.create(op.get_bind())
+    config_scope_enum.create(op.get_bind(), checkfirst=True)
 
-    # Add idempotency fields to fee_ledger
-    op.add_column('fee_ledgers', sa.Column(
-        'idempotency_key',
-        sa.String(),
-        nullable=True
-    ))
-    op.add_column('fee_ledgers', sa.Column(
-        'provider_event_id',
-        sa.String(),
-        nullable=True
-    ))
-
-    # Create indexes for idempotency fields
-    op.create_unique_constraint(
-        'uq_fee_ledgers_idempotency_key',
-        'fee_ledgers',
-        ['idempotency_key']
-    )
-    op.create_index(
-        'ix_fee_ledgers_idempotency_key',
-        'fee_ledgers',
-        ['idempotency_key']
-    )
-    op.create_index(
-        'ix_fee_ledgers_provider_event_id',
-        'fee_ledgers',
-        ['provider_event_id']
-    )
+    # Add idempotency fields and indexes using batch mode for SQLite support
+    with op.batch_alter_table('fee_ledgers') as batch_op:
+        batch_op.add_column(sa.Column('idempotency_key', sa.String(), nullable=True))
+        batch_op.add_column(sa.Column('provider_event_id', sa.String(), nullable=True))
+        batch_op.create_unique_constraint('uq_fee_ledgers_idempotency_key', ['idempotency_key'])
+        batch_op.create_index('ix_fee_ledgers_idempotency_key', ['idempotency_key'])
+        batch_op.create_index('ix_fee_ledgers_provider_event_id', ['provider_event_id'])
 
     # Create platform_configs table
     op.create_table(
@@ -72,7 +51,8 @@ def upgrade():
             'trust_tier',
             'business_category',
             'promotional',
-            name='config_scope'
+            name='config_scope',
+            create_type=False
         ), nullable=False),
         sa.Column('trust_tier', sa.String(), nullable=True),
         sa.Column('business_category', sa.String(), nullable=True),
@@ -116,24 +96,32 @@ def upgrade():
     op.create_index('ix_ledger_immutability_logs_ledger_id', 'ledger_immutability_logs', ['ledger_id'])
 
     # Insert default global platform fee
-    op.execute("""
-        INSERT INTO platform_configs (
-            id, key, scope, value_type, decimal_value, is_active,
-            effective_from, changed_by, change_reason, created_at, updated_at
-        ) VALUES (
-            gen_random_uuid(),
-            'platform_fee_percent',
-            'global_default',
-            'decimal',
-            10,
-            true,
-            now(),
-            'system',
-            'Initial default configuration',
-            now(),
-            now()
-        );
-    """)
+    import uuid
+    from datetime import datetime
+
+    op.execute(
+        sa.text("""
+            INSERT INTO platform_configs (
+                id, key, scope, value_type, decimal_value, is_active,
+                effective_from, changed_by, change_reason, created_at, updated_at
+            ) VALUES (
+                :id,
+                'platform_fee_percent',
+                'global_default',
+                'decimal',
+                10,
+                TRUE,
+                :now,
+                'system',
+                'Initial default configuration',
+                :now,
+                :now
+            )
+        """).bindparams(
+            id=str(uuid.uuid4()).replace('-', ''),
+            now=datetime.utcnow()
+        )
+    )
 
 
 def downgrade():
