@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from src.database import get_db, replay_transaction
+from src.auth.supabase_auth import get_current_user
 from src.models.expense import Expense
 from src.models.quote import Quote, QuoteStatus
 from src.models.payment_intent import PaymentIntent, PaymentIntentStatus
@@ -22,12 +23,15 @@ def get_categories(archetype_key: str | None = Query(None)):
 
 
 @router.post("", response_model=ExpenseOut)
-def create_expense(payload: ExpenseCreate, db: Session = Depends(get_db)):
+def create_expense(payload: ExpenseCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    from src.services.verification_service import verify_tenant_access
+    profile = verify_tenant_access(db, current_user, payload.business_owner_id)
+    
     if payload.amount <= 0:
         raise HTTPException(status_code=400, detail="Expense amount must be positive")
 
     expense = Expense(
-        business_owner_id=payload.business_owner_id,
+        business_owner_id=profile.id,
         amount=payload.amount,
         category=payload.category,
         description=payload.description,
@@ -66,9 +70,13 @@ def list_expenses(
     business_owner_id: str,
     month: int | None = Query(None, description="Month (1-12)"),
     year: int | None = Query(None, description="Year (e.g., 2026)"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
-    query = db.query(Expense).filter(Expense.business_owner_id == business_owner_id)
+    from src.services.verification_service import verify_tenant_access
+    profile = verify_tenant_access(db, current_user, business_owner_id)
+    
+    query = db.query(Expense).filter(Expense.business_owner_id == profile.id)
     
     # In sqlite EXTRACT(MONTH) might not work natively but since this is postgres in prod it will
     # we can use date comparisons instead
@@ -90,10 +98,14 @@ def get_expense_summary(
     business_owner_id: str,
     month: int | None = Query(None),
     year: int | None = Query(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
+    from src.services.verification_service import verify_tenant_access
+    profile = verify_tenant_access(db, current_user, business_owner_id)
+
     # Calculate expenses
-    expenses_query = db.query(func.sum(Expense.amount)).filter(Expense.business_owner_id == business_owner_id)
+    expenses_query = db.query(func.sum(Expense.amount)).filter(Expense.business_owner_id == profile.id)
     
     if month and year:
         start_date = date(year, month, 1)
@@ -114,7 +126,7 @@ def get_expense_summary(
     # Let's use Quotes with status accepted, completed.
     
     income_query = db.query(func.sum(Quote.amount)).filter(
-        Quote.business_owner_id == business_owner_id,
+        Quote.business_owner_id == profile.id,
         Quote.status.in_([QuoteStatus.accepted, "completed", "paid"])
     )
     

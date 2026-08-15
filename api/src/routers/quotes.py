@@ -26,9 +26,18 @@ router = APIRouter(prefix="/api/v1/quotes", tags=["quotes"])
 
 
 @router.post("", response_model=QuoteOut)
-def create_quote(payload: QuoteCreate, db: Session = Depends(get_db)):
+def create_quote(payload: QuoteCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     profile = db.query(Profile).filter(Profile.id == payload.business_owner_id).first()
     require_verified_steward_or_platform_admin(profile)
+
+    uid = current_user.get("uid")
+    is_service = current_user.get("is_service")
+    if is_service:
+        if profile.id != uid:
+            raise HTTPException(status_code=403, detail="Not authorized to create quote for this profile")
+    else:
+        if profile.owner_id != uid:
+            raise HTTPException(status_code=403, detail="Not authorized to create quote for this profile")
 
     quote_id = uuid.uuid4()
 
@@ -123,22 +132,30 @@ def create_quote(payload: QuoteCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/business/{business_owner_id}", response_model=list[QuoteOut])
-def list_quotes_for_business(business_owner_id: str, db: Session = Depends(get_db)):
-    profile = db.query(Profile).filter(Profile.id == business_owner_id).first()
-    require_verified_steward_or_platform_admin(profile)
+def list_quotes_for_business(business_owner_id: str, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    from src.services.verification_service import verify_tenant_access
+    profile = verify_tenant_access(db, current_user, business_owner_id)
 
     return (
         db.query(Quote)
-        .filter(Quote.business_owner_id == business_owner_id)
+        .filter(Quote.business_owner_id == profile.id)
         .order_by(Quote.created_at.asc())
         .all()
     )
 
 
+
+
+
 @router.get("/me", response_model=list[QuoteOut])
 def get_my_quotes(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     uid = current_user.get("uid")
-    profile = db.query(Profile).filter(Profile.owner_id == uid).first()
+    is_service = current_user.get("is_service")
+    if is_service:
+        profile = db.query(Profile).filter(Profile.id == uid).first()
+    else:
+        profile = db.query(Profile).filter(Profile.owner_id == uid).first()
+        
     if not profile:
         raise HTTPException(status_code=404, detail="Steward profile not found")
     require_verified_steward_or_platform_admin(profile)
@@ -159,17 +176,32 @@ def get_quote_detail(quote_id: UUID, db: Session = Depends(get_db), current_user
     
     # Verify ownership
     uid = current_user.get("uid")
-    profile = db.query(Profile).filter(Profile.owner_id == uid).first()
+    is_service = current_user.get("is_service")
+    if is_service:
+        profile = db.query(Profile).filter(Profile.id == uid).first()
+    else:
+        profile = db.query(Profile).filter(Profile.owner_id == uid).first()
+        
     if not profile or quote.business_owner_id != profile.id:
         raise HTTPException(status_code=403, detail="Not authorized to view this quote")
     return quote
 
 
 @router.post("/{quote_id}/send", response_model=QuoteOut)
-def send_quote(quote_id: UUID, db: Session = Depends(get_db)):
+def send_quote(quote_id: UUID, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     quote = db.query(Quote).filter(Quote.id == quote_id).first()
     if not quote:
         raise HTTPException(status_code=404, detail="Quote not found")
+
+    uid = current_user.get("uid")
+    is_service = current_user.get("is_service")
+    if is_service:
+        profile = db.query(Profile).filter(Profile.id == uid).first()
+    else:
+        profile = db.query(Profile).filter(Profile.owner_id == uid).first()
+        
+    if not profile or quote.business_owner_id != profile.id:
+        raise HTTPException(status_code=403, detail="Not authorized to send this quote")
 
     allowed_statuses = {QuoteStatus.quote_drafted, QuoteStatus.issued}
     if quote.status not in allowed_statuses:
@@ -264,14 +296,29 @@ def create_payment_intent_from_quote(
 
 
 @router.post("/{quote_id}/accept", response_model=QuoteOut)
-def accept_quote(quote_id: UUID, db: Session = Depends(get_db)):
+def accept_quote(quote_id: UUID, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     quote = db.query(Quote).filter(Quote.id == quote_id).first()
     if not quote:
         raise HTTPException(status_code=404, detail="Quote not found")
+
+    uid = current_user.get("uid")
+    is_service = current_user.get("is_service")
+    if is_service:
+        profile = db.query(Profile).filter(Profile.id == uid).first()
+    else:
+        profile = db.query(Profile).filter(Profile.owner_id == uid).first()
+        
+    if not profile or quote.business_owner_id != profile.id:
+        raise HTTPException(status_code=403, detail="Not authorized to accept this quote")
+
+    if quote.status == QuoteStatus.accepted:
+        return quote
+
     if quote.status != QuoteStatus.issued:
         raise HTTPException(status_code=409, detail="Only issued quotes can be accepted")
 
     current_quote_state = quote.status.value if hasattr(quote.status, 'value') else quote.status
+
     try:
         audit_transition(
             db,
@@ -287,8 +334,22 @@ def accept_quote(quote_id: UUID, db: Session = Depends(get_db)):
         raise HTTPException(status_code=409, detail=str(e))
 
     with replay_transaction(db):
+        # Atomic state transition lock
+        rows_updated = db.query(Quote).filter(
+            Quote.id == quote_id,
+            Quote.status == QuoteStatus.issued
+        ).update({"status": QuoteStatus.accepted, "accepted_at": datetime.now(timezone.utc)}, synchronize_session=False)
+
+        if rows_updated == 0:
+            db.rollback()
+            db.refresh(quote)
+            if quote.status == QuoteStatus.accepted:
+                return quote
+            raise HTTPException(status_code=409, detail="Quote is not in issued state or was modified concurrently")
+
         quote.status = QuoteStatus.accepted
         quote.accepted_at = datetime.now(timezone.utc)
+        
         event = emit_continuity_event(
             db,
             business_owner_id=quote.business_owner_id,

@@ -7,6 +7,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from src.database import get_db, replay_transaction
+from src.auth.supabase_auth import get_current_user
 from src.models.continuity_event_model import ContinuityEvent
 from src.models.inventory import InventoryItem, InventoryMovement, InventoryMovementType
 from src.schemas.inventory_schema import (
@@ -23,11 +24,14 @@ router = APIRouter(prefix="/api/v1/inventory", tags=["inventory"])
 
 
 @router.post("/items", response_model=InventoryItemOut)
-def create_inventory_item(payload: InventoryItemCreate, db: Session = Depends(get_db)):
+def create_inventory_item(payload: InventoryItemCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    from src.services.verification_service import verify_tenant_access
+    profile = verify_tenant_access(db, current_user, payload.business_owner_id)
+
     existing = (
         db.query(InventoryItem)
         .filter(
-            InventoryItem.business_owner_id == payload.business_owner_id,
+            InventoryItem.business_owner_id == profile.id,
             InventoryItem.sku == payload.sku,
         )
         .first()
@@ -35,7 +39,9 @@ def create_inventory_item(payload: InventoryItemCreate, db: Session = Depends(ge
     if existing:
         raise HTTPException(status_code=409, detail="Inventory item SKU already exists for this business")
 
-    item = InventoryItem(**payload.model_dump())
+    item_data = payload.model_dump()
+    item_data["business_owner_id"] = profile.id
+    item = InventoryItem(**item_data)
     db.add(item)
     db.commit()
     db.refresh(item)
@@ -43,30 +49,36 @@ def create_inventory_item(payload: InventoryItemCreate, db: Session = Depends(ge
 
 
 @router.post("/items/{item_id}/add-stock", response_model=InventoryMovementOut)
-def add_stock(item_id: UUID, payload: InventoryMovementCreate, db: Session = Depends(get_db)):
+def add_stock(item_id: UUID, payload: InventoryMovementCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     return record_inventory_movement(
         db=db,
         item_id=item_id,
         payload=payload,
         movement_type=InventoryMovementType.stock_added,
+        current_user=current_user,
     )
 
 
 @router.post("/items/{item_id}/consume-stock", response_model=InventoryMovementOut)
-def consume_stock(item_id: UUID, payload: InventoryMovementCreate, db: Session = Depends(get_db)):
+def consume_stock(item_id: UUID, payload: InventoryMovementCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     return record_inventory_movement(
         db=db,
         item_id=item_id,
         payload=payload,
         movement_type=InventoryMovementType.stock_consumed,
+        current_user=current_user,
     )
 
 
 @router.get("/business/{business_owner_id}/balances", response_model=list[InventoryBalanceOut])
-def list_inventory_balances(business_owner_id: str, db: Session = Depends(get_db)):
+def list_inventory_balances(business_owner_id: str, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    from src.auth.supabase_auth import get_current_user
+    from src.services.verification_service import verify_tenant_access
+    profile = verify_tenant_access(db, current_user, business_owner_id)
+    
     items = (
         db.query(InventoryItem)
-        .filter(InventoryItem.business_owner_id == business_owner_id)
+        .filter(InventoryItem.business_owner_id == profile.id)
         .order_by(InventoryItem.name.asc())
         .all()
     )
@@ -85,10 +97,12 @@ def list_inventory_balances(business_owner_id: str, db: Session = Depends(get_db
 
 
 @router.get("/items/{item_id}/replay", response_model=list[InventoryMovementOut])
-def get_inventory_replay(item_id: UUID, db: Session = Depends(get_db)):
+def get_inventory_replay(item_id: UUID, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    from src.services.verification_service import verify_tenant_access
     item = db.query(InventoryItem).filter(InventoryItem.id == item_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Inventory item not found")
+    verify_tenant_access(db, current_user, item.business_owner_id)
     return (
         db.query(InventoryMovement)
         .filter(InventoryMovement.inventory_item_id == item_id)
@@ -103,10 +117,13 @@ def record_inventory_movement(
     item_id: UUID,
     payload: InventoryMovementCreate,
     movement_type: InventoryMovementType,
+    current_user: dict,
 ):
+    from src.services.verification_service import verify_tenant_access
     item = db.query(InventoryItem).filter(InventoryItem.id == item_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Inventory item not found")
+    verify_tenant_access(db, current_user, item.business_owner_id)
 
     previous_balance = get_inventory_balance(db, item_id)
     signed_quantity = movement_signed_quantity(movement_type, payload.quantity)
