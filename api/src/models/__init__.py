@@ -34,3 +34,4 @@ from .scripture_reflection import ScriptureReflection
 from .steward_annotation import StewardAnnotation
 from .timeline_event import TimelineEvent
 from .trust_score import TrustScore
+from .tenant_mapping import TenantIdentityMapping

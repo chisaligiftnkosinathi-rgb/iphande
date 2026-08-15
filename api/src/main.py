@@ -60,7 +60,7 @@ from src.routes.payfast_routes import router as payfast_router
 from src.routes import auth_routes
 
 from src.models.quote_request_model import QuoteRequest
-from src.database import create_tables, SessionLocal, engine, Base
+from src.database import SessionLocal, engine, Base
 from src.database_immutability import register_immutability_guards
 from src.routes.continuity_event_routes import router as continuity_event_router
 
@@ -89,11 +89,8 @@ async def _init_background():
     try:
         logger.info("⚙️  Background initialization started")
 
-        # Optional schema creation (only in dev, not production)
-        if settings.AUTO_CREATE_SCHEMA:
-            logger.info("📦 Creating/verifying database schema...")
-            Base.metadata.create_all(bind=engine)
-            logger.info("✅ Schema verified")
+        # 6F.7.2: Schema creation removed. Alembic is the sole authority.
+        # If the schema is missing, it's a deployment error, not something we repair at runtime.
 
         # CRITICAL: Register immutability guards for ledger protection
         logger.info("🔐 Registering immutability guards...")
@@ -207,6 +204,20 @@ if settings.DEPLOYMENT_MODE == "pilot":
     app.include_router(media_routes.router, prefix="/api/v1")
     app.include_router(dashboard_routes.router)
     app.include_router(bootstrap_routes.router, prefix="/api/v1")
+    
+    # Quotes Router for S2S
+    from src.routers.quotes import router as quotes_router
+    app.include_router(quotes_router)
+    
+    # S2S Router
+    from src.routers.s2s import router as s2s_router
+    app.include_router(s2s_router)
+    
+    # 6F.6 Commercial Lifecycle Routes
+    app.include_router(opportunity_routes.router, prefix="/api/v1")
+    app.include_router(financial_events_router)
+    app.include_router(payments_router)
+    
 else:
     # DEV / RC / PROD MODE: Full surface
     app.include_router(health_routes.router)
@@ -269,6 +280,10 @@ else:
     app.include_router(steward_console_routes.router)
     app.include_router(river_router, prefix="/api/v1")
     app.include_router(river_stream_router, prefix="/api/v1")
+
+    # S2S Router
+    from src.routers.s2s import router as s2s_router
+    app.include_router(s2s_router)
 
 
 # --- Canonical Runtime Adoption ---

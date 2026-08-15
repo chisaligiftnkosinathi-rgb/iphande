@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     ENVIRONMENT: str
     DEPLOYMENT_MODE: str = "dev"  # dev, rc, pilot, prod
     
+    # S2S Authentication
+    GLOBAL_IT_PUBLIC_KEYS: str  # JSON map of kid -> public key PEM
+    
     # Optional with safe defaults
     APP_NAME: str = "iPhande API"
     API_VERSION: str = "0.1.0"

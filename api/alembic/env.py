@@ -12,8 +12,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import our settings and database metadata
 from src.config import settings
-from src.database import Base
-import src.models  # Ensure all models are registered with Base
+from src.database import Base, register_models
+register_models()
 
 # This is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -76,7 +76,9 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection, 
+            target_metadata=target_metadata,
+            render_as_batch=True
         )
 
         with context.begin_transaction():
