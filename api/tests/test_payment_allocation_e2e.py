@@ -311,10 +311,12 @@ def test_config_cache_uses_memory_not_db(db):
     Expected: Cache avoids database queries for TTL duration
     Verify: Consistent values returned from cache
     """
-    # Clear cache
+    # Clear cache and existing DB config for test isolation
     PlatformConfigCache.invalidate_all()
+    db.query(PlatformConfig).filter_by(key="platform_fee_percent").delete()
+    db.commit()
 
-    # First lookup - should query DB
+    # First lookup - should query DB and fallback to default 10%
     value1 = PlatformConfigCache.get_fee_percent(db)
 
     # Create a config
@@ -345,10 +347,12 @@ def test_config_cache_invalidation(db):
     Expected: Next lookup queries database for fresh value
     Verify: Manual invalidation works
     """
-    # Clear cache
+    # Clear cache and existing DB config for test isolation
     PlatformConfigCache.invalidate_all()
+    db.query(PlatformConfig).filter_by(key="platform_fee_percent").delete()
+    db.commit()
 
-    # Get initial value
+    # Get initial value (defaults to 10%)
     value1 = PlatformConfigCache.get_fee_percent(db)
 
     # Invalidate cache
