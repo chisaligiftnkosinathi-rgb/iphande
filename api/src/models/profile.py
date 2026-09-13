@@ -1,12 +1,22 @@
-from sqlalchemy import Column, String, DateTime, Float, Boolean, JSON
+import enum
+from sqlalchemy import Column, String, DateTime, Float, Boolean, JSON, Enum
 from sqlalchemy.dialects.sqlite import TEXT
 from src.database import Base
 import uuid
 from datetime import datetime
 
+class BusinessType(str, enum.Enum):
+    retail = "retail"
+    service = "service"
+    wholesale = "wholesale"
+    digital = "digital"
+
 class Profile(Base):
     __tablename__ = "profiles"
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    business_type = Column(Enum(BusinessType, name="businesstype"), default=BusinessType.service, nullable=False)
+    categories = Column(JSON, default=list, nullable=True)
+    currency = Column(String, default="ZAR", nullable=False)
     name = Column(String, nullable=False)
     slug = Column(String, unique=True, nullable=False)
     email = Column(String, unique=True, nullable=False)

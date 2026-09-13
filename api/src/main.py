@@ -58,6 +58,8 @@ from src.routes.river_stream_routes import router as river_stream_router
 from src.routes.payment_routes import router as payment_config_router
 from src.routes.payfast_routes import router as payfast_router
 from src.routes import auth_routes
+from src.routes import storefront_routes
+from src.routes import order_routes
 
 from src.models.quote_request_model import QuoteRequest
 from src.database import SessionLocal, engine, Base
@@ -280,6 +282,8 @@ else:
     app.include_router(steward_console_routes.router)
     app.include_router(river_router, prefix="/api/v1")
     app.include_router(river_stream_router, prefix="/api/v1")
+    app.include_router(storefront_routes.router, prefix="/api/v1")
+    app.include_router(order_routes.router, prefix="/api/v1")
 
     # S2S Router
     from src.routers.s2s import router as s2s_router
