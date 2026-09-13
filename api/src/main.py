@@ -146,6 +146,80 @@ async def lifespan(app: FastAPI):
     # Does NOT block app from responding to /health or routing
     bg_init_task = asyncio.create_task(_init_background())
 
+    # Periodic Compliance SLA & Stale Balance Scanner (runs every 6 hours)
+    async def _run_compliance_cron():
+        await asyncio.sleep(60)  # Initial wait after startup
+        while True:
+            try:
+                from src.database import SessionLocal
+                from src.models.merchant_account import MerchantAccount, MerchantVerificationStatus
+                from src.models.earning_ledger import EarningLedger, EarningLedgerStatus
+                from src.routes.continuity_capture_routes import emit_continuity_event
+                from datetime import datetime, timedelta
+                from decimal import Decimal
+                from sqlalchemy import func
+
+                db = SessionLocal()
+                try:
+                    now = datetime.utcnow()
+                    seventy_two_h = now - timedelta(hours=72)
+                    seven_d = now - timedelta(days=7)
+                    accounts = db.query(MerchantAccount).all()
+
+                    for acc in accounts:
+                        v_status = acc.verification_status.value if hasattr(acc.verification_status, "value") else str(acc.verification_status)
+                        created = acc.created_at.replace(tzinfo=None) if acc.created_at else now
+
+                        # Rule 1: SLA breach on pending review
+                        if v_status == "pending_review" and created < seventy_two_h:
+                            hours_elapsed = round((now - created).total_seconds() / 3600.0, 1)
+                            emit_continuity_event(
+                                db,
+                                business_owner_id=str(acc.user_id),
+                                business_category_key=None,
+                                business_line=None,
+                                event_type="compliance_sla_breached",
+                                actor_type="system",
+                                actor_id="compliance_engine",
+                                related_entity_type="merchant_account",
+                                related_entity_id=str(acc.id),
+                                parent_event_id=None,
+                                payload={"merchant_id": str(acc.user_id), "hours_elapsed": hours_elapsed},
+                                auto_commit=False
+                            )
+
+                        # Rule 2: Stale liability alert
+                        unclaimed = db.query(func.coalesce(func.sum(EarningLedger.amount), 0)).filter(
+                            EarningLedger.user_id == acc.user_id,
+                            EarningLedger.status == EarningLedgerStatus.available,
+                            EarningLedger.created_at < seven_d
+                        ).scalar() or Decimal("0.00")
+
+                        if float(unclaimed) >= 500.0 and not acc.payout_enabled:
+                            emit_continuity_event(
+                                db,
+                                business_owner_id=str(acc.user_id),
+                                business_category_key=None,
+                                business_line=None,
+                                event_type="compliance_stale_liability_alert",
+                                actor_type="system",
+                                actor_id="compliance_engine",
+                                related_entity_type="merchant_account",
+                                related_entity_id=str(acc.id),
+                                parent_event_id=None,
+                                payload={"merchant_id": str(acc.user_id), "amount": float(unclaimed)},
+                                auto_commit=False
+                            )
+                    db.commit()
+                    logger.info("🛡️ Automated compliance SLA scanner cycle completed.")
+                finally:
+                    db.close()
+            except Exception as e:
+                logger.warning(f"⚠️ Compliance SLA scanner cycle warning: {e}")
+            await asyncio.sleep(6 * 3600)  # Next run in 6 hours
+
+    compliance_cron_task = asyncio.create_task(_run_compliance_cron())
+
     listener_task = None
     # import redis
     # try:
@@ -167,6 +241,9 @@ async def lifespan(app: FastAPI):
 
     if bg_init_task:
         bg_init_task.cancel()
+
+    if compliance_cron_task:
+        compliance_cron_task.cancel()
 
     if listener_task:
         listener_task.cancel()

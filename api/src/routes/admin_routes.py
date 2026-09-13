@@ -524,8 +524,14 @@ def settle_merchant_earnings(
 
 
 # ----------------------------------------------------------------------------
-# 3B. ADMIN KYC REVIEW & VERIFICATION QUEUE
+# 3B. ADMIN KYC REVIEW & VERIFICATION QUEUE WITH SLA & ESCALATIONS
 # ----------------------------------------------------------------------------
+class SLAStatusEnum(str, Enum):
+    on_track = "on_track"              # < 48 hours
+    approaching_sla = "approaching_sla"  # 48 - 72 hours
+    breached = "breached"              # > 72 hours
+
+
 class MerchantKYCItem(BaseModel):
     merchant_id: str
     merchant_name: str
@@ -537,6 +543,11 @@ class MerchantKYCItem(BaseModel):
     tax_number: Optional[str] = None
     payout_enabled: bool
     created_at: datetime
+    # SLA Urgency & Reminder Metrics
+    pending_hours: float = 0.0
+    sla_status: SLAStatusEnum = SLAStatusEnum.on_track
+    unclaimed_balance: float = 0.0
+    requires_nudge: bool = False
 
 
 class KYCReviewActionRequest(BaseModel):
@@ -544,16 +555,32 @@ class KYCReviewActionRequest(BaseModel):
     notes: Optional[str] = None
 
 
+class KYCNudgeRequest(BaseModel):
+    message: Optional[str] = "Please provide clear, legible copies of your ID and proof of address to enable payout settlements."
+
+
+class EscalationReportOut(BaseModel):
+    scanned_merchants: int
+    sla_breaches_detected: int
+    unverified_nudges_triggered: int
+    stale_balance_alarms: int
+    events_emitted: int
+    details: List[Dict[str, Any]]
+
+
 @router.get("/merchants/kyc-queue", response_model=List[MerchantKYCItem])
 def get_merchant_kyc_queue(
     status: Optional[str] = Query(None, description="Filter by status e.g. pending_review, verified"),
+    sort_by_urgency: bool = Query(True, description="Sort breached and urgent reviews to the top"),
     admin_user: Profile = Depends(get_admin_user),
     db: Session = Depends(get_db)
 ):
     """
-    Returns merchants awaiting FICA compliance / KYC document review.
+    Returns merchants awaiting FICA compliance / KYC document review,
+    enriched with calculated SLA turn-around times and frozen liability balances.
     """
     from src.models.merchant_account import MerchantAccount, MerchantVerificationStatus
+    from src.models.earning_ledger import EarningLedger, EarningLedgerStatus
 
     query = db.query(MerchantAccount)
     if status:
@@ -564,23 +591,57 @@ def get_merchant_kyc_queue(
             MerchantVerificationStatus.unverified
         ]))
 
-    accounts = query.order_by(MerchantAccount.created_at.desc()).all()
+    accounts = query.all()
     results = []
+    now = datetime.utcnow()
 
     for acc in accounts:
         merchant = db.query(Profile).filter((Profile.owner_id == acc.user_id) | (Profile.id == acc.user_id)).first()
+        created = acc.created_at.replace(tzinfo=None) if acc.created_at else now
+        pending_hours = max(0.0, round((now - created).total_seconds() / 3600.0, 1))
+
+        # Determine SLA Urgency
+        v_status = acc.verification_status.value if hasattr(acc.verification_status, "value") else str(acc.verification_status)
+        if v_status == "pending_review":
+            if pending_hours > 72.0:
+                sla_status = SLAStatusEnum.breached
+            elif pending_hours >= 48.0:
+                sla_status = SLAStatusEnum.approaching_sla
+            else:
+                sla_status = SLAStatusEnum.on_track
+        else:
+            sla_status = SLAStatusEnum.on_track
+
+        # Calculate unclaimed pending balance
+        unclaimed_bal = db.query(func.coalesce(func.sum(EarningLedger.amount), 0)).filter(
+            EarningLedger.user_id == acc.user_id,
+            EarningLedger.status == EarningLedgerStatus.available
+        ).scalar() or Decimal("0.00")
+
+        requires_nudge = (v_status == "unverified" and pending_hours >= 72.0) or (float(unclaimed_bal) > 0 and not acc.payout_enabled)
+
         results.append(MerchantKYCItem(
             merchant_id=str(acc.user_id),
             merchant_name=merchant.name if merchant else "Registered Merchant",
             email=merchant.email if merchant else None,
-            verification_status=acc.verification_status.value if hasattr(acc.verification_status, "value") else str(acc.verification_status),
+            verification_status=v_status,
             id_document_url=acc.id_document_url,
             proof_of_address_url=acc.proof_of_address_url,
             business_registration_number=acc.business_registration_number,
             tax_number=acc.tax_number,
             payout_enabled=acc.payout_enabled,
-            created_at=acc.created_at
+            created_at=acc.created_at,
+            pending_hours=pending_hours,
+            sla_status=sla_status,
+            unclaimed_balance=float(unclaimed_bal),
+            requires_nudge=requires_nudge
         ))
+
+    if sort_by_urgency:
+        urgency_map = {SLAStatusEnum.breached: 0, SLAStatusEnum.approaching_sla: 1, SLAStatusEnum.on_track: 2}
+        results.sort(key=lambda x: (urgency_map.get(x.sla_status, 3), -x.pending_hours))
+    else:
+        results.sort(key=lambda x: x.created_at, reverse=True)
 
     return results
 
@@ -648,6 +709,165 @@ def review_merchant_kyc(
         "notes": m_account.kyc_review_notes
     }
 
+
+@router.post("/merchants/{merchant_id}/kyc-nudge")
+def nudge_merchant_kyc(
+    merchant_id: str,
+    payload: KYCNudgeRequest,
+    admin_user: Profile = Depends(get_admin_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Sends an automated compliance nudge to the merchant to provide or update
+    their FICA documentation.
+    """
+    from src.models.merchant_account import MerchantAccount
+
+    m_account = db.query(MerchantAccount).filter(MerchantAccount.user_id == merchant_id).first()
+    if not m_account:
+        raise HTTPException(status_code=404, detail="Merchant account not found")
+
+    m_account.kyc_review_notes = f"Nudge sent on {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}: {payload.message}"
+    db.commit()
+
+    emit_continuity_event(
+        db,
+        business_owner_id=merchant_id,
+        business_category_key=None,
+        business_line=None,
+        event_type="merchant_kyc_nudged",
+        actor_type="admin",
+        actor_id=str(admin_user.id),
+        related_entity_type="merchant_account",
+        related_entity_id=str(m_account.id),
+        parent_event_id=None,
+        payload={
+            "merchant_id": merchant_id,
+            "admin_email": admin_user.email,
+            "message": payload.message
+        },
+        auto_commit=True
+    )
+
+    return {
+        "status": "success",
+        "message": "Merchant compliance nudge dispatched successfully."
+    }
+
+
+@router.post("/compliance/escalations/trigger", response_model=EscalationReportOut)
+def trigger_compliance_escalations(
+    admin_user: Profile = Depends(get_admin_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Automated Governance Scanner:
+    1. Scans pending KYC submissions exceeding the 72h SLA and emits compliance_sla_breached.
+    2. Identifies unverified merchants with pending earnings holding frozen balances > R500.
+    3. Triggers compliance alerts for immutable audit replay.
+    """
+    from src.models.merchant_account import MerchantAccount, MerchantVerificationStatus
+    from src.models.earning_ledger import EarningLedger, EarningLedgerStatus
+
+    now = datetime.utcnow()
+    seventy_two_hours_ago = now - timedelta(hours=72)
+    seven_days_ago = now - timedelta(days=7)
+
+    accounts = db.query(MerchantAccount).all()
+    sla_breaches = 0
+    unverified_nudges = 0
+    stale_alarms = 0
+    events_count = 0
+    details = []
+
+    for acc in accounts:
+        v_status = acc.verification_status.value if hasattr(acc.verification_status, "value") else str(acc.verification_status)
+        created = acc.created_at.replace(tzinfo=None) if acc.created_at else now
+
+        # Rule 1: Admin SLA Breach (pending_review > 72h)
+        if v_status == "pending_review" and created < seventy_two_hours_ago:
+            sla_breaches += 1
+            hours_elapsed = round((now - created).total_seconds() / 3600.0, 1)
+            details.append({
+                "type": "admin_sla_breach",
+                "merchant_id": str(acc.user_id),
+                "hours_elapsed": hours_elapsed,
+                "message": f"Merchant KYC pending review for {hours_elapsed}h (exceeds 72h SLA)"
+            })
+            emit_continuity_event(
+                db,
+                business_owner_id=str(acc.user_id),
+                business_category_key=None,
+                business_line=None,
+                event_type="compliance_sla_breached",
+                actor_type="system",
+                actor_id="compliance_engine",
+                related_entity_type="merchant_account",
+                related_entity_id=str(acc.id),
+                parent_event_id=None,
+                payload={
+                    "merchant_id": str(acc.user_id),
+                    "hours_elapsed": hours_elapsed,
+                    "created_at": created.isoformat()
+                },
+                auto_commit=False
+            )
+            events_count += 1
+
+        # Rule 2: Stale Payout Balance (> R500 locked for > 7 days)
+        unclaimed = db.query(func.coalesce(func.sum(EarningLedger.amount), 0)).filter(
+            EarningLedger.user_id == acc.user_id,
+            EarningLedger.status == EarningLedgerStatus.available,
+            EarningLedger.created_at < seven_days_ago
+        ).scalar() or Decimal("0.00")
+
+        if float(unclaimed) >= 500.0 and not acc.payout_enabled:
+            stale_alarms += 1
+            details.append({
+                "type": "stale_payout_liability",
+                "merchant_id": str(acc.user_id),
+                "amount": float(unclaimed),
+                "message": f"R{unclaimed} held in unverified merchant account for > 7 days"
+            })
+            emit_continuity_event(
+                db,
+                business_owner_id=str(acc.user_id),
+                business_category_key=None,
+                business_line=None,
+                event_type="compliance_stale_liability_alert",
+                actor_type="system",
+                actor_id="compliance_engine",
+                related_entity_type="merchant_account",
+                related_entity_id=str(acc.id),
+                parent_event_id=None,
+                payload={
+                    "merchant_id": str(acc.user_id),
+                    "amount": float(unclaimed)
+                },
+                auto_commit=False
+            )
+            events_count += 1
+
+        # Rule 3: Merchant Unverified Nudge (> 3 days unverified with earnings)
+        if v_status == "unverified" and created < seventy_two_hours_ago and float(unclaimed) > 0:
+            unverified_nudges += 1
+            details.append({
+                "type": "merchant_kyc_nudge_required",
+                "merchant_id": str(acc.user_id),
+                "amount": float(unclaimed),
+                "message": "Nudge flagged to submit FICA documents"
+            })
+
+    db.commit()
+
+    return EscalationReportOut(
+        scanned_merchants=len(accounts),
+        sla_breaches_detected=sla_breaches,
+        unverified_nudges_triggered=unverified_nudges,
+        stale_balance_alarms=stale_alarms,
+        events_emitted=events_count,
+        details=details
+    )
 
 
 # ----------------------------------------------------------------------------
