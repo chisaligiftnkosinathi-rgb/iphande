@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 from jose import JWTError, jwt, ExpiredSignatureError
 from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from passlib.context import CryptContext
 
 from src.database import get_db
 from src.models.user import User
@@ -18,13 +17,48 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
 
 security = HTTPBearer()
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+import os
+import hashlib
+import hmac
 
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+try:
+    from passlib.context import CryptContext
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+except Exception:
+    pwd_context = None
 
-def get_password_hash(password):
-    return pwd_context.hash(password)
+def hash_password_pbkdf2(password: str) -> str:
+    salt = os.urandom(16).hex()
+    iterations = 100_000
+    derived = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), iterations)
+    return f"pbkdf2:sha256:{iterations}${salt}${derived.hex()}"
+
+def verify_password_pbkdf2(plain_password: str, hashed_password: str) -> bool:
+    try:
+        method, salt, hash_val = hashed_password.split("$")
+        parts = method.split(":")
+        iterations = int(parts[2])
+        derived = hashlib.pbkdf2_hmac("sha256", plain_password.encode("utf-8"), salt.encode("utf-8"), iterations)
+        return hmac.compare_digest(derived.hex(), hash_val)
+    except Exception:
+        return False
+
+def verify_password(plain_password: str, hashed_password: str):
+    if not hashed_password:
+        return False
+    if hashed_password.startswith("pbkdf2:"):
+        return verify_password_pbkdf2(plain_password, hashed_password)
+    # Legacy / bcrypt fallback
+    if pwd_context is not None:
+        try:
+            safe_password = plain_password[:72]
+            return pwd_context.verify(safe_password, hashed_password)
+        except Exception:
+            pass
+    return False
+
+def get_password_hash(password: str):
+    return hash_password_pbkdf2(password)
 
 # ---------------------------------------------------
 # TOKEN CREATION

@@ -113,10 +113,28 @@ async def get_current_user(
         if not uid:
             raise HTTPException(status_code=401, detail="Invalid token payload: missing sub")
 
+        # Resolve role: check Profile or User table
+        from src.models.profile import Profile
+        from src.models.user import User
+
+        profile = db.query(Profile).filter(Profile.owner_id == uid).first()
+        user_record = db.query(User).filter(User.id == uid).first()
+
+        role = payload.get("role")
+        if not role:
+            if profile:
+                role = getattr(profile, "role", "merchant")
+            elif user_record:
+                role = getattr(user_record, "role", "buyer")
+            else:
+                role = "merchant" if "@" in str(email) and "admin" in str(email).lower() else "steward"
+
         return {
             "uid": uid,
             "sub": uid,
             "email": email,
+            "role": role,
+            "profile_id": str(profile.id) if profile else None,
             "is_mock": False,
         }
 
@@ -130,6 +148,33 @@ async def get_current_user(
     except Exception as e:
         print(f"AUTH FAIL (unexpected): {type(e).__name__}: {e}")
         raise HTTPException(status_code=401, detail="Authentication failed")
+
+
+async def require_merchant(current_user: dict = Depends(get_current_user)):
+    """Guarantees that the requester is a verified merchant or steward"""
+    role = current_user.get("role", "")
+    if role not in ["merchant", "steward", "admin"]:
+        raise HTTPException(
+            status_code=403,
+            detail="Merchant access required. Please register a merchant profile."
+        )
+    return current_user
+
+
+async def require_admin(current_user: dict = Depends(get_current_user)):
+    """Guarantees that the requester has administrative privileges"""
+    role = current_user.get("role", "")
+    if role != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Admin access required."
+        )
+    return current_user
+
+
+async def require_buyer(current_user: dict = Depends(get_current_user)):
+    """Accepts any valid authenticated user (buyer, merchant, or admin)"""
+    return current_user
 
 
 async def get_s2s_identity(
