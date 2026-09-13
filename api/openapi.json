@@ -10910,6 +10910,404 @@
         }
       }
     },
+    "/api/v1/affiliates/leads/{lead_id}/consent": {
+      "post": {
+        "tags": [
+          "FICA & POPIA Lead Documents"
+        ],
+        "summary": "Record Popia Consent",
+        "description": "Records statutory POPIA explicit consent prior to processing credit/vehicle inquiries or documents.",
+        "operationId": "record_popia_consent_api_v1_affiliates_leads__lead_id__consent_post",
+        "parameters": [
+          {
+            "name": "lead_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Lead Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/POPIAConsentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/POPIAConsentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/affiliates/leads/{lead_id}/documents/upload-intent": {
+      "post": {
+        "tags": [
+          "FICA & POPIA Lead Documents"
+        ],
+        "summary": "Request Document Upload Intent",
+        "description": "Issues a direct-to-storage pre-signed upload URL.\nSTRICT GATE: Blocks with 403 Forbidden if POPIA credit check consent has not been logged.",
+        "operationId": "request_document_upload_intent_api_v1_affiliates_leads__lead_id__documents_upload_intent_post",
+        "parameters": [
+          {
+            "name": "lead_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Lead Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentUploadIntentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentUploadIntentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/affiliates/leads/{lead_id}/documents/{document_id}/confirm": {
+      "post": {
+        "tags": [
+          "FICA & POPIA Lead Documents"
+        ],
+        "summary": "Confirm Document Upload",
+        "description": "Confirms direct storage upload and records client-calculated SHA-256 integrity hash.",
+        "operationId": "confirm_document_upload_api_v1_affiliates_leads__lead_id__documents__document_id__confirm_post",
+        "parameters": [
+          {
+            "name": "lead_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Lead Id"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentConfirmRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadFICADocumentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/affiliates/leads/{lead_id}/documents": {
+      "get": {
+        "tags": [
+          "FICA & POPIA Lead Documents"
+        ],
+        "summary": "List Lead Documents",
+        "description": "Lists uploaded FICA documents for an inquiry without exposing unauthenticated raw files.",
+        "operationId": "list_lead_documents_api_v1_affiliates_leads__lead_id__documents_get",
+        "parameters": [
+          {
+            "name": "lead_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Lead Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LeadFICADocumentResponse"
+                  },
+                  "title": "Response List Lead Documents Api V1 Affiliates Leads  Lead Id  Documents Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/affiliates/leads/{lead_id}/documents/{document_id}/signed-url": {
+      "get": {
+        "tags": [
+          "FICA & POPIA Lead Documents"
+        ],
+        "summary": "Get Document Signed View Url",
+        "description": "Generates a time-expiring (15-minute) signed view URL for vetted internal or dealership reviewers.",
+        "operationId": "get_document_signed_view_url_api_v1_affiliates_leads__lead_id__documents__document_id__signed_url_get",
+        "parameters": [
+          {
+            "name": "lead_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Lead Id"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedViewUrlResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/affiliates/leads/documents/purge-expired": {
+      "post": {
+        "tags": [
+          "FICA & POPIA Lead Documents"
+        ],
+        "summary": "Purge Expired Documents",
+        "description": "Regulatory POPIA worker: purges documents from rejected/converted applications exceeding the 90-day retention window.",
+        "operationId": "purge_expired_documents_api_v1_affiliates_leads_documents_purge_expired_post",
+        "parameters": [
+          {
+            "name": "retention_days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 90,
+              "title": "Retention Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/storage/mock-upload/{path}": {
+      "put": {
+        "tags": [
+          "Storage Gateway (Dev/Testing)"
+        ],
+        "summary": "Mock Upload Handler",
+        "description": "Accepts direct client uploads in dev/test environments.",
+        "operationId": "mock_upload_handler_api_v1_storage_mock_upload__path__put",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Path"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/storage/mock-view/{path}": {
+      "get": {
+        "tags": [
+          "Storage Gateway (Dev/Testing)"
+        ],
+        "summary": "Mock View Handler",
+        "description": "Mock download view endpoint for dev/test environments.",
+        "operationId": "mock_view_handler_api_v1_storage_mock_view__path__get",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Path"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/s2s/tenant-bootstrap": {
       "post": {
         "tags": [
@@ -14094,6 +14492,107 @@
         ],
         "title": "DashboardStatsOut"
       },
+      "DocumentConfirmRequest": {
+        "properties": {
+          "sha256_checksum": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Sha256 Checksum",
+            "description": "SHA-256 integrity checksum calculated by client"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sha256_checksum"
+        ],
+        "title": "DocumentConfirmRequest"
+      },
+      "DocumentUploadIntentRequest": {
+        "properties": {
+          "document_type": {
+            "$ref": "#/components/schemas/FICADocumentType"
+          },
+          "file_name": {
+            "type": "string",
+            "title": "File Name"
+          },
+          "file_size_bytes": {
+            "type": "integer",
+            "maximum": 15728640.0,
+            "exclusiveMinimum": 0.0,
+            "title": "File Size Bytes",
+            "description": "Max 15MB file size"
+          },
+          "mime_type": {
+            "type": "string",
+            "title": "Mime Type",
+            "description": "MIME type e.g. application/pdf, image/jpeg, image/png"
+          }
+        },
+        "type": "object",
+        "required": [
+          "document_type",
+          "file_name",
+          "file_size_bytes",
+          "mime_type"
+        ],
+        "title": "DocumentUploadIntentRequest"
+      },
+      "DocumentUploadIntentResponse": {
+        "properties": {
+          "document_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Document Id"
+          },
+          "lead_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Lead Id"
+          },
+          "document_type": {
+            "$ref": "#/components/schemas/FICADocumentType"
+          },
+          "upload_url": {
+            "type": "string",
+            "title": "Upload Url"
+          },
+          "storage_bucket": {
+            "type": "string",
+            "title": "Storage Bucket"
+          },
+          "storage_key": {
+            "type": "string",
+            "title": "Storage Key"
+          },
+          "expires_in_seconds": {
+            "type": "integer",
+            "title": "Expires In Seconds",
+            "default": 600
+          }
+        },
+        "type": "object",
+        "required": [
+          "document_id",
+          "lead_id",
+          "document_type",
+          "upload_url",
+          "storage_bucket",
+          "storage_key"
+        ],
+        "title": "DocumentUploadIntentResponse"
+      },
+      "DocumentVerificationStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "VERIFIED",
+          "REJECTED",
+          "PURGED"
+        ],
+        "title": "DocumentVerificationStatus"
+      },
       "EngagementEventCreate": {
         "properties": {
           "type": {
@@ -14359,6 +14858,17 @@
           "net_position"
         ],
         "title": "ExpenseSummaryOut"
+      },
+      "FICADocumentType": {
+        "type": "string",
+        "enum": [
+          "SA_ID_DOCUMENT",
+          "PROOF_OF_RESIDENCE",
+          "BANK_STATEMENTS_3MO",
+          "PAYSLIP_LATEST",
+          "DRIVERS_LICENSE"
+        ],
+        "title": "FICADocumentType"
       },
       "FeedbackEventCreate": {
         "properties": {
@@ -15483,6 +15993,94 @@
           "phone"
         ],
         "title": "LeadCreate"
+      },
+      "LeadFICADocumentResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "lead_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Lead Id"
+          },
+          "document_type": {
+            "$ref": "#/components/schemas/FICADocumentType"
+          },
+          "storage_bucket": {
+            "type": "string",
+            "title": "Storage Bucket"
+          },
+          "storage_key": {
+            "type": "string",
+            "title": "Storage Key"
+          },
+          "file_mime_type": {
+            "type": "string",
+            "title": "File Mime Type"
+          },
+          "file_size_bytes": {
+            "type": "integer",
+            "title": "File Size Bytes"
+          },
+          "sha256_checksum": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sha256 Checksum"
+          },
+          "verification_status": {
+            "$ref": "#/components/schemas/DocumentVerificationStatus"
+          },
+          "rejection_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rejection Reason"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "purged_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purged At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "lead_id",
+          "document_type",
+          "storage_bucket",
+          "storage_key",
+          "file_mime_type",
+          "file_size_bytes",
+          "verification_status",
+          "created_at"
+        ],
+        "title": "LeadFICADocumentResponse"
       },
       "LeadOut": {
         "properties": {
@@ -17112,6 +17710,103 @@
           "opportunity_id"
         ],
         "title": "OrderItemInput"
+      },
+      "POPIAConsentRequest": {
+        "properties": {
+          "id_number": {
+            "type": "string",
+            "maxLength": 13,
+            "minLength": 13,
+            "title": "Id Number",
+            "description": "13-digit SA National ID number"
+          },
+          "consented_to_credit_check": {
+            "type": "boolean",
+            "title": "Consented To Credit Check",
+            "description": "Statutory consent for credit bureau evaluation",
+            "default": true
+          },
+          "consented_to_dealership_sharing": {
+            "type": "boolean",
+            "title": "Consented To Dealership Sharing",
+            "description": "Consent to share financial profile with vetted dealership",
+            "default": true
+          },
+          "consented_to_affiliate_forwarding": {
+            "type": "boolean",
+            "title": "Consented To Affiliate Forwarding",
+            "description": "Optional consent for ancillary insurance/tracker offers",
+            "default": false
+          },
+          "consent_version": {
+            "type": "string",
+            "title": "Consent Version",
+            "description": "Consent policy version",
+            "default": "POPIA-v1.0-2026"
+          },
+          "raw_consent_text": {
+            "type": "string",
+            "title": "Raw Consent Text",
+            "description": "Exact statutory text acknowledged by the applicant"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id_number",
+          "raw_consent_text"
+        ],
+        "title": "POPIAConsentRequest"
+      },
+      "POPIAConsentResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "lead_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Lead Id"
+          },
+          "id_number": {
+            "type": "string",
+            "title": "Id Number"
+          },
+          "consented_to_credit_check": {
+            "type": "boolean",
+            "title": "Consented To Credit Check"
+          },
+          "consented_to_dealership_sharing": {
+            "type": "boolean",
+            "title": "Consented To Dealership Sharing"
+          },
+          "consented_to_affiliate_forwarding": {
+            "type": "boolean",
+            "title": "Consented To Affiliate Forwarding"
+          },
+          "consent_version": {
+            "type": "string",
+            "title": "Consent Version"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "lead_id",
+          "id_number",
+          "consented_to_credit_check",
+          "consented_to_dealership_sharing",
+          "consented_to_affiliate_forwarding",
+          "consent_version",
+          "created_at"
+        ],
+        "title": "POPIAConsentResponse"
       },
       "PayfastCreatePayload": {
         "properties": {
@@ -21623,6 +22318,34 @@
           "source_id"
         ],
         "title": "ShareResponseOut"
+      },
+      "SignedViewUrlResponse": {
+        "properties": {
+          "document_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Document Id"
+          },
+          "document_type": {
+            "$ref": "#/components/schemas/FICADocumentType"
+          },
+          "signed_view_url": {
+            "type": "string",
+            "title": "Signed View Url"
+          },
+          "expires_in_seconds": {
+            "type": "integer",
+            "title": "Expires In Seconds",
+            "default": 900
+          }
+        },
+        "type": "object",
+        "required": [
+          "document_id",
+          "document_type",
+          "signed_view_url"
+        ],
+        "title": "SignedViewUrlResponse"
       },
       "StewardAnnotationCreate": {
         "properties": {

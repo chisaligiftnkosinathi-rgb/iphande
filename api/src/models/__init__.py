@@ -32,3 +32,4 @@ from .timeline_event import TimelineEvent
 from .trust_score import TrustScore
 from .tenant_mapping import TenantIdentityMapping
 from .lead_offer import AffiliateOffer, AffiliateLead, PayoutModel, LeadStatus, AffiliateClick, AffiliatePartnerStatement
+from .lead_document import LeadFICADocument, POPIAConsentLog, FICADocumentType, DocumentVerificationStatus

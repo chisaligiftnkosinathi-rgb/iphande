@@ -61,9 +61,9 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     # Standardize auth messages
     client_detail = exc.detail
     if exc.status_code == 401:
-        client_detail = "Authentication required or invalid credentials."
+        client_detail = exc.detail if exc.detail and exc.detail != "Forbidden" else "Authentication required or invalid credentials."
     elif exc.status_code == 403:
-        client_detail = "You do not have permission to perform this action."
+        client_detail = exc.detail if exc.detail and exc.detail != "Forbidden" else "You do not have permission to perform this action."
         
     return JSONResponse(
         status_code=exc.status_code,

@@ -58,4 +58,5 @@ def register_models():
     from src.models.tenant_mapping import TenantIdentityMapping  # noqa: F401
     from src.models.order import Order  # noqa: F401
     from src.models.lead_offer import AffiliateOffer, AffiliateLead, AffiliateClick, AffiliatePartnerStatement  # noqa: F401
+    from src.models.lead_document import LeadFICADocument, POPIAConsentLog  # noqa: F401
 
