@@ -39,7 +39,11 @@ def validate_lead_eligibility(offer: AffiliateOffer, payload: AffiliateLeadCreat
     if offer.requires_driver_license and payload.has_driver_license is False:
         return False, "Offer requires a valid South African driver's license"
 
-    # 6. Age bracket check
+    # 6. FICA verification check (e.g. EasyEquities investments requires National ID / Passport)
+    if getattr(offer, "requires_fica", False) and not payload.national_id:
+        return False, "Offer requires FICA identity verification (South African ID / Passport required)"
+
+    # 7. Age bracket check
     if payload.age is not None:
         if payload.age < offer.min_age:
             return False, f"Applicant age ({payload.age}) is below minimum allowable age of {offer.min_age}"

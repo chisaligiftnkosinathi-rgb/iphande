@@ -42,18 +42,22 @@ class AffiliateOffer(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
     slug = Column(String(80), unique=True, index=True, nullable=False)
     name = Column(String(120), nullable=False)
-    category = Column(String(60), index=True, nullable=False)  # LOANS, FUNERAL, MEDICAL, VEHICLE, RETAIL, INVESTMENTS
+    category = Column(String(60), index=True, nullable=False)  # LOANS, FUNERAL, MEDICAL, VEHICLE, RETAIL, INVESTMENTS, DIGITAL_TOOLS, WEALTH_AND_SAVINGS
     client_name = Column(String(100), nullable=False)
     channel = Column(String(100), default="Web")
 
     # Financial Terms
     payout_model = Column(String(30), nullable=False, default=PayoutModel.CPA.value)
     base_payout = Column(Numeric(10, 2), default=0.00, nullable=False)
-    payout_percentage = Column(Numeric(5, 4), nullable=True)  # e.g., 0.025 for 2.5%, 0.06 for Cotton On
-    payout_tier_rules = Column(JSON, nullable=True)           # Dynamic CR% mapping (e.g. Dis-Chem Funeral/Life, 1Life)
-    merchant_split_ratio = Column(Numeric(4, 2), default=0.70, nullable=False)  # 70% to merchant
+    payout_percentage = Column(Numeric(5, 4), nullable=True)  # e.g., 0.025 for 2.5%, 0.10 for HostAfrica
+    payout_tier_rules = Column(JSON, nullable=True)           # Dynamic CR% mapping
+    merchant_split_ratio = Column(Numeric(4, 2), default=0.70, nullable=False)  # e.g. 0.70 or 0.80
 
-    # Targeting & Eligibility Spec (Sheet 2)
+    # Tracking & Deep-Link Reference
+    affiliate_base_url = Column(String(255), nullable=True)   # Direct referral link template
+    description = Column(Text, nullable=True)                 # Explanatory pitch for entrepreneurs
+
+    # Targeting & Eligibility Spec
     min_income = Column(Numeric(10, 2), nullable=True)
     min_age = Column(Integer, default=18, nullable=False)
     max_age = Column(Integer, default=65, nullable=False)
@@ -61,6 +65,7 @@ class AffiliateOffer(Base):
     requires_bank_account = Column(Boolean, default=True, nullable=False)
     requires_sa_citizen = Column(Boolean, default=True, nullable=False)
     requires_driver_license = Column(Boolean, default=False, nullable=False)
+    requires_fica = Column(Boolean, default=False, nullable=False)
     dedup_period_days = Column(Integer, default=90, nullable=False)
 
     is_active = Column(Boolean, default=True, nullable=False)
@@ -108,3 +113,31 @@ class AffiliateLead(Base):
         Index("ix_affiliate_leads_offer_phone", "offer_id", "phone_number"),
         Index("ix_affiliate_leads_offer_national_id", "offer_id", "national_id"),
     )
+
+
+class AffiliateClick(Base):
+    __tablename__ = "affiliate_clicks"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
+    offer_id = Column(UUID(as_uuid=True), ForeignKey("affiliate_offers.id"), nullable=False, index=True)
+    offer_slug = Column(String(80), nullable=False, index=True)
+    merchant_id = Column(String(100), nullable=False, index=True)
+    visitor_ip = Column(String(64), nullable=True)
+    user_agent = Column(String(255), nullable=True)
+    target_url = Column(String(500), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class AffiliatePartnerStatement(Base):
+    __tablename__ = "affiliate_partner_statements"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
+    partner = Column(String(80), nullable=False, index=True)  # e.g. HOSTAFRICA, EASYEQUITIES
+    reporting_period = Column(String(20), nullable=False)   # e.g. 2026-09
+    total_earnings = Column(Numeric(12, 2), nullable=False)
+    withdrawn_amount = Column(Numeric(12, 2), default=0.00, nullable=False)
+    total_visitors = Column(Integer, default=0, nullable=False)
+    new_signups = Column(Integer, default=0, nullable=False)
+    payout_account_id = Column(String(100), nullable=True)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)

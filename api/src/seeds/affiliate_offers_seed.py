@@ -542,6 +542,81 @@ AFFILIATE_OFFERS_SEED_DATA: List[Dict[str, Any]] = [
         "requires_driver_license": False,
         "dedup_period_days": 90,
     },
+    # --- DIGITAL TOOLS & CLOUD ---
+    {
+        "slug": "hostafrica-cloud-domains",
+        "name": "HOSTAFRICA Domain & Business Email Hosting",
+        "category": "DIGITAL_TOOLS",
+        "client_name": "HOSTAFRICA (Pty) Ltd",
+        "channel": "Web / Dashboard",
+        "payout_model": PayoutModel.CPS.value,
+        "base_payout": Decimal("0.00"),
+        "payout_percentage": Decimal("0.10"),  # 10% CPS recurring
+        "payout_tier_rules": None,
+        "merchant_split_ratio": Decimal("0.70"),
+        "affiliate_base_url": "https://my.hostafrica.com/aff.php?aff=3635",
+        "description": "Register custom .co.za domains, professional business email, and cloud hosting for your enterprise.",
+        "min_income": None,
+        "min_age": 18,
+        "max_age": 75,
+        "requires_employment": False,
+        "requires_bank_account": True,
+        "requires_sa_citizen": False,
+        "requires_driver_license": False,
+        "requires_fica": False,
+        "dedup_period_days": 30,
+    },
+    # --- WEALTH & FRACTIONAL INVESTING ---
+    {
+        "slug": "easyequities-invest",
+        "name": "EasyEquities Fractional Shares & TFSA",
+        "category": "WEALTH_AND_SAVINGS",
+        "client_name": "EasyEquities",
+        "channel": "Web / Mobile App",
+        "payout_model": PayoutModel.CPA.value,
+        "base_payout": Decimal("50.00"),  # R50 starter investment voucher credit
+        "payout_percentage": None,
+        "payout_tier_rules": None,
+        "merchant_split_ratio": Decimal("0.80"),  # 80% to user/merchant
+        "affiliate_base_url": "https://bit.ly/3byDlco",
+        "description": "Join +2 million investors. Start buying local & US shares with no minimum deposit and receive a R50 starter voucher.",
+        "min_income": None,
+        "min_age": 18,
+        "max_age": 75,
+        "requires_employment": False,
+        "requires_bank_account": True,
+        "requires_sa_citizen": True,
+        "requires_driver_license": False,
+        "requires_fica": True,
+        "dedup_period_days": 90,
+    },
+    # --- AUTOMOTIVE DEALERSHIP & FINANCING FUNNEL ---
+    {
+        "slug": "mad-cars-dealership",
+        "name": "Mad Cars Pre-Owned & New Vehicle Finance",
+        "category": "VEHICLE_DEALERSHIP",
+        "client_name": "Mad Cars Dealership",
+        "channel": "Web / In-Store Lead Capture",
+        "payout_model": PayoutModel.HYBRID.value,
+        "base_payout": Decimal("200.00"),  # R200 per qualified finance application
+        "payout_percentage": None,
+        "payout_tier_rules": {
+            "cpl": 200.00,                 # R200 per qualified vetted lead
+            "cps": 2500.00,                # R2,500 average commission upon car delivery / payout
+        },
+        "merchant_split_ratio": Decimal("0.70"),  # 70% to referring merchant / agent
+        "affiliate_base_url": "https://api.iphande.co.za/api/v1/affiliates/leads/vehicle-inquiry",
+        "description": "Browse quality pre-owned hatchbacks, bakkies, and sedans. Get pre-approved vehicle finance with Mad Cars.",
+        "min_income": Decimal("10000.00"),        # Minimum R10k salary for vehicle asset finance
+        "min_age": 21,
+        "max_age": 65,
+        "requires_employment": True,
+        "requires_bank_account": True,
+        "requires_sa_citizen": True,
+        "requires_driver_license": True,          # Must have valid Code B / EB driver's license
+        "requires_fica": True,
+        "dedup_period_days": 90,
+    },
 ]
 
 

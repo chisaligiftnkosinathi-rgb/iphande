@@ -10681,6 +10681,235 @@
         }
       }
     },
+    "/api/v1/affiliates/click/{offer_slug}": {
+      "get": {
+        "tags": [
+          "affiliates"
+        ],
+        "summary": "Track Affiliate Click",
+        "description": "Dynamic tracking click generator:\n- Resolves offer by slug (e.g. hostafrica-cloud-domains, easyequities-invest).\n- Records an immutable AffiliateClick event with visitor IP and merchant attribution.\n- Redirects (HTTP 302) to the partner referral URL with sub_id / tracking code.",
+        "operationId": "track_affiliate_click_api_v1_affiliates_click__offer_slug__get",
+        "parameters": [
+          {
+            "name": "offer_slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Offer Slug"
+            }
+          },
+          {
+            "name": "merchant_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Merchant Profile/User ID for attribution",
+              "title": "Merchant Id"
+            },
+            "description": "Merchant Profile/User ID for attribution"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/affiliates/referral-link/{offer_slug}": {
+      "get": {
+        "tags": [
+          "affiliates"
+        ],
+        "summary": "Get Merchant Referral Link",
+        "description": "Returns the trackable proxy URL for the authenticated merchant to share via WhatsApp/SMS.",
+        "operationId": "get_merchant_referral_link_api_v1_affiliates_referral_link__offer_slug__get",
+        "parameters": [
+          {
+            "name": "offer_slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Offer Slug"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/affiliates/statements/ingest": {
+      "post": {
+        "tags": [
+          "affiliates"
+        ],
+        "summary": "Ingest Affiliate Monthly Statement",
+        "description": "Admin reconciliation endpoint for monthly affiliate reports (HOSTAFRICA, EasyEquities):\n- Records statement in affiliate_partner_statements.\n- Emits 'affiliate_statement_reconciled' continuity event.\n- Emits financial event logging platform auxiliary revenue inflow.",
+        "operationId": "ingest_affiliate_monthly_statement_api_v1_affiliates_statements_ingest_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AffiliateStatementIngest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AffiliateStatementOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/affiliates/leads/vehicle-inquiry": {
+      "post": {
+        "tags": [
+          "affiliates"
+        ],
+        "summary": "Submit Vehicle Funnel Inquiry",
+        "description": "Automotive Multi-Monetization Funnel Endpoint:\n1. Pre-qualifies customer against Mad Cars Dealership criteria (Income R10k+, Code B license, employed).\n2. Submits primary lead to Mad Cars Dealership (R200 CPL / R2,500 CPS).\n3. Automatically fans out to opted-in ancillary offers:\n   - Car Insurance White Label (R70 CPL)\n   - Vehicle Tracker White Label (R50 CPL)\n   - Cartrack Dashcams (R55 CPL)\n   - Motor Warranty White Label (R50 CPL)\n4. Calculates total potential qualified commission across the chain (up to R475+).\n5. Tags merchant owner attribution and emits continuity events.",
+        "operationId": "submit_vehicle_funnel_inquiry_api_v1_affiliates_leads_vehicle_inquiry_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VehicleFunnelLeadCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleFunnelLeadOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/s2s/tenant-bootstrap": {
       "post": {
         "tags": [
@@ -11514,6 +11743,28 @@
             "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Merchant Split Ratio"
           },
+          "affiliate_base_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Affiliate Base Url"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
           "min_income": {
             "anyOf": [
               {
@@ -11550,6 +11801,11 @@
             "type": "boolean",
             "title": "Requires Driver License"
           },
+          "requires_fica": {
+            "type": "boolean",
+            "title": "Requires Fica",
+            "default": false
+          },
           "dedup_period_days": {
             "type": "integer",
             "title": "Dedup Period Days"
@@ -11579,6 +11835,164 @@
           "is_active"
         ],
         "title": "AffiliateOfferOut"
+      },
+      "AffiliateStatementIngest": {
+        "properties": {
+          "partner": {
+            "type": "string",
+            "title": "Partner",
+            "description": "e.g. HOSTAFRICA, EASYEQUITIES"
+          },
+          "reporting_period": {
+            "type": "string",
+            "title": "Reporting Period",
+            "description": "e.g. 2026-09"
+          },
+          "total_earnings": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Total Earnings",
+            "description": "Total statement earnings, e.g. 500.00"
+          },
+          "withdrawn_amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Withdrawn Amount",
+            "default": "0.00"
+          },
+          "total_visitors": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total Visitors",
+            "default": 0
+          },
+          "new_signups": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "New Signups",
+            "default": 0
+          },
+          "payout_account_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payout Account Id",
+            "description": "Receiving bank or payout account reference"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "partner",
+          "reporting_period",
+          "total_earnings"
+        ],
+        "title": "AffiliateStatementIngest"
+      },
+      "AffiliateStatementOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "partner": {
+            "type": "string",
+            "title": "Partner"
+          },
+          "reporting_period": {
+            "type": "string",
+            "title": "Reporting Period"
+          },
+          "total_earnings": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Earnings"
+          },
+          "withdrawn_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Withdrawn Amount"
+          },
+          "total_visitors": {
+            "type": "integer",
+            "title": "Total Visitors"
+          },
+          "new_signups": {
+            "type": "integer",
+            "title": "New Signups"
+          },
+          "payout_account_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payout Account Id"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "partner",
+          "reporting_period",
+          "total_earnings",
+          "withdrawn_amount",
+          "total_visitors",
+          "new_signups",
+          "created_at"
+        ],
+        "title": "AffiliateStatementOut"
       },
       "ApplicationState": {
         "properties": {
@@ -21944,6 +22358,175 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "VehicleFunnelLeadCreate": {
+        "properties": {
+          "full_name": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 2,
+            "title": "Full Name"
+          },
+          "phone_number": {
+            "type": "string",
+            "maxLength": 30,
+            "minLength": 7,
+            "title": "Phone Number"
+          },
+          "national_id": {
+            "type": "string",
+            "maxLength": 30,
+            "minLength": 10,
+            "title": "National Id"
+          },
+          "monthly_income": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Monthly Income",
+            "description": "Gross monthly income in ZAR"
+          },
+          "has_valid_license": {
+            "type": "boolean",
+            "title": "Has Valid License",
+            "description": "Must have valid Code B / EB driver's license"
+          },
+          "preferred_vehicle_type": {
+            "type": "string",
+            "title": "Preferred Vehicle Type",
+            "description": "Hatchback, Sedan, Bakkie, SUV",
+            "default": "Hatchback"
+          },
+          "target_budget_range": {
+            "type": "string",
+            "title": "Target Budget Range",
+            "description": "Target monthly installment range",
+            "default": "R3,000 - R5,000/pm"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "age": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 75.0,
+                "minimum": 18.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age",
+            "default": 30
+          },
+          "is_employed": {
+            "type": "boolean",
+            "title": "Is Employed",
+            "default": true
+          },
+          "has_bank_account": {
+            "type": "boolean",
+            "title": "Has Bank Account",
+            "default": true
+          },
+          "is_sa_citizen": {
+            "type": "boolean",
+            "title": "Is Sa Citizen",
+            "default": true
+          },
+          "opt_in_insurance_quote": {
+            "type": "boolean",
+            "title": "Opt In Insurance Quote",
+            "description": "Fanout to White Label Car Insurance (R70 CPL)",
+            "default": true
+          },
+          "opt_in_tracker": {
+            "type": "boolean",
+            "title": "Opt In Tracker",
+            "description": "Fanout to Vehicle Tracker (R50 CPL)",
+            "default": true
+          },
+          "opt_in_dashcam": {
+            "type": "boolean",
+            "title": "Opt In Dashcam",
+            "description": "Fanout to Cartrack Dashcam (R55 CPL)",
+            "default": false
+          },
+          "opt_in_warranty": {
+            "type": "boolean",
+            "title": "Opt In Warranty",
+            "description": "Fanout to Motor Warranty (R50 CPL)",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "full_name",
+          "phone_number",
+          "national_id",
+          "monthly_income",
+          "has_valid_license"
+        ],
+        "title": "VehicleFunnelLeadCreate",
+        "description": "Comprehensive car buyer acquisition payload:\nCaptures primary Mad Cars inquiry and triggers automated fanout to ancillary insurance & telematics."
+      },
+      "VehicleFunnelLeadOut": {
+        "properties": {
+          "primary_lead": {
+            "$ref": "#/components/schemas/AffiliateLeadOut"
+          },
+          "ancillary_leads": {
+            "items": {
+              "$ref": "#/components/schemas/AffiliateLeadOut"
+            },
+            "type": "array",
+            "title": "Ancillary Leads",
+            "default": []
+          },
+          "total_potential_commission": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Potential Commission"
+          },
+          "merchant_potential_share": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Merchant Potential Share"
+          },
+          "dispatch_status": {
+            "type": "string",
+            "title": "Dispatch Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "primary_lead",
+          "total_potential_commission",
+          "merchant_potential_share",
+          "dispatch_status",
+          "message"
+        ],
+        "title": "VehicleFunnelLeadOut"
       },
       "VisibilityInfo": {
         "properties": {
