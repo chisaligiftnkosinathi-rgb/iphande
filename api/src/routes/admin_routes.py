@@ -514,3 +514,202 @@ def settle_merchant_earnings(
     }
 
 
+# ----------------------------------------------------------------------------
+# 4. EXECUTIVE ANALYTICS & DISBURSEMENT VELOCITY
+# ----------------------------------------------------------------------------
+class RevenueTrendItem(BaseModel):
+    date: str
+    gross_volume: float
+    platform_fee: float
+    merchant_share: float
+    order_count: int
+
+
+class PayoutVelocityMetrics(BaseModel):
+    avg_payout_turnaround_hours: float
+    settled_last_7_days: float
+    settled_last_30_days: float
+    active_earning_merchants: int
+
+
+class GatewayPerformanceItem(BaseModel):
+    provider: str
+    total_volume: float
+    transaction_count: int
+    success_rate: float
+    average_order_value: float
+
+
+class CarrierDistributionItem(BaseModel):
+    carrier: str
+    shipment_count: int
+    percentage: float
+
+
+class TreasuryAnalyticsOut(BaseModel):
+    time_range: str
+    revenue_trends: List[RevenueTrendItem]
+    payout_velocity: PayoutVelocityMetrics
+    gateway_performance: List[GatewayPerformanceItem]
+    carrier_distribution: List[CarrierDistributionItem]
+
+
+@router.get("/treasury/analytics", response_model=TreasuryAnalyticsOut)
+def get_treasury_analytics(
+    range: str = Query("30d", regex="^(7d|30d|90d|1y)$"),
+    admin_user: Profile = Depends(get_admin_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Returns time-series revenue trends, disbursement velocity, gateway comparison,
+    and carrier logistics distribution for executive governance.
+    """
+    from src.models.order import Order, OrderStatus
+    from src.models.fee_ledger import FeeLedger
+    from src.models.earning_ledger import EarningLedger, EarningLedgerStatus
+    from datetime import datetime, timedelta
+    from decimal import Decimal
+
+    days_map = {"7d": 7, "30d": 30, "90d": 90, "1y": 365}
+    days = days_map.get(range, 30)
+    start_date = datetime.utcnow() - timedelta(days=days)
+
+    # 1. Query Orders in Time Window
+    orders = db.query(Order).filter(
+        Order.status == OrderStatus.paid,
+        Order.created_at >= start_date
+    ).all()
+
+    # Aggregate by Date
+    daily_buckets = {}
+    for i in range(days):
+        day_str = (start_date + timedelta(days=i + 1)).strftime("%Y-%m-%d")
+        daily_buckets[day_str] = {
+            "date": day_str,
+            "gross_volume": Decimal("0.00"),
+            "platform_fee": Decimal("0.00"),
+            "merchant_share": Decimal("0.00"),
+            "order_count": 0
+        }
+
+    for ord in orders:
+        if ord.created_at:
+            d_key = ord.created_at.strftime("%Y-%m-%d")
+            if d_key in daily_buckets:
+                amt = Decimal(str(ord.total_amount or 0.0))
+                p_fee = round(amt * Decimal("0.10"), 2)
+                m_share = amt - p_fee
+                daily_buckets[d_key]["gross_volume"] += amt
+                daily_buckets[d_key]["platform_fee"] += p_fee
+                daily_buckets[d_key]["merchant_share"] += m_share
+                daily_buckets[d_key]["order_count"] += 1
+
+    revenue_trends = [
+        RevenueTrendItem(
+            date=v["date"],
+            gross_volume=float(v["gross_volume"]),
+            platform_fee=float(v["platform_fee"]),
+            merchant_share=float(v["merchant_share"]),
+            order_count=v["order_count"]
+        )
+        for v in sorted(daily_buckets.values(), key=lambda x: x["date"])
+    ]
+
+    # 2. Payout Velocity Calculations
+    seven_days_ago = datetime.utcnow() - timedelta(days=7)
+    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+
+    settled_7d = db.query(func.coalesce(func.sum(EarningLedger.amount), 0)).filter(
+        EarningLedger.status == EarningLedgerStatus.paid,
+        EarningLedger.paid_at >= seven_days_ago
+    ).scalar()
+
+    settled_30d = db.query(func.coalesce(func.sum(EarningLedger.amount), 0)).filter(
+        EarningLedger.status == EarningLedgerStatus.paid,
+        EarningLedger.paid_at >= thirty_days_ago
+    ).scalar()
+
+    active_merchants_count = db.query(func.count(func.distinct(EarningLedger.user_id))).filter(
+        EarningLedger.created_at >= thirty_days_ago
+    ).scalar() or 0
+
+    # Calculate average turnaround time from pending_at to paid_at
+    paid_entries = db.query(EarningLedger).filter(
+        EarningLedger.status == EarningLedgerStatus.paid,
+        EarningLedger.paid_at.isnot(None),
+        EarningLedger.created_at >= thirty_days_ago
+    ).limit(100).all()
+
+    avg_turnaround_hours = 12.0  # Safe standard default
+    if paid_entries:
+        total_hours = sum((p.paid_at.replace(tzinfo=None) - p.created_at.replace(tzinfo=None)).total_seconds() / 3600.0 for p in paid_entries)
+        avg_turnaround_hours = round(total_hours / len(paid_entries), 1)
+
+    payout_velocity = PayoutVelocityMetrics(
+        avg_payout_turnaround_hours=max(0.5, avg_turnaround_hours),
+        settled_last_7_days=float(settled_7d),
+        settled_last_30_days=float(settled_30d),
+        active_earning_merchants=active_merchants_count
+    )
+
+    # 3. Gateway Performance
+    gateways = ["payfast", "paystack", "payjustnow"]
+    gateway_performance = []
+    for gw in gateways:
+        total_orders_gw = db.query(func.count(Order.id)).filter(
+            Order.payment_provider == gw,
+            Order.created_at >= start_date
+        ).scalar() or 0
+        paid_orders_gw = db.query(func.count(Order.id)).filter(
+            Order.payment_provider == gw,
+            Order.status == OrderStatus.paid,
+            Order.created_at >= start_date
+        ).scalar() or 0
+        volume_gw = db.query(func.coalesce(func.sum(Order.total_amount), 0)).filter(
+            Order.payment_provider == gw,
+            Order.status == OrderStatus.paid,
+            Order.created_at >= start_date
+        ).scalar() or Decimal("0.00")
+
+        success_rate = round((paid_orders_gw / total_orders_gw * 100.0), 1) if total_orders_gw > 0 else 100.0
+        aov = round(float(volume_gw) / paid_orders_gw, 2) if paid_orders_gw > 0 else 0.0
+
+        gateway_performance.append(GatewayPerformanceItem(
+            provider=gw,
+            total_volume=float(volume_gw),
+            transaction_count=paid_orders_gw,
+            success_rate=success_rate,
+            average_order_value=aov
+        ))
+
+    # 4. Carrier Logistics Distribution
+    carriers = ["courier_guy", "pudo", "pickup"]
+    total_shipments = db.query(func.count(Order.id)).filter(
+        Order.status == OrderStatus.paid,
+        Order.created_at >= start_date
+    ).scalar() or 0
+
+    carrier_distribution = []
+    for cr in carriers:
+        count_cr = db.query(func.count(Order.id)).filter(
+            Order.shipping_provider == cr,
+            Order.status == OrderStatus.paid,
+            Order.created_at >= start_date
+        ).scalar() or 0
+        pct = round((count_cr / total_shipments * 100.0), 1) if total_shipments > 0 else 0.0
+        carrier_distribution.append(CarrierDistributionItem(
+            carrier=cr,
+            shipment_count=count_cr,
+            percentage=pct
+        ))
+
+    return TreasuryAnalyticsOut(
+        time_range=range,
+        revenue_trends=revenue_trends,
+        payout_velocity=payout_velocity,
+        gateway_performance=gateway_performance,
+        carrier_distribution=carrier_distribution
+    )
+
+
+
