@@ -32,6 +32,7 @@ class Opportunity(Base):
     min_order_quantity = Column(Integer, default=1, nullable=False)
     download_url = Column(String, nullable=True)
     service_duration_mins = Column(Integer, nullable=True)
+    is_public = Column(Boolean, default=True, nullable=False, index=True)
     title = Column(String, nullable=False)
     description = Column(String, nullable=True)
     status = Column(String, nullable=False, default="open") # open, contacted, closed
