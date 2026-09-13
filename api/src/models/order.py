@@ -59,6 +59,16 @@ class Order(Base):
     items = Column(JSON, nullable=False, default=list)  # [{opportunity_id, title, quantity, unit_price, subtotal}]
     shipping_address = Column(JSON, nullable=True)
 
+    # Shipping & Logistics
+    shipping_provider = Column(String, nullable=True)  # 'courier_guy', 'pudo', 'pickup'
+    shipping_tracking_id = Column(String, nullable=True, index=True)
+    shipping_metadata = Column(JSON, nullable=True)  # Locker code, collection PIN, waybill details
+
+    # Multi-Gateway Payments
+    payment_provider = Column(String, default="payfast", nullable=False)  # 'payfast', 'payjustnow', 'paystack'
+    payment_reference = Column(String, nullable=True, index=True)
+    installment_breakdown = Column(JSON, nullable=True)  # PayJustNow 3x payment schedule
+
     # Digital fulfillment
     download_token = Column(String, nullable=True, unique=True)
     download_expiry = Column(DateTime(timezone=True), nullable=True)
