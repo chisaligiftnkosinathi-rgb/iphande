@@ -19,3 +19,14 @@ class Token(BaseModel):
     token_type: str
     role: str = "buyer"
     profile_id: Optional[str] = None
+
+class MerchantUpgradeRequest(BaseModel):
+    business_name: str
+    business_type: str = "service"  # retail, service, wholesale, digital
+    city: Optional[str] = None
+    province: Optional[str] = None
+
+class RolePromoteRequest(BaseModel):
+    user_id: str
+    new_role: str  # merchant, admin, supaadmin
+

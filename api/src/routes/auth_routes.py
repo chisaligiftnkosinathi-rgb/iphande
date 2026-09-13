@@ -3,10 +3,11 @@ from sqlalchemy.orm import Session
 
 from src.database import get_db
 from src.models.user import User
-from src.schemas.user_schema import UserCreate, UserLogin, Token
+from src.schemas.user_schema import UserCreate, UserLogin, Token, MerchantUpgradeRequest, RolePromoteRequest
 from src.core.security import create_access_token, get_password_hash, verify_password
 from src.services.continuity_event_service import emit_continuity_event
 from src.core.rate_limit import limiter
+from src.auth.supabase_auth import get_current_user, require_supaadmin
 
 router = APIRouter(prefix="/api/v1/auth", tags=["Auth"])
 
@@ -133,3 +134,130 @@ def login(request: Request, user_data: UserLogin, db: Session = Depends(get_db))
         "role": role,
         "profile_id": str(profile.id) if profile else None
     }
+
+
+@router.post("/upgrade-to-merchant", response_model=Token)
+def upgrade_to_merchant(
+    upgrade_data: MerchantUpgradeRequest,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Allows an authenticated Buyer to self-upgrade into a Merchant.
+    Provisions a merchant Profile, links owner_id, and issues an upgraded JWT.
+    """
+    user_id = current_user.get("uid")
+    db_user = db.query(User).filter(User.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User account not found")
+
+    from src.models.profile import Profile, BusinessType
+    import uuid
+    import re
+
+    existing_profile = db.query(Profile).filter(Profile.owner_id == str(db_user.id)).first()
+    if existing_profile:
+        # User already has a merchant profile
+        db_user.role = "merchant"
+        db.commit()
+        token = create_access_token(data={"sub": str(db_user.id), "role": "merchant", "email": db_user.email})
+        return {
+            "access_token": token,
+            "token_type": "bearer",
+            "role": "merchant",
+            "profile_id": str(existing_profile.id)
+        }
+
+    # Generate unique slug
+    base_name = upgrade_data.business_name or db_user.email.split("@")[0]
+    slug_clean = re.sub(r'[^a-zA-Z0-9]', '-', base_name.lower()).strip('-')
+    unique_slug = f"{slug_clean}-{uuid.uuid4().hex[:4]}"
+
+    b_type = BusinessType.service
+    if upgrade_data.business_type and upgrade_data.business_type in [b.value for b in BusinessType]:
+        b_type = BusinessType(upgrade_data.business_type)
+
+    merchant_profile = Profile(
+        id=str(uuid.uuid4()),
+        name=upgrade_data.business_name,
+        slug=unique_slug,
+        email=db_user.email,
+        owner_id=str(db_user.id),
+        business_type=b_type,
+        role="merchant",
+        plan_code="starter",
+        is_public=True,
+        city=upgrade_data.city,
+        province=upgrade_data.province
+    )
+    db_user.role = "merchant"
+    db.add(merchant_profile)
+    db.commit()
+    db.refresh(merchant_profile)
+
+    emit_continuity_event(
+        db,
+        business_owner_id=db_user.id,
+        business_category_key=None,
+        business_line=None,
+        event_type="user_upgraded_to_merchant",
+        actor_type="user",
+        actor_id=db_user.id,
+        related_entity_type="profile",
+        related_entity_id=merchant_profile.id,
+        parent_event_id=None,
+        payload={"email": db_user.email, "role": "merchant", "profile_id": merchant_profile.id},
+        auto_commit=True
+    )
+
+    token = create_access_token(data={"sub": str(db_user.id), "role": "merchant", "email": db_user.email})
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "role": "merchant",
+        "profile_id": str(merchant_profile.id)
+    }
+
+
+@router.post("/promote-role")
+def promote_user_role(
+    req: RolePromoteRequest,
+    db: Session = Depends(get_db),
+    admin_context: dict = Depends(require_supaadmin)
+):
+    """
+    SupaAdmin exclusive authority: Promote or demote any user to merchant, admin, or supaadmin.
+    """
+    valid_roles = ["buyer", "merchant", "admin", "supaadmin"]
+    if req.new_role not in valid_roles:
+        raise HTTPException(status_code=400, detail=f"Invalid role '{req.new_role}'. Must be one of: {valid_roles}")
+
+    target_user = db.query(User).filter(User.id == req.user_id).first()
+    if not target_user:
+        raise HTTPException(status_code=404, detail="Target user not found")
+
+    target_user.role = req.new_role
+    db.commit()
+
+    emit_continuity_event(
+        db,
+        business_owner_id="system",
+        business_category_key=None,
+        business_line=None,
+        event_type="role_promoted",
+        actor_type="supaadmin",
+        actor_id=admin_context.get("uid"),
+        related_entity_type="user",
+        related_entity_id=target_user.id,
+        parent_event_id=None,
+        payload={"user_id": target_user.id, "new_role": req.new_role, "promoted_by": admin_context.get("email")},
+        auto_commit=True
+    )
+
+    return {
+        "status": "success",
+        "user_id": target_user.id,
+        "email": target_user.email,
+        "new_role": req.new_role
+    }
+

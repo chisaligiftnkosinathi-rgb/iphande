@@ -90,14 +90,25 @@ async def get_current_user(
         # 2. Native iPhande Supabase Authentication
         alg = header.get("alg", "HS256")
         if alg == "HS256":
-            if not SUPABASE_JWT_SECRET:
-                raise HTTPException(status_code=500, detail="JWT secret not configured on server")
-            payload = jwt.decode(
-                token,
-                SUPABASE_JWT_SECRET,
-                algorithms=["HS256"],
-                options={"verify_aud": False},
-            )
+            secret = SUPABASE_JWT_SECRET or settings.JWT_SECRET
+            try:
+                payload = jwt.decode(
+                    token,
+                    secret,
+                    algorithms=["HS256"],
+                    options={"verify_aud": False},
+                )
+            except jwt.InvalidSignatureError:
+                # If signed by settings.JWT_SECRET instead of SUPABASE_JWT_SECRET
+                if settings.JWT_SECRET and settings.JWT_SECRET != secret:
+                    payload = jwt.decode(
+                        token,
+                        settings.JWT_SECRET,
+                        algorithms=["HS256"],
+                        options={"verify_aud": False},
+                    )
+                else:
+                    raise
         else:
             signing_key = _get_jwks_client().get_signing_key_from_jwt(token)
             payload = jwt.decode(
@@ -150,21 +161,21 @@ async def get_current_user(
         raise HTTPException(status_code=401, detail="Authentication failed")
 
 
-async def require_merchant(current_user: dict = Depends(get_current_user)):
-    """Guarantees that the requester is a verified merchant or steward"""
+async def require_supaadmin(current_user: dict = Depends(get_current_user)):
+    """Guarantees that the requester has SupaAdmin platform-owner privileges"""
     role = current_user.get("role", "")
-    if role not in ["merchant", "steward", "admin"]:
+    if role != "supaadmin":
         raise HTTPException(
             status_code=403,
-            detail="Merchant access required. Please register a merchant profile."
+            detail="SupaAdmin platform-owner access required."
         )
     return current_user
 
 
 async def require_admin(current_user: dict = Depends(get_current_user)):
-    """Guarantees that the requester has administrative privileges"""
+    """Guarantees that the requester has administrative privileges (admin or supaadmin)"""
     role = current_user.get("role", "")
-    if role != "admin":
+    if role not in ["admin", "supaadmin"]:
         raise HTTPException(
             status_code=403,
             detail="Admin access required."
@@ -172,8 +183,19 @@ async def require_admin(current_user: dict = Depends(get_current_user)):
     return current_user
 
 
+async def require_merchant(current_user: dict = Depends(get_current_user)):
+    """Guarantees that the requester is a verified merchant, steward, admin, or supaadmin"""
+    role = current_user.get("role", "")
+    if role not in ["merchant", "steward", "admin", "supaadmin"]:
+        raise HTTPException(
+            status_code=403,
+            detail="Merchant access required. Please register a merchant profile."
+        )
+    return current_user
+
+
 async def require_buyer(current_user: dict = Depends(get_current_user)):
-    """Accepts any valid authenticated user (buyer, merchant, or admin)"""
+    """Accepts any valid authenticated user (buyer, merchant, admin, supaadmin)"""
     return current_user
 
 
