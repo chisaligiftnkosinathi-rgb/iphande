@@ -466,7 +466,16 @@ def settle_merchant_earnings(
     transitioning EarningLedger status to 'paid' and emitting an audit event.
     """
     from src.models.earning_ledger import EarningLedger, EarningLedgerStatus
+    from src.models.merchant_account import MerchantAccount
     from decimal import Decimal
+
+    # 1. Payout Eligibility & KYC Protection
+    m_account = db.query(MerchantAccount).filter(MerchantAccount.user_id == merchant_id).first()
+    if not m_account or not m_account.payout_enabled:
+        raise HTTPException(
+            status_code=403,
+            detail="Payout rejected: Merchant account is unverified or payouts are disabled. FICA KYC review required."
+        )
 
     earnings = db.query(EarningLedger).filter(
         EarningLedger.user_id == merchant_id,
@@ -512,6 +521,133 @@ def settle_merchant_earnings(
         "total_settled": float(total_settled),
         "entries_count": len(earnings)
     }
+
+
+# ----------------------------------------------------------------------------
+# 3B. ADMIN KYC REVIEW & VERIFICATION QUEUE
+# ----------------------------------------------------------------------------
+class MerchantKYCItem(BaseModel):
+    merchant_id: str
+    merchant_name: str
+    email: Optional[str] = None
+    verification_status: str
+    id_document_url: Optional[str] = None
+    proof_of_address_url: Optional[str] = None
+    business_registration_number: Optional[str] = None
+    tax_number: Optional[str] = None
+    payout_enabled: bool
+    created_at: datetime
+
+
+class KYCReviewActionRequest(BaseModel):
+    action: str  # "approve" | "reject"
+    notes: Optional[str] = None
+
+
+@router.get("/merchants/kyc-queue", response_model=List[MerchantKYCItem])
+def get_merchant_kyc_queue(
+    status: Optional[str] = Query(None, description="Filter by status e.g. pending_review, verified"),
+    admin_user: Profile = Depends(get_admin_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Returns merchants awaiting FICA compliance / KYC document review.
+    """
+    from src.models.merchant_account import MerchantAccount, MerchantVerificationStatus
+
+    query = db.query(MerchantAccount)
+    if status:
+        query = query.filter(MerchantAccount.verification_status == status)
+    else:
+        query = query.filter(MerchantAccount.verification_status.in_([
+            MerchantVerificationStatus.pending_review,
+            MerchantVerificationStatus.unverified
+        ]))
+
+    accounts = query.order_by(MerchantAccount.created_at.desc()).all()
+    results = []
+
+    for acc in accounts:
+        merchant = db.query(Profile).filter((Profile.owner_id == acc.user_id) | (Profile.id == acc.user_id)).first()
+        results.append(MerchantKYCItem(
+            merchant_id=str(acc.user_id),
+            merchant_name=merchant.name if merchant else "Registered Merchant",
+            email=merchant.email if merchant else None,
+            verification_status=acc.verification_status.value if hasattr(acc.verification_status, "value") else str(acc.verification_status),
+            id_document_url=acc.id_document_url,
+            proof_of_address_url=acc.proof_of_address_url,
+            business_registration_number=acc.business_registration_number,
+            tax_number=acc.tax_number,
+            payout_enabled=acc.payout_enabled,
+            created_at=acc.created_at
+        ))
+
+    return results
+
+
+@router.post("/merchants/{merchant_id}/kyc-review")
+def review_merchant_kyc(
+    merchant_id: str,
+    payload: KYCReviewActionRequest,
+    admin_user: Profile = Depends(get_admin_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Approves or rejects a merchant's KYC submission.
+    Approving unlocks payout_enabled for automated or manual settlements.
+    """
+    from src.models.merchant_account import MerchantAccount, MerchantVerificationStatus
+
+    m_account = db.query(MerchantAccount).filter(MerchantAccount.user_id == merchant_id).first()
+    if not m_account:
+        raise HTTPException(status_code=404, detail="Merchant account not found")
+
+    if payload.action == "approve":
+        m_account.verification_status = MerchantVerificationStatus.verified
+        m_account.payout_enabled = True
+        m_account.verified_by = admin_user.email
+        m_account.verification_timestamp = datetime.utcnow()
+        m_account.kyc_review_notes = payload.notes or "KYC approved by compliance admin"
+        event_name = "merchant_kyc_approved"
+    elif payload.action == "reject":
+        m_account.verification_status = MerchantVerificationStatus.rejected
+        m_account.payout_enabled = False
+        m_account.kyc_review_notes = payload.notes or "KYC documentation rejected"
+        event_name = "merchant_kyc_rejected"
+    else:
+        raise HTTPException(status_code=400, detail="Action must be 'approve' or 'reject'")
+
+    db.commit()
+
+    emit_continuity_event(
+        db,
+        business_owner_id=merchant_id,
+        business_category_key=None,
+        business_line=None,
+        event_type=event_name,
+        actor_type="admin",
+        actor_id=str(admin_user.id),
+        related_entity_type="merchant_account",
+        related_entity_id=str(m_account.id),
+        parent_event_id=None,
+        payload={
+            "merchant_id": merchant_id,
+            "action": payload.action,
+            "verified_by": admin_user.email,
+            "notes": payload.notes,
+            "payout_enabled": m_account.payout_enabled
+        },
+        auto_commit=True
+    )
+
+    return {
+        "status": "success",
+        "action": payload.action,
+        "verification_status": m_account.verification_status.value,
+        "payout_enabled": m_account.payout_enabled,
+        "notes": m_account.kyc_review_notes
+    }
+
 
 
 # ----------------------------------------------------------------------------

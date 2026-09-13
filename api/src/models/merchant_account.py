@@ -11,6 +11,7 @@ from src.database import Base
 class MerchantVerificationStatus(str, enum.Enum):
     """Status of merchant account verification"""
     unverified = "unverified"
+    pending_review = "pending_review"
     verified = "verified"
     suspended = "suspended"
     rejected = "rejected"
@@ -31,7 +32,7 @@ class MerchantAccount(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
 
     # Identity
-    user_id = Column(String, ForeignKey("profiles.user_id"), nullable=False, unique=True, index=True)
+    user_id = Column(String, ForeignKey("profiles.owner_id"), nullable=False, unique=True, index=True)
 
     # Banking Details (South Africa)
     bank_name = Column(String, nullable=False)
@@ -47,6 +48,13 @@ class MerchantAccount(Base):
     verification_timestamp = Column(DateTime(timezone=True), nullable=True)
     verified_by = Column(String, nullable=True)  # Admin user who verified
 
+    # KYC & Compliance Documents (FICA / Marketplace Standards)
+    id_document_url = Column(String, nullable=True)               # ID or Passport upload
+    proof_of_address_url = Column(String, nullable=True)          # Utility bill or bank statement
+    business_registration_number = Column(String, nullable=True)  # CIPC registration
+    tax_number = Column(String, nullable=True)                    # SARS Tax Number
+    kyc_review_notes = Column(String, nullable=True)              # Admin review feedback
+
     # Payout Rules
     is_active = Column(Boolean, default=True, nullable=False)
     payout_enabled = Column(Boolean, default=False, nullable=False)
@@ -57,3 +65,4 @@ class MerchantAccount(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     suspended_at = Column(DateTime(timezone=True), nullable=True)
     suspension_reason = Column(String, nullable=True)
+

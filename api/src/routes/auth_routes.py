@@ -261,3 +261,80 @@ def promote_user_role(
         "new_role": req.new_role
     }
 
+
+# ----------------------------------------------------------------------------
+# MERCHANT KYC SUBMISSION
+# ----------------------------------------------------------------------------
+from pydantic import BaseModel
+
+class KYCSubmissionRequest(BaseModel):
+    id_document_url: str
+    proof_of_address_url: str
+    business_registration_number: Optional[str] = None
+    tax_number: Optional[str] = None
+
+
+@router.post("/merchant/kyc")
+def submit_merchant_kyc(
+    payload: KYCSubmissionRequest,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Submits identity & business verification documents for FICA / marketplace compliance.
+    Transitions account to 'pending_review' until verified by an Admin.
+    """
+    from src.models.merchant_account import MerchantAccount, MerchantVerificationStatus
+
+    uid = current_user.get("uid")
+    m_account = db.query(MerchantAccount).filter(MerchantAccount.user_id == uid).first()
+
+    if not m_account:
+        m_account = MerchantAccount(
+            user_id=uid,
+            bank_name="Pending Submission",
+            account_holder_name=current_user.get("email", "Merchant"),
+            account_number="000000000",
+            branch_code="051001",
+            payout_enabled=False
+        )
+        db.add(m_account)
+
+    m_account.id_document_url = payload.id_document_url
+    m_account.proof_of_address_url = payload.proof_of_address_url
+    m_account.business_registration_number = payload.business_registration_number
+    m_account.tax_number = payload.tax_number
+    m_account.verification_status = MerchantVerificationStatus.pending_review
+    m_account.payout_enabled = False
+
+    db.commit()
+    db.refresh(m_account)
+
+    emit_continuity_event(
+        db,
+        business_owner_id=uid,
+        business_category_key=None,
+        business_line=None,
+        event_type="merchant_kyc_submitted",
+        actor_type="merchant",
+        actor_id=uid,
+        related_entity_type="merchant_account",
+        related_entity_id=str(m_account.id),
+        parent_event_id=None,
+        payload={
+            "user_id": uid,
+            "verification_status": m_account.verification_status.value,
+            "has_cipc": payload.business_registration_number is not None,
+            "has_tax": payload.tax_number is not None
+        },
+        auto_commit=True
+    )
+
+    return {
+        "status": "success",
+        "message": "KYC documents submitted successfully. Verification pending admin review.",
+        "verification_status": m_account.verification_status.value,
+        "payout_enabled": m_account.payout_enabled
+    }
+
+
