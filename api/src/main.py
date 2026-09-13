@@ -51,6 +51,7 @@ from src.routers.payments import router as payments_router
 from src.routers.reconciliation import router as reconciliation_router
 from src.routers.inventory import router as inventory_router
 from src.routers.commissions import router as commissions_router
+from src.routers.affiliates import router as affiliates_router
 from src.routes.continuity_capture_routes import router as continuity_capture_router
 from src.routes.lead_routes import router as lead_router
 from src.routes.river_routes import router as river_router
@@ -362,6 +363,7 @@ else:
     app.include_router(order_routes.router, prefix="/api/v1")
     app.include_router(marketplace_routes.router, prefix="/api/v1")
     app.include_router(category_routes.router)
+    app.include_router(affiliates_router)
 
     # S2S Router
     from src.routers.s2s import router as s2s_router

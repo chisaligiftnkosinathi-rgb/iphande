@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "iPhande API",
-    "description": "Visibility, opportunity continuity, replay, and grace reflection platform.",
+    "description": "Township enterprise ERP, hyper-local marketplace, and merchant credibility infrastructure.",
     "version": "0.1.0"
   },
   "paths": {
@@ -233,15 +233,42 @@
         ],
         "summary": "Create Financial Event",
         "operationId": "create_financial_event_api_v1_financial_events_post",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/FinancialEventCreate"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -282,6 +309,22 @@
             "schema": {
               "type": "string",
               "title": "Business Owner Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -329,6 +372,22 @@
               "type": "string",
               "title": "Business Owner Id"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
           }
         ],
         "responses": {
@@ -370,6 +429,22 @@
             "schema": {
               "type": "string",
               "title": "Business Owner Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -413,6 +488,22 @@
               "type": "string",
               "title": "Business Owner Id"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
           }
         ],
         "responses": {
@@ -446,15 +537,33 @@
         ],
         "summary": "Create Quote",
         "operationId": "create_quote_api_v1_quotes_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/QuoteCreate"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -495,6 +604,22 @@
             "schema": {
               "type": "string",
               "title": "Business Owner Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -655,6 +780,22 @@
               "format": "uuid",
               "title": "Quote Id"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
           }
         ],
         "responses": {
@@ -751,6 +892,22 @@
               "format": "uuid",
               "title": "Quote Id"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
           }
         ],
         "responses": {
@@ -836,6 +993,22 @@
               "type": "string",
               "title": "Business Owner Id"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
           }
         ],
         "responses": {
@@ -873,15 +1046,33 @@
         ],
         "summary": "Create Payment Intent",
         "operationId": "create_payment_intent_api_v1_payments_intents_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/PaymentIntentCreate"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -923,6 +1114,22 @@
               "type": "string",
               "format": "uuid",
               "title": "Payment Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -977,6 +1184,22 @@
               "format": "uuid",
               "title": "Payment Id"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
           }
         ],
         "requestBody": {
@@ -1030,6 +1253,22 @@
               "format": "uuid",
               "title": "Payment Id"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
           }
         ],
         "responses": {
@@ -1072,6 +1311,22 @@
               "type": "string",
               "format": "uuid",
               "title": "Payment Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -1116,6 +1371,22 @@
               "format": "uuid",
               "title": "Payment Id"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
           }
         ],
         "responses": {
@@ -1158,6 +1429,22 @@
               "type": "string",
               "format": "uuid",
               "title": "Payment Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -1457,15 +1744,33 @@
         ],
         "summary": "Create Inventory Item",
         "operationId": "create_inventory_item_api_v1_inventory_items_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/InventoryItemCreate"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -1507,6 +1812,22 @@
               "type": "string",
               "format": "uuid",
               "title": "Item Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -1561,6 +1882,22 @@
               "format": "uuid",
               "title": "Item Id"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
           }
         ],
         "requestBody": {
@@ -1613,6 +1950,22 @@
               "type": "string",
               "title": "Business Owner Id"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
           }
         ],
         "responses": {
@@ -1659,6 +2012,22 @@
               "type": "string",
               "format": "uuid",
               "title": "Item Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -2065,6 +2434,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "additionalProperties": true,
                 "type": "object",
                 "title": "Config"
               }
@@ -2659,6 +3029,182 @@
                 "schema": {
                   "$ref": "#/components/schemas/Token"
                 }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/upgrade-to-merchant": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Upgrade To Merchant",
+        "description": "Allows an authenticated Buyer to self-upgrade into a Merchant.\nProvisions a merchant Profile, links owner_id, and issues an upgraded JWT.",
+        "operationId": "upgrade_to_merchant_api_v1_auth_upgrade_to_merchant_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MerchantUpgradeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Token"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/promote-role": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Promote User Role",
+        "description": "SupaAdmin exclusive authority: Promote or demote any user to merchant, admin, or supaadmin.",
+        "operationId": "promote_user_role_api_v1_auth_promote_role_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RolePromoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/merchant/kyc": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Submit Merchant Kyc",
+        "description": "Submits identity & business verification documents for FICA / marketplace compliance.\nTransitions account to 'pending_review' until verified by an Admin.",
+        "operationId": "submit_merchant_kyc_api_v1_auth_merchant_kyc_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KYCSubmissionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           },
@@ -3599,6 +4145,24 @@
       "post": {
         "summary": "Create Opportunity",
         "operationId": "create_opportunity_api_v1_opportunities_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -3852,6 +4416,22 @@
               "type": "string",
               "title": "Opportunity Id"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
           }
         ],
         "responses": {
@@ -3888,6 +4468,22 @@
             "schema": {
               "type": "string",
               "title": "Opportunity Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -5191,6 +5787,583 @@
         }
       }
     },
+    "/api/v1/admin/treasury/summary": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Get Treasury Summary",
+        "description": "Returns platform-wide financial summary across all orders, fee allocations,\nand merchant earning ledgers.",
+        "operationId": "get_treasury_summary_api_v1_admin_treasury_summary_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreasurySummaryOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/treasury/transactions": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "List Treasury Transactions",
+        "description": "Paginated real-time ledger feed displaying fee splits and merchant shares.",
+        "operationId": "list_treasury_transactions_api_v1_admin_treasury_transactions_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TreasuryTransactionOut"
+                  },
+                  "title": "Response List Treasury Transactions Api V1 Admin Treasury Transactions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/treasury/merchants/payout-queue": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Get Payout Queue",
+        "description": "Lists all merchants who have accumulated available earnings ready for bank transfer.",
+        "operationId": "get_payout_queue_api_v1_admin_treasury_merchants_payout_queue_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PayoutQueueItem"
+                  },
+                  "title": "Response Get Payout Queue Api V1 Admin Treasury Merchants Payout Queue Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/treasury/merchants/{merchant_id}/settle": {
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Settle Merchant Earnings",
+        "description": "Executes settlement of all available earnings for a given merchant,\ntransitioning EarningLedger status to 'paid' and emitting an audit event.",
+        "operationId": "settle_merchant_earnings_api_v1_admin_treasury_merchants__merchant_id__settle_post",
+        "parameters": [
+          {
+            "name": "merchant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Merchant Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettlementActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/merchants/kyc-queue": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Get Merchant Kyc Queue",
+        "description": "Returns merchants awaiting FICA compliance / KYC document review,\nenriched with calculated SLA turn-around times and frozen liability balances.",
+        "operationId": "get_merchant_kyc_queue_api_v1_admin_merchants_kyc_queue_get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by status e.g. pending_review, verified",
+              "title": "Status"
+            },
+            "description": "Filter by status e.g. pending_review, verified"
+          },
+          {
+            "name": "sort_by_urgency",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Sort breached and urgent reviews to the top",
+              "default": true,
+              "title": "Sort By Urgency"
+            },
+            "description": "Sort breached and urgent reviews to the top"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MerchantKYCItem"
+                  },
+                  "title": "Response Get Merchant Kyc Queue Api V1 Admin Merchants Kyc Queue Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/merchants/{merchant_id}/kyc-review": {
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Review Merchant Kyc",
+        "description": "Approves or rejects a merchant's KYC submission.\nApproving unlocks payout_enabled for automated or manual settlements.",
+        "operationId": "review_merchant_kyc_api_v1_admin_merchants__merchant_id__kyc_review_post",
+        "parameters": [
+          {
+            "name": "merchant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Merchant Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KYCReviewActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/merchants/{merchant_id}/kyc-nudge": {
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Nudge Merchant Kyc",
+        "description": "Sends an automated compliance nudge to the merchant to provide or update\ntheir FICA documentation.",
+        "operationId": "nudge_merchant_kyc_api_v1_admin_merchants__merchant_id__kyc_nudge_post",
+        "parameters": [
+          {
+            "name": "merchant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Merchant Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KYCNudgeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/compliance/escalations/trigger": {
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Trigger Compliance Escalations",
+        "description": "Automated Governance Scanner:\n1. Scans pending KYC submissions exceeding the 72h SLA and emits compliance_sla_breached.\n2. Identifies unverified merchants with pending earnings holding frozen balances > R500.\n3. Triggers compliance alerts for immutable audit replay.",
+        "operationId": "trigger_compliance_escalations_api_v1_admin_compliance_escalations_trigger_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EscalationReportOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/treasury/analytics": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Get Treasury Analytics",
+        "description": "Returns time-series revenue trends, disbursement velocity, gateway comparison,\nand carrier logistics distribution for executive governance.",
+        "operationId": "get_treasury_analytics_api_v1_admin_treasury_analytics_get",
+        "parameters": [
+          {
+            "name": "range",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^(7d|30d|90d|1y)$",
+              "default": "30d",
+              "title": "Range"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreasuryAnalyticsOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/business-categories": {
       "get": {
         "tags": [
@@ -6150,345 +7323,6 @@
         }
       }
     },
-    "/api/v1/giving/": {
-      "get": {
-        "tags": [
-          "giving"
-        ],
-        "summary": "List Giving",
-        "operationId": "list_giving_api_v1_giving__get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/Giving"
-                  },
-                  "type": "array",
-                  "title": "Response List Giving Api V1 Giving  Get"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "giving"
-        ],
-        "summary": "Create Giving",
-        "operationId": "create_giving_api_v1_giving__post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GivingCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Giving"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/giving/{giving_id}": {
-      "get": {
-        "tags": [
-          "giving"
-        ],
-        "summary": "Get Giving",
-        "operationId": "get_giving_api_v1_giving__giving_id__get",
-        "parameters": [
-          {
-            "name": "giving_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Giving Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Giving"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/giving/{giving_id}/status": {
-      "patch": {
-        "tags": [
-          "giving"
-        ],
-        "summary": "Update Giving Status",
-        "operationId": "update_giving_status_api_v1_giving__giving_id__status_patch",
-        "parameters": [
-          {
-            "name": "giving_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Giving Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GivingStatusUpdate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Giving"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/reflections": {
-      "get": {
-        "summary": "List Reflections",
-        "operationId": "list_reflections_api_v1_reflections_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/ReflectionOut"
-                  },
-                  "type": "array",
-                  "title": "Response List Reflections Api V1 Reflections Get"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "summary": "Create Reflection",
-        "operationId": "create_reflection_api_v1_reflections_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReflectionCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ReflectionOut"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/reflections/{reflection_id}": {
-      "get": {
-        "summary": "Get Reflection",
-        "operationId": "get_reflection_api_v1_reflections__reflection_id__get",
-        "parameters": [
-          {
-            "name": "reflection_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Reflection Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ReflectionOut"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "patch": {
-        "summary": "Update Reflection",
-        "operationId": "update_reflection_api_v1_reflections__reflection_id__patch",
-        "parameters": [
-          {
-            "name": "reflection_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Reflection Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReflectionUpdate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ReflectionOut"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete Reflection",
-        "operationId": "delete_reflection_api_v1_reflections__reflection_id__delete",
-        "parameters": [
-          {
-            "name": "reflection_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Reflection Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/campaigns": {
       "get": {
         "summary": "List Campaigns",
@@ -6847,224 +7681,6 @@
         }
       }
     },
-    "/api/v1/scripture-reflections": {
-      "get": {
-        "summary": "List Scripture Reflections",
-        "operationId": "list_scripture_reflections_api_v1_scripture_reflections_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/ScriptureReflectionRead"
-                  },
-                  "type": "array",
-                  "title": "Response List Scripture Reflections Api V1 Scripture Reflections Get"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "summary": "Create Scripture Reflection",
-        "operationId": "create_scripture_reflection_api_v1_scripture_reflections_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ScriptureReflectionCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ScriptureReflectionRead"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/scripture-reflections/{scripture_reflection_id}": {
-      "get": {
-        "summary": "Get Scripture Reflection",
-        "operationId": "get_scripture_reflection_api_v1_scripture_reflections__scripture_reflection_id__get",
-        "parameters": [
-          {
-            "name": "scripture_reflection_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Scripture Reflection Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ScriptureReflectionRead"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "patch": {
-        "summary": "Update Scripture Reflection",
-        "operationId": "update_scripture_reflection_api_v1_scripture_reflections__scripture_reflection_id__patch",
-        "parameters": [
-          {
-            "name": "scripture_reflection_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Scripture Reflection Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ScriptureReflectionUpdate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ScriptureReflectionRead"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete Scripture Reflection",
-        "operationId": "delete_scripture_reflection_api_v1_scripture_reflections__scripture_reflection_id__delete",
-        "parameters": [
-          {
-            "name": "scripture_reflection_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Scripture Reflection Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/scripture-reflections/daily/{owner_profile_id}": {
-      "get": {
-        "summary": "Get Daily Scripture Reflection",
-        "operationId": "get_daily_scripture_reflection_api_v1_scripture_reflections_daily__owner_profile_id__get",
-        "parameters": [
-          {
-            "name": "owner_profile_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Owner Profile Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ScriptureReflectionRead"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/content-posts": {
       "post": {
         "summary": "Create Content Post",
@@ -7296,6 +7912,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "additionalProperties": true,
                 "type": "object",
                 "title": "Data"
               }
@@ -7681,6 +8298,24 @@
         ],
         "summary": "Create Expense",
         "operationId": "create_expense_api_v1_expenses_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -7765,6 +8400,22 @@
               "title": "Year"
             },
             "description": "Year (e.g., 2026)"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
           }
         ],
         "responses": {
@@ -7842,6 +8493,22 @@
                 }
               ],
               "title": "Year"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
             }
           }
         ],
@@ -9089,6 +9756,979 @@
         }
       }
     },
+    "/api/v1/storefronts/{business_type}": {
+      "get": {
+        "tags": [
+          "Storefronts"
+        ],
+        "summary": "Get Storefront Catalog",
+        "description": "Returns an active catalog of products and services for a specific business type:\n- retail: Physical goods & spaza products\n- service: Services, artisan jobs & bookings\n- wholesale: Bulk order items & tiered listings\n- digital: Downloadable assets, courses & digital goods",
+        "operationId": "get_storefront_catalog_api_v1_storefronts__business_type__get",
+        "parameters": [
+          {
+            "name": "business_type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Business Type"
+            }
+          },
+          {
+            "name": "province",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Province"
+            }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "City"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/storefronts/merchant/{slug}": {
+      "get": {
+        "tags": [
+          "Storefronts"
+        ],
+        "summary": "Get Merchant Storefront",
+        "description": "Returns full public storefront profile and catalog for a merchant by slug.",
+        "operationId": "get_merchant_storefront_api_v1_storefronts_merchant__slug__get",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/checkout": {
+      "post": {
+        "tags": [
+          "Orders & Checkout"
+        ],
+        "summary": "Checkout",
+        "description": "Unified checkout endpoint for Retail, Wholesale, and Digital goods.\nEnforces atomic row locking on inventory stock, multi-carrier snapshots,\nand multi-gateway dispatch (PayFast, PayJustNow 3x BNPL, Paystack).",
+        "operationId": "checkout_api_v1_orders_checkout_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/pudo/lockers": {
+      "get": {
+        "tags": [
+          "Orders & Checkout",
+          "Logistics"
+        ],
+        "summary": "List Pudo Lockers",
+        "description": "Returns verified Pudo Smart Locker drop-off & pickup points across South Africa.",
+        "operationId": "list_pudo_lockers_api_v1_orders_pudo_lockers_get",
+        "parameters": [
+          {
+            "name": "city",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by city or suburb e.g. Soweto, Durban",
+              "title": "City"
+            },
+            "description": "Filter by city or suburb e.g. Soweto, Durban"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "title": "Response List Pudo Lockers Api V1 Orders Pudo Lockers Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{order_id}/tracking": {
+      "get": {
+        "tags": [
+          "Orders & Checkout"
+        ],
+        "summary": "Get Order Tracking",
+        "description": "Returns real-time carrier tracking link, locker codes, and status.",
+        "operationId": "get_order_tracking_api_v1_orders__order_id__tracking_get",
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Order Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/payfast/webhook": {
+      "post": {
+        "tags": [
+          "Orders & Checkout"
+        ],
+        "summary": "Payfast Order Webhook",
+        "description": "PayFast Instant Transaction Notification (ITN) webhook handler.\nValidates MD5 signature, checks idempotency, and executes 3-ledger fulfillment.",
+        "operationId": "payfast_order_webhook_api_v1_orders_payfast_webhook_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/paystack/webhook": {
+      "post": {
+        "tags": [
+          "Orders & Checkout"
+        ],
+        "summary": "Paystack Order Webhook",
+        "description": "Paystack webhook handler with x-paystack-signature validation.",
+        "operationId": "paystack_order_webhook_api_v1_orders_paystack_webhook_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/payjustnow/webhook": {
+      "post": {
+        "tags": [
+          "Orders & Checkout"
+        ],
+        "summary": "Payjustnow Order Webhook",
+        "description": "PayJustNow 3x BNPL installment authorization callback.",
+        "operationId": "payjustnow_order_webhook_api_v1_orders_payjustnow_webhook_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{order_id}": {
+      "get": {
+        "tags": [
+          "Orders & Checkout"
+        ],
+        "summary": "Get Order",
+        "description": "Get unified order details including item list, delivery status, and digital download.",
+        "operationId": "get_order_api_v1_orders__order_id__get",
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Order Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/downloads/{token}": {
+      "get": {
+        "tags": [
+          "Orders & Checkout"
+        ],
+        "summary": "Download Digital Item",
+        "description": "Secure digital goods delivery endpoint. Validates token and expiry.",
+        "operationId": "download_digital_item_api_v1_orders_downloads__token__get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/marketplace/": {
+      "get": {
+        "tags": [
+          "Marketplace"
+        ],
+        "summary": "List Marketplace Feed",
+        "description": "Public marketplace feed returning verified products and services across all active merchants.",
+        "operationId": "list_marketplace_feed_api_v1_marketplace__get",
+        "parameters": [
+          {
+            "name": "product_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "physical, service, digital",
+              "title": "Product Type"
+            },
+            "description": "physical, service, digital"
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "category key",
+              "title": "Category"
+            },
+            "description": "category key"
+          },
+          {
+            "name": "province",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Province"
+            }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "City"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Keyword search",
+              "title": "Q"
+            },
+            "description": "Keyword search"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/categories/": {
+      "get": {
+        "tags": [
+          "Categories"
+        ],
+        "summary": "List Categories",
+        "description": "Returns the canonical product and service taxonomy for iPhande.\nUsed for frontend marketplace filters and merchant onboarding selection.",
+        "operationId": "list_categories_api_v1_categories__get",
+        "parameters": [
+          {
+            "name": "business_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by business type: retail, service, wholesale, digital",
+              "title": "Business Type"
+            },
+            "description": "Filter by business type: retail, service, wholesale, digital"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "title": "Response List Categories Api V1 Categories  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/categories/{business_type}": {
+      "get": {
+        "tags": [
+          "Categories"
+        ],
+        "summary": "Get Categories For Type",
+        "description": "Returns categories strictly matching the specified business type.",
+        "operationId": "get_categories_for_type_api_v1_categories__business_type__get",
+        "parameters": [
+          {
+            "name": "business_type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Business Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "title": "Response Get Categories For Type Api V1 Categories  Business Type  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/affiliates/offers": {
+      "get": {
+        "tags": [
+          "affiliates"
+        ],
+        "summary": "List Affiliate Offers",
+        "description": "Returns active affiliate commercial offers with full payout models and pre-qualification criteria.",
+        "operationId": "list_affiliate_offers_api_v1_affiliates_offers_get",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by category: LOANS, FUNERAL, MEDICAL, VEHICLE, RETAIL, INVESTMENTS",
+              "title": "Category"
+            },
+            "description": "Filter by category: LOANS, FUNERAL, MEDICAL, VEHICLE, RETAIL, INVESTMENTS"
+          },
+          {
+            "name": "is_active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Filter by active status",
+              "default": true,
+              "title": "Is Active"
+            },
+            "description": "Filter by active status"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AffiliateOfferOut"
+                  },
+                  "title": "Response List Affiliate Offers Api V1 Affiliates Offers Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/affiliates/offers/{offer_id}": {
+      "get": {
+        "tags": [
+          "affiliates"
+        ],
+        "summary": "Get Affiliate Offer",
+        "description": "Fetches a specific affiliate offer with targeting constraints and dynamic payout rules.",
+        "operationId": "get_affiliate_offer_api_v1_affiliates_offers__offer_id__get",
+        "parameters": [
+          {
+            "name": "offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Offer Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AffiliateOfferOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/affiliates/leads/submit": {
+      "post": {
+        "tags": [
+          "affiliates"
+        ],
+        "summary": "Submit Lead",
+        "description": "Submits a customer lead for an affiliate product:\n- Pre-qualifies against Sheet 2 rules (Income, Age, Employment, SA Citizen, Bank Account, Driver License).\n- Enforces 90-day deduplication window.\n- Tags merchant account attribution.\n- Emits immutable continuity audit event.",
+        "operationId": "submit_lead_api_v1_affiliates_leads_submit_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AffiliateLeadCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AffiliateLeadOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/affiliates/leads/my-leads": {
+      "get": {
+        "tags": [
+          "affiliates"
+        ],
+        "summary": "List My Leads",
+        "description": "Lists submitted affiliate leads for the authenticated merchant with conversion and payout attribution.",
+        "operationId": "list_my_leads_api_v1_affiliates_leads_my_leads_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AffiliateLeadOut"
+                  },
+                  "title": "Response List My Leads Api V1 Affiliates Leads My Leads Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/affiliates/postback": {
+      "post": {
+        "tags": [
+          "affiliates"
+        ],
+        "summary": "Handle Conversion Postback",
+        "description": "S2S / Webhook postback endpoint for conversion attribution:\n- Matches lead by lead_id, external_lead_id, phone, or national_id.\n- Computes merchant commission split (70% standard).\n- Emits 'commission_approved' and 'commission_paid' continuity events to credit merchant ledger.",
+        "operationId": "handle_conversion_postback_api_v1_affiliates_postback_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AffiliateConversionPostback"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AffiliateLeadOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/s2s/tenant-bootstrap": {
+      "post": {
+        "tags": [
+          "s2s"
+        ],
+        "summary": "Bootstrap S2S Tenant",
+        "description": "Idempotently ensures that a Global IT tenant has an associated iPhande Profile.\nThis endpoint MUST be called with a valid S2S JWT.",
+        "operationId": "bootstrap_s2s_tenant_api_v1_s2s_tenant_bootstrap_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/policies": {
       "get": {
         "tags": [
@@ -9103,9 +10743,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/Policy"
-                  },
+                  "items": {},
                   "type": "array",
                   "title": "Response List Policies Api V1 Policies Get"
                 }
@@ -9353,6 +10991,595 @@
         ],
         "title": "AdvertisementOut"
       },
+      "AffiliateConversionPostback": {
+        "properties": {
+          "offer_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Offer Slug"
+          },
+          "lead_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Id"
+          },
+          "external_lead_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Lead Id"
+          },
+          "phone_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone Number"
+          },
+          "national_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "National Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "CONVERTED"
+          },
+          "gross_amount": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gross Amount"
+          },
+          "conversion_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversion Reference"
+          },
+          "conversion_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversion Rate"
+          }
+        },
+        "type": "object",
+        "title": "AffiliateConversionPostback"
+      },
+      "AffiliateLeadCreate": {
+        "properties": {
+          "offer_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Offer Id"
+          },
+          "first_name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "First Name"
+          },
+          "last_name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Last Name"
+          },
+          "phone_number": {
+            "type": "string",
+            "maxLength": 30,
+            "minLength": 7,
+            "title": "Phone Number"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 150
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "national_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 30
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "National Id"
+          },
+          "monthly_income": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthly Income"
+          },
+          "is_employed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Employed"
+          },
+          "has_bank_account": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Has Bank Account"
+          },
+          "is_sa_citizen": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Sa Citizen"
+          },
+          "has_driver_license": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Has Driver License"
+          },
+          "age": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age"
+          },
+          "customer_metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Metadata"
+          }
+        },
+        "type": "object",
+        "required": [
+          "offer_id",
+          "first_name",
+          "last_name",
+          "phone_number"
+        ],
+        "title": "AffiliateLeadCreate"
+      },
+      "AffiliateLeadOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "offer_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Offer Id"
+          },
+          "merchant_id": {
+            "type": "string",
+            "title": "Merchant Id"
+          },
+          "first_name": {
+            "type": "string",
+            "title": "First Name"
+          },
+          "last_name": {
+            "type": "string",
+            "title": "Last Name"
+          },
+          "phone_number": {
+            "type": "string",
+            "title": "Phone Number"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "national_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "National Id"
+          },
+          "monthly_income": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthly Income"
+          },
+          "is_employed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Employed"
+          },
+          "has_bank_account": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Has Bank Account"
+          },
+          "is_sa_citizen": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Sa Citizen"
+          },
+          "has_driver_license": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Has Driver License"
+          },
+          "age": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "disqualification_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disqualification Reason"
+          },
+          "external_lead_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Lead Id"
+          },
+          "gross_commission": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gross Commission"
+          },
+          "merchant_commission": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Merchant Commission"
+          },
+          "platform_fee": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Platform Fee"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "offer_id",
+          "merchant_id",
+          "first_name",
+          "last_name",
+          "phone_number",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "AffiliateLeadOut"
+      },
+      "AffiliateOfferOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "client_name": {
+            "type": "string",
+            "title": "Client Name"
+          },
+          "channel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Channel",
+            "default": "Web"
+          },
+          "payout_model": {
+            "type": "string",
+            "title": "Payout Model"
+          },
+          "base_payout": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Base Payout"
+          },
+          "payout_percentage": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payout Percentage"
+          },
+          "payout_tier_rules": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payout Tier Rules"
+          },
+          "merchant_split_ratio": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Merchant Split Ratio"
+          },
+          "min_income": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Income"
+          },
+          "min_age": {
+            "type": "integer",
+            "title": "Min Age"
+          },
+          "max_age": {
+            "type": "integer",
+            "title": "Max Age"
+          },
+          "requires_employment": {
+            "type": "boolean",
+            "title": "Requires Employment"
+          },
+          "requires_bank_account": {
+            "type": "boolean",
+            "title": "Requires Bank Account"
+          },
+          "requires_sa_citizen": {
+            "type": "boolean",
+            "title": "Requires Sa Citizen"
+          },
+          "requires_driver_license": {
+            "type": "boolean",
+            "title": "Requires Driver License"
+          },
+          "dedup_period_days": {
+            "type": "integer",
+            "title": "Dedup Period Days"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "category",
+          "client_name",
+          "payout_model",
+          "base_payout",
+          "merchant_split_ratio",
+          "min_age",
+          "max_age",
+          "requires_employment",
+          "requires_bank_account",
+          "requires_sa_citizen",
+          "requires_driver_license",
+          "dedup_period_days",
+          "is_active"
+        ],
+        "title": "AffiliateOfferOut"
+      },
       "ApplicationState": {
         "properties": {
           "stage": {
@@ -9370,7 +11597,7 @@
         "properties": {
           "file": {
             "type": "string",
-            "format": "binary",
+            "contentMediaType": "application/octet-stream",
             "title": "File"
           },
           "proof_type": {
@@ -9411,7 +11638,7 @@
         "properties": {
           "receipt_file": {
             "type": "string",
-            "format": "binary",
+            "contentMediaType": "application/octet-stream",
             "title": "Receipt File"
           }
         },
@@ -9433,7 +11660,7 @@
           },
           "evidence_file": {
             "type": "string",
-            "format": "binary",
+            "contentMediaType": "application/octet-stream",
             "title": "Evidence File"
           }
         },
@@ -9591,6 +11818,41 @@
             },
             "type": "array",
             "title": "Featureflags"
+          },
+          "verification_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verification Status",
+            "default": "unverified"
+          },
+          "kyc_review_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kyc Review Notes"
+          },
+          "payout_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payout Enabled",
+            "default": false
           }
         },
         "type": "object",
@@ -9850,6 +12112,29 @@
         ],
         "title": "CampaignUpdate"
       },
+      "CarrierDistributionItem": {
+        "properties": {
+          "carrier": {
+            "type": "string",
+            "title": "Carrier"
+          },
+          "shipment_count": {
+            "type": "integer",
+            "title": "Shipment Count"
+          },
+          "percentage": {
+            "type": "number",
+            "title": "Percentage"
+          }
+        },
+        "type": "object",
+        "required": [
+          "carrier",
+          "shipment_count",
+          "percentage"
+        ],
+        "title": "CarrierDistributionItem"
+      },
       "CashDirection": {
         "type": "string",
         "enum": [
@@ -9871,14 +12156,17 @@
           },
           "inflow_total": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Inflow Total"
           },
           "outflow_total": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Outflow Total"
           },
           "net_cash": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Net Cash"
           },
           "events": {
@@ -9899,6 +12187,209 @@
           "events"
         ],
         "title": "CashReplayOut"
+      },
+      "CheckoutRequest": {
+        "properties": {
+          "business_owner_id": {
+            "type": "string",
+            "title": "Business Owner Id"
+          },
+          "customer_email": {
+            "type": "string",
+            "format": "email",
+            "title": "Customer Email"
+          },
+          "customer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Name"
+          },
+          "customer_phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Phone"
+          },
+          "delivery_mode": {
+            "type": "string",
+            "title": "Delivery Mode",
+            "default": "pickup"
+          },
+          "shipping_provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shipping Provider"
+          },
+          "shipping_address": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shipping Address"
+          },
+          "payment_provider": {
+            "type": "string",
+            "title": "Payment Provider",
+            "default": "payfast"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/OrderItemInput"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "return_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Url"
+          },
+          "cancel_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancel Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "business_owner_id",
+          "customer_email",
+          "items"
+        ],
+        "title": "CheckoutRequest"
+      },
+      "CheckoutResponse": {
+        "properties": {
+          "order_id": {
+            "type": "string",
+            "title": "Order Id"
+          },
+          "order_number": {
+            "type": "string",
+            "title": "Order Number"
+          },
+          "total_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Amount"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "payment_provider": {
+            "type": "string",
+            "title": "Payment Provider",
+            "default": "payfast"
+          },
+          "payment_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Url"
+          },
+          "payfast_data": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payfast Data"
+          },
+          "installment_breakdown": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Installment Breakdown"
+          },
+          "shipping_provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shipping Provider"
+          },
+          "shipping_tracking_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shipping Tracking Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "order_id",
+          "order_number",
+          "total_amount",
+          "currency",
+          "status"
+        ],
+        "title": "CheckoutResponse"
       },
       "ContentPostCreate": {
         "properties": {
@@ -10290,6 +12781,7 @@
             "title": "Business Category Key"
           },
           "payload": {
+            "additionalProperties": true,
             "type": "object",
             "title": "Payload",
             "default": {}
@@ -11205,6 +13697,7 @@
           "context": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -11258,6 +13751,48 @@
         ],
         "title": "EngagementEventCreate"
       },
+      "EscalationReportOut": {
+        "properties": {
+          "scanned_merchants": {
+            "type": "integer",
+            "title": "Scanned Merchants"
+          },
+          "sla_breaches_detected": {
+            "type": "integer",
+            "title": "Sla Breaches Detected"
+          },
+          "unverified_nudges_triggered": {
+            "type": "integer",
+            "title": "Unverified Nudges Triggered"
+          },
+          "stale_balance_alarms": {
+            "type": "integer",
+            "title": "Stale Balance Alarms"
+          },
+          "events_emitted": {
+            "type": "integer",
+            "title": "Events Emitted"
+          },
+          "details": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Details"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scanned_merchants",
+          "sla_breaches_detected",
+          "unverified_nudges_triggered",
+          "stale_balance_alarms",
+          "events_emitted",
+          "details"
+        ],
+        "title": "EscalationReportOut"
+      },
       "ExpenseCreate": {
         "properties": {
           "business_owner_id": {
@@ -11271,7 +13806,8 @@
                 "exclusiveMinimum": 0.0
               },
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
               }
             ],
             "title": "Amount",
@@ -11331,6 +13867,7 @@
           },
           "amount": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Amount"
           },
           "category": {
@@ -11387,14 +13924,17 @@
         "properties": {
           "income": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Income"
           },
           "expenses": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Expenses"
           },
           "net_position": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Net Position"
           }
         },
@@ -11445,6 +13985,7 @@
           "context": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -11478,7 +14019,8 @@
                 "exclusiveMinimum": 0.0
               },
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
               }
             ],
             "title": "Amount"
@@ -11559,6 +14101,7 @@
           },
           "amount": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Amount"
           },
           "currency": {
@@ -11704,6 +14247,39 @@
         ],
         "title": "FollowUpOut"
       },
+      "GatewayPerformanceItem": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "total_volume": {
+            "type": "number",
+            "title": "Total Volume"
+          },
+          "transaction_count": {
+            "type": "integer",
+            "title": "Transaction Count"
+          },
+          "success_rate": {
+            "type": "number",
+            "title": "Success Rate"
+          },
+          "average_order_value": {
+            "type": "number",
+            "title": "Average Order Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider",
+          "total_volume",
+          "transaction_count",
+          "success_rate",
+          "average_order_value"
+        ],
+        "title": "GatewayPerformanceItem"
+      },
       "GeneratedContentPostOut": {
         "properties": {
           "id": {
@@ -11730,6 +14306,7 @@
           },
           "events": {
             "items": {
+              "additionalProperties": true,
               "type": "object"
             },
             "type": "array",
@@ -11917,277 +14494,6 @@
         ],
         "title": "GeneratedContentPostOut"
       },
-      "Giving": {
-        "properties": {
-          "user_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "User Id"
-          },
-          "business_owner_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Business Owner Id"
-          },
-          "business_category_key": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Business Category Key"
-          },
-          "business_line": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Business Line"
-          },
-          "trigger_type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Trigger Type"
-          },
-          "trigger_count": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Trigger Count"
-          },
-          "amount": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Amount"
-          },
-          "currency": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Currency"
-          },
-          "message": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Message"
-          },
-          "is_voluntary": {
-            "type": "boolean",
-            "title": "Is Voluntary",
-            "default": true
-          },
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "status": {
-            "$ref": "#/components/schemas/GivingStatus"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "updated_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Updated At"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "status",
-          "created_at"
-        ],
-        "title": "Giving"
-      },
-      "GivingCreate": {
-        "properties": {
-          "user_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "User Id"
-          },
-          "business_owner_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Business Owner Id"
-          },
-          "business_category_key": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Business Category Key"
-          },
-          "business_line": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Business Line"
-          },
-          "trigger_type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Trigger Type"
-          },
-          "trigger_count": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Trigger Count"
-          },
-          "amount": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Amount"
-          },
-          "currency": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Currency"
-          },
-          "message": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Message"
-          },
-          "is_voluntary": {
-            "type": "boolean",
-            "title": "Is Voluntary",
-            "default": true
-          }
-        },
-        "type": "object",
-        "title": "GivingCreate"
-      },
-      "GivingStatus": {
-        "type": "string",
-        "enum": [
-          "pledged",
-          "received",
-          "cancelled"
-        ],
-        "title": "GivingStatus"
-      },
-      "GivingStatusUpdate": {
-        "properties": {
-          "status": {
-            "$ref": "#/components/schemas/GivingStatus"
-          }
-        },
-        "type": "object",
-        "required": [
-          "status"
-        ],
-        "title": "GivingStatusUpdate"
-      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -12249,6 +14555,7 @@
           },
           "balance": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Balance"
           },
           "active": {
@@ -12350,7 +14657,8 @@
                 "exclusiveMinimum": 0.0
               },
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
               }
             ],
             "title": "Quantity"
@@ -12429,14 +14737,17 @@
           },
           "quantity": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Quantity"
           },
           "previous_balance": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Previous Balance"
           },
           "next_balance": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Next Balance"
           },
           "reference_type": {
@@ -12542,6 +14853,7 @@
           },
           "amount": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Amount"
           },
           "currency": {
@@ -12607,6 +14919,88 @@
           "cancelled"
         ],
         "title": "InvoiceStatus"
+      },
+      "KYCNudgeRequest": {
+        "properties": {
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message",
+            "default": "Please provide clear, legible copies of your ID and proof of address to enable payout settlements."
+          }
+        },
+        "type": "object",
+        "title": "KYCNudgeRequest"
+      },
+      "KYCReviewActionRequest": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "KYCReviewActionRequest"
+      },
+      "KYCSubmissionRequest": {
+        "properties": {
+          "id_document_url": {
+            "type": "string",
+            "title": "Id Document Url"
+          },
+          "proof_of_address_url": {
+            "type": "string",
+            "title": "Proof Of Address Url"
+          },
+          "business_registration_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Business Registration Number"
+          },
+          "tax_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tax Number"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id_document_url",
+          "proof_of_address_url"
+        ],
+        "title": "KYCSubmissionRequest"
       },
       "LeadCreate": {
         "properties": {
@@ -13167,6 +15561,154 @@
         "title": "MerchantInfo",
         "description": "Steward's merchant account identity and status"
       },
+      "MerchantKYCItem": {
+        "properties": {
+          "merchant_id": {
+            "type": "string",
+            "title": "Merchant Id"
+          },
+          "merchant_name": {
+            "type": "string",
+            "title": "Merchant Name"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "verification_status": {
+            "type": "string",
+            "title": "Verification Status"
+          },
+          "id_document_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id Document Url"
+          },
+          "proof_of_address_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proof Of Address Url"
+          },
+          "business_registration_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Business Registration Number"
+          },
+          "tax_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tax Number"
+          },
+          "payout_enabled": {
+            "type": "boolean",
+            "title": "Payout Enabled"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "pending_hours": {
+            "type": "number",
+            "title": "Pending Hours",
+            "default": 0.0
+          },
+          "sla_status": {
+            "$ref": "#/components/schemas/SLAStatusEnum",
+            "default": "on_track"
+          },
+          "unclaimed_balance": {
+            "type": "number",
+            "title": "Unclaimed Balance",
+            "default": 0.0
+          },
+          "requires_nudge": {
+            "type": "boolean",
+            "title": "Requires Nudge",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "merchant_id",
+          "merchant_name",
+          "verification_status",
+          "payout_enabled",
+          "created_at"
+        ],
+        "title": "MerchantKYCItem"
+      },
+      "MerchantUpgradeRequest": {
+        "properties": {
+          "business_name": {
+            "type": "string",
+            "title": "Business Name"
+          },
+          "business_type": {
+            "type": "string",
+            "title": "Business Type",
+            "default": "service"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "province": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Province"
+          }
+        },
+        "type": "object",
+        "required": [
+          "business_name"
+        ],
+        "title": "MerchantUpgradeRequest"
+      },
       "MessageTemplateCreate": {
         "properties": {
           "owner_profile_id": {
@@ -13347,6 +15889,7 @@
           },
           "obligation_total": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Obligation Total"
           },
           "obligations": {
@@ -13950,6 +16493,212 @@
         "type": "object",
         "title": "OpportunityUpdate"
       },
+      "OrderDetailResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "order_number": {
+            "type": "string",
+            "title": "Order Number"
+          },
+          "business_owner_id": {
+            "type": "string",
+            "title": "Business Owner Id"
+          },
+          "customer_email": {
+            "type": "string",
+            "title": "Customer Email"
+          },
+          "customer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Name"
+          },
+          "customer_phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Phone"
+          },
+          "order_type": {
+            "type": "string",
+            "title": "Order Type"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "delivery_mode": {
+            "type": "string",
+            "title": "Delivery Mode"
+          },
+          "shipping_provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shipping Provider"
+          },
+          "shipping_tracking_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shipping Tracking Id"
+          },
+          "shipping_metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shipping Metadata"
+          },
+          "payment_provider": {
+            "type": "string",
+            "title": "Payment Provider",
+            "default": "payfast"
+          },
+          "payment_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Reference"
+          },
+          "installment_breakdown": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Installment Breakdown"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "subtotal": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Subtotal"
+          },
+          "delivery_fee": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Delivery Fee"
+          },
+          "total_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Amount"
+          },
+          "items": {
+            "items": {},
+            "type": "array",
+            "title": "Items"
+          },
+          "shipping_address": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shipping Address"
+          },
+          "download_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Download Url"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "order_number",
+          "business_owner_id",
+          "customer_email",
+          "order_type",
+          "status",
+          "delivery_mode",
+          "currency",
+          "subtotal",
+          "delivery_fee",
+          "total_amount",
+          "items",
+          "created_at"
+        ],
+        "title": "OrderDetailResponse"
+      },
+      "OrderItemInput": {
+        "properties": {
+          "opportunity_id": {
+            "type": "string",
+            "title": "Opportunity Id"
+          },
+          "quantity": {
+            "type": "integer",
+            "title": "Quantity",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "required": [
+          "opportunity_id"
+        ],
+        "title": "OrderItemInput"
+      },
       "PayfastCreatePayload": {
         "properties": {
           "opportunity_id": {
@@ -14020,6 +16769,7 @@
             "title": "Payment Url"
           },
           "payment_data": {
+            "additionalProperties": true,
             "type": "object",
             "title": "Payment Data"
           },
@@ -14039,9 +16789,28 @@
       "PaymentIntentCreate": {
         "properties": {
           "invoice_id": {
-            "type": "string",
-            "format": "uuid",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Invoice Id"
+          },
+          "quote_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote Id"
           },
           "provider_name": {
             "type": "string",
@@ -14061,9 +16830,6 @@
           }
         },
         "type": "object",
-        "required": [
-          "invoice_id"
-        ],
         "title": "PaymentIntentCreate"
       },
       "PaymentIntentOut": {
@@ -14122,6 +16888,7 @@
           },
           "amount": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Amount"
           },
           "currency": {
@@ -14255,6 +17022,7 @@
           },
           "amount": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Amount"
           },
           "currency": {
@@ -14444,6 +17212,111 @@
         ],
         "title": "PaymentReviewOut"
       },
+      "PayoutQueueItem": {
+        "properties": {
+          "merchant_id": {
+            "type": "string",
+            "title": "Merchant Id"
+          },
+          "merchant_name": {
+            "type": "string",
+            "title": "Merchant Name"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "bank_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bank Name"
+          },
+          "account_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Number"
+          },
+          "branch_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branch Code"
+          },
+          "available_balance": {
+            "type": "number",
+            "title": "Available Balance"
+          },
+          "pending_payouts_count": {
+            "type": "integer",
+            "title": "Pending Payouts Count"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          }
+        },
+        "type": "object",
+        "required": [
+          "merchant_id",
+          "merchant_name",
+          "available_balance",
+          "pending_payouts_count",
+          "currency"
+        ],
+        "title": "PayoutQueueItem"
+      },
+      "PayoutVelocityMetrics": {
+        "properties": {
+          "avg_payout_turnaround_hours": {
+            "type": "number",
+            "title": "Avg Payout Turnaround Hours"
+          },
+          "settled_last_7_days": {
+            "type": "number",
+            "title": "Settled Last 7 Days"
+          },
+          "settled_last_30_days": {
+            "type": "number",
+            "title": "Settled Last 30 Days"
+          },
+          "active_earning_merchants": {
+            "type": "integer",
+            "title": "Active Earning Merchants"
+          }
+        },
+        "type": "object",
+        "required": [
+          "avg_payout_turnaround_hours",
+          "settled_last_7_days",
+          "settled_last_30_days",
+          "active_earning_merchants"
+        ],
+        "title": "PayoutVelocityMetrics"
+      },
       "PlaceOut": {
         "properties": {
           "id": {
@@ -14574,6 +17447,7 @@
             "title": "Minimum App Version"
           },
           "feature_flags": {
+            "additionalProperties": true,
             "type": "object",
             "title": "Feature Flags"
           },
@@ -14588,128 +17462,6 @@
         "type": "object",
         "title": "PlatformInfo",
         "description": "Platform status and metadata"
-      },
-      "Policy": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "description": {
-            "type": "string",
-            "title": "Description"
-          },
-          "current_version": {
-            "type": "string",
-            "title": "Current Version"
-          },
-          "versions": {
-            "items": {
-              "$ref": "#/components/schemas/PolicyVersion"
-            },
-            "type": "array",
-            "title": "Versions"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated At"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "name",
-          "description",
-          "current_version",
-          "versions",
-          "created_at",
-          "updated_at"
-        ],
-        "title": "Policy"
-      },
-      "PolicyRule": {
-        "properties": {
-          "condition": {
-            "type": "object",
-            "title": "Condition"
-          },
-          "action": {
-            "type": "string",
-            "title": "Action"
-          },
-          "metadata": {
-            "anyOf": [
-              {
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Metadata"
-          }
-        },
-        "type": "object",
-        "required": [
-          "condition",
-          "action"
-        ],
-        "title": "PolicyRule"
-      },
-      "PolicyVersion": {
-        "properties": {
-          "version": {
-            "type": "string",
-            "title": "Version"
-          },
-          "effective_from": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Effective From"
-          },
-          "effective_to": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Effective To"
-          },
-          "rules": {
-            "items": {
-              "$ref": "#/components/schemas/PolicyRule"
-            },
-            "type": "array",
-            "title": "Rules"
-          },
-          "approved_by": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Approved By"
-          }
-        },
-        "type": "object",
-        "required": [
-          "version",
-          "effective_from",
-          "rules",
-          "approved_by"
-        ],
-        "title": "PolicyVersion"
       },
       "ProfileCreate": {
         "properties": {
@@ -16461,14 +19213,17 @@
           },
           "income_total": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Income Total"
           },
           "expense_total": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Expense Total"
           },
           "profit": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Profit"
           }
         },
@@ -16503,7 +19258,8 @@
                 "type": "number"
               },
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
               },
               {
                 "type": "null"
@@ -16587,7 +19343,8 @@
           "extracted_amount": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
               },
               {
                 "type": "null"
@@ -17231,7 +19988,8 @@
                 "type": "number"
               },
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
               },
               {
                 "type": "null"
@@ -17245,7 +20003,8 @@
                 "type": "number"
               },
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
               },
               {
                 "type": "null"
@@ -17275,7 +20034,8 @@
                 "type": "number"
               },
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
               },
               {
                 "type": "null"
@@ -17289,7 +20049,8 @@
                 "type": "number"
               },
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
               },
               {
                 "type": "null"
@@ -17301,6 +20062,7 @@
             "anyOf": [
               {
                 "items": {
+                  "additionalProperties": true,
                   "type": "object"
                 },
                 "type": "array"
@@ -17314,10 +20076,12 @@
           "structured_terms": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
                 "items": {
+                  "additionalProperties": true,
                   "type": "object"
                 },
                 "type": "array"
@@ -17371,7 +20135,8 @@
                 "type": "number"
               },
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
               },
               {
                 "type": "null"
@@ -17385,7 +20150,8 @@
                 "type": "number"
               },
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
               },
               {
                 "type": "null"
@@ -17437,7 +20203,8 @@
                 "type": "number"
               },
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
               },
               {
                 "type": "null"
@@ -17451,7 +20218,8 @@
                 "type": "number"
               },
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
               },
               {
                 "type": "null"
@@ -17463,6 +20231,7 @@
             "anyOf": [
               {
                 "items": {
+                  "additionalProperties": true,
                   "type": "object"
                 },
                 "type": "array"
@@ -17476,10 +20245,12 @@
           "structured_terms": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
                 "items": {
+                  "additionalProperties": true,
                   "type": "object"
                 },
                 "type": "array"
@@ -17564,6 +20335,7 @@
           },
           "amount": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Amount"
           },
           "currency": {
@@ -17645,7 +20417,8 @@
           "subtotal": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
               },
               {
                 "type": "null"
@@ -17656,7 +20429,8 @@
           "vat": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
               },
               {
                 "type": "null"
@@ -17668,6 +20442,7 @@
             "anyOf": [
               {
                 "items": {
+                  "additionalProperties": true,
                   "type": "object"
                 },
                 "type": "array"
@@ -17681,10 +20456,12 @@
           "structured_terms": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
                 "items": {
+                  "additionalProperties": true,
                   "type": "object"
                 },
                 "type": "array"
@@ -18129,193 +20906,6 @@
         ],
         "title": "ReferralOut"
       },
-      "ReflectionCreate": {
-        "properties": {
-          "owner_profile_id": {
-            "type": "string",
-            "title": "Owner Profile Id"
-          },
-          "reflection_date": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Reflection Date"
-          },
-          "wins": {
-            "type": "string",
-            "title": "Wins"
-          },
-          "challenges": {
-            "type": "string",
-            "title": "Challenges"
-          },
-          "lessons": {
-            "type": "string",
-            "title": "Lessons"
-          },
-          "tomorrow_focus": {
-            "type": "string",
-            "title": "Tomorrow Focus"
-          }
-        },
-        "type": "object",
-        "required": [
-          "owner_profile_id",
-          "reflection_date",
-          "wins",
-          "challenges",
-          "lessons",
-          "tomorrow_focus"
-        ],
-        "title": "ReflectionCreate"
-      },
-      "ReflectionOut": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "owner_profile_id": {
-            "type": "string",
-            "title": "Owner Profile Id"
-          },
-          "reflection_date": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Reflection Date"
-          },
-          "wins": {
-            "type": "string",
-            "title": "Wins"
-          },
-          "challenges": {
-            "type": "string",
-            "title": "Challenges"
-          },
-          "lessons": {
-            "type": "string",
-            "title": "Lessons"
-          },
-          "tomorrow_focus": {
-            "type": "string",
-            "title": "Tomorrow Focus"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated At"
-          },
-          "continuity_event_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Continuity Event Id"
-          },
-          "is_archived": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Is Archived",
-            "default": false
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "owner_profile_id",
-          "reflection_date",
-          "wins",
-          "challenges",
-          "lessons",
-          "tomorrow_focus",
-          "created_at",
-          "updated_at"
-        ],
-        "title": "ReflectionOut"
-      },
-      "ReflectionUpdate": {
-        "properties": {
-          "reflection_date": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Reflection Date"
-          },
-          "wins": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Wins"
-          },
-          "challenges": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Challenges"
-          },
-          "lessons": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Lessons"
-          },
-          "tomorrow_focus": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Tomorrow Focus"
-          }
-        },
-        "type": "object",
-        "required": [
-          "reflection_date",
-          "wins",
-          "challenges",
-          "lessons",
-          "tomorrow_focus"
-        ],
-        "title": "ReflectionUpdate"
-      },
       "RejectPayload": {
         "properties": {
           "review_note": {
@@ -18328,6 +20918,39 @@
           "review_note"
         ],
         "title": "RejectPayload"
+      },
+      "RevenueTrendItem": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "title": "Date"
+          },
+          "gross_volume": {
+            "type": "number",
+            "title": "Gross Volume"
+          },
+          "platform_fee": {
+            "type": "number",
+            "title": "Platform Fee"
+          },
+          "merchant_share": {
+            "type": "number",
+            "title": "Merchant Share"
+          },
+          "order_count": {
+            "type": "integer",
+            "title": "Order Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "gross_volume",
+          "platform_fee",
+          "merchant_share",
+          "order_count"
+        ],
+        "title": "RevenueTrendItem"
       },
       "RiverEventPayload": {
         "properties": {
@@ -18375,6 +20998,7 @@
           },
           "intelligence": {
             "items": {
+              "additionalProperties": true,
               "type": "object"
             },
             "type": "array",
@@ -18382,6 +21006,7 @@
           },
           "explanations": {
             "items": {
+              "additionalProperties": true,
               "type": "object"
             },
             "type": "array",
@@ -18395,6 +21020,7 @@
             "title": "Caused By"
           },
           "causal": {
+            "additionalProperties": true,
             "type": "object",
             "title": "Causal"
           },
@@ -18404,6 +21030,7 @@
             "default": "verified"
           },
           "metadata": {
+            "additionalProperties": true,
             "type": "object",
             "title": "Metadata"
           }
@@ -18441,164 +21068,36 @@
         ],
         "title": "RiverEventResponse"
       },
-      "ScriptureReflectionCreate": {
+      "RolePromoteRequest": {
         "properties": {
-          "owner_profile_id": {
+          "user_id": {
             "type": "string",
-            "title": "Owner Profile Id"
+            "title": "User Id"
           },
-          "reflection_date": {
+          "new_role": {
             "type": "string",
-            "format": "date",
-            "title": "Reflection Date"
-          },
-          "situation_key": {
-            "type": "string",
-            "title": "Situation Key"
-          },
-          "linked_reflection_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Linked Reflection Id"
-          },
-          "linked_opportunity_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Linked Opportunity Id"
+            "title": "New Role"
           }
         },
         "type": "object",
         "required": [
-          "owner_profile_id",
-          "reflection_date",
-          "situation_key"
+          "user_id",
+          "new_role"
         ],
-        "title": "ScriptureReflectionCreate"
+        "title": "RolePromoteRequest"
       },
-      "ScriptureReflectionRead": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "owner_profile_id": {
-            "type": "string",
-            "title": "Owner Profile Id"
-          },
-          "reflection_date": {
-            "type": "string",
-            "format": "date",
-            "title": "Reflection Date"
-          },
-          "situation_key": {
-            "type": "string",
-            "title": "Situation Key"
-          },
-          "scripture_reference": {
-            "type": "string",
-            "title": "Scripture Reference"
-          },
-          "scripture_text": {
-            "type": "string",
-            "title": "Scripture Text"
-          },
-          "encouragement_note": {
-            "type": "string",
-            "title": "Encouragement Note"
-          },
-          "linked_reflection_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Linked Reflection Id"
-          },
-          "linked_opportunity_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Linked Opportunity Id"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "continuity_event_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Continuity Event Id"
-          },
-          "is_archived": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Is Archived",
-            "default": false
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "owner_profile_id",
-          "reflection_date",
-          "situation_key",
-          "scripture_reference",
-          "scripture_text",
-          "encouragement_note",
-          "linked_reflection_id",
-          "linked_opportunity_id",
-          "created_at"
+      "SLAStatusEnum": {
+        "type": "string",
+        "enum": [
+          "on_track",
+          "approaching_sla",
+          "breached"
         ],
-        "title": "ScriptureReflectionRead"
+        "title": "SLAStatusEnum"
       },
-      "ScriptureReflectionUpdate": {
+      "SettlementActionRequest": {
         "properties": {
-          "reflection_date": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Reflection Date"
-          },
-          "situation_key": {
+          "settlement_reference": {
             "anyOf": [
               {
                 "type": "string"
@@ -18607,9 +21106,9 @@
                 "type": "null"
               }
             ],
-            "title": "Situation Key"
+            "title": "Settlement Reference"
           },
-          "scripture_reference": {
+          "notes": {
             "anyOf": [
               {
                 "type": "string"
@@ -18618,64 +21117,11 @@
                 "type": "null"
               }
             ],
-            "title": "Scripture Reference"
-          },
-          "scripture_text": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Scripture Text"
-          },
-          "encouragement_note": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Encouragement Note"
-          },
-          "linked_reflection_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Linked Reflection Id"
-          },
-          "linked_opportunity_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Linked Opportunity Id"
+            "title": "Notes"
           }
         },
         "type": "object",
-        "required": [
-          "reflection_date",
-          "situation_key",
-          "scripture_reference",
-          "scripture_text",
-          "encouragement_note",
-          "linked_reflection_id",
-          "linked_opportunity_id"
-        ],
-        "title": "ScriptureReflectionUpdate"
+        "title": "SettlementActionRequest"
       },
       "SetupFeeReview": {
         "properties": {
@@ -18907,6 +21353,7 @@
             "title": "Created At"
           },
           "payload_summary": {
+            "additionalProperties": true,
             "type": "object",
             "title": "Payload Summary"
           },
@@ -19046,6 +21493,22 @@
           "token_type": {
             "type": "string",
             "title": "Token Type"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role",
+            "default": "buyer"
+          },
+          "profile_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Id"
           }
         },
         "type": "object",
@@ -19054,6 +21517,206 @@
           "token_type"
         ],
         "title": "Token"
+      },
+      "TreasuryAnalyticsOut": {
+        "properties": {
+          "time_range": {
+            "type": "string",
+            "title": "Time Range"
+          },
+          "revenue_trends": {
+            "items": {
+              "$ref": "#/components/schemas/RevenueTrendItem"
+            },
+            "type": "array",
+            "title": "Revenue Trends"
+          },
+          "payout_velocity": {
+            "$ref": "#/components/schemas/PayoutVelocityMetrics"
+          },
+          "gateway_performance": {
+            "items": {
+              "$ref": "#/components/schemas/GatewayPerformanceItem"
+            },
+            "type": "array",
+            "title": "Gateway Performance"
+          },
+          "carrier_distribution": {
+            "items": {
+              "$ref": "#/components/schemas/CarrierDistributionItem"
+            },
+            "type": "array",
+            "title": "Carrier Distribution"
+          }
+        },
+        "type": "object",
+        "required": [
+          "time_range",
+          "revenue_trends",
+          "payout_velocity",
+          "gateway_performance",
+          "carrier_distribution"
+        ],
+        "title": "TreasuryAnalyticsOut"
+      },
+      "TreasurySummaryOut": {
+        "properties": {
+          "gross_transaction_volume": {
+            "type": "number",
+            "title": "Gross Transaction Volume"
+          },
+          "platform_fee_revenue": {
+            "type": "number",
+            "title": "Platform Fee Revenue"
+          },
+          "treasury_vault_balance": {
+            "type": "number",
+            "title": "Treasury Vault Balance"
+          },
+          "merchant_earnings_total": {
+            "type": "number",
+            "title": "Merchant Earnings Total"
+          },
+          "merchant_payout_pending": {
+            "type": "number",
+            "title": "Merchant Payout Pending"
+          },
+          "total_orders_count": {
+            "type": "integer",
+            "title": "Total Orders Count"
+          },
+          "paid_orders_count": {
+            "type": "integer",
+            "title": "Paid Orders Count"
+          },
+          "gateway_breakdown": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Gateway Breakdown"
+          },
+          "carrier_breakdown": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Carrier Breakdown"
+          }
+        },
+        "type": "object",
+        "required": [
+          "gross_transaction_volume",
+          "platform_fee_revenue",
+          "treasury_vault_balance",
+          "merchant_earnings_total",
+          "merchant_payout_pending",
+          "total_orders_count",
+          "paid_orders_count",
+          "gateway_breakdown",
+          "carrier_breakdown"
+        ],
+        "title": "TreasurySummaryOut"
+      },
+      "TreasuryTransactionOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "order_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order Number"
+          },
+          "buyer_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buyer Email"
+          },
+          "merchant_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Merchant Id"
+          },
+          "merchant_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Merchant Name"
+          },
+          "gateway": {
+            "type": "string",
+            "title": "Gateway"
+          },
+          "payment_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Reference"
+          },
+          "total_amount": {
+            "type": "number",
+            "title": "Total Amount"
+          },
+          "platform_fee_10pct": {
+            "type": "number",
+            "title": "Platform Fee 10Pct"
+          },
+          "merchant_earning_90pct": {
+            "type": "number",
+            "title": "Merchant Earning 90Pct"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "gateway",
+          "total_amount",
+          "platform_fee_10pct",
+          "merchant_earning_90pct",
+          "currency",
+          "status",
+          "created_at"
+        ],
+        "title": "TreasuryTransactionOut"
       },
       "TrustInfo": {
         "properties": {
@@ -19136,6 +21799,56 @@
           "password": {
             "type": "string",
             "title": "Password"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role",
+            "default": "buyer"
+          },
+          "business_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Business Name"
+          },
+          "business_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Business Type",
+            "default": "service"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "province": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Province"
           }
         },
         "type": "object",
@@ -19215,6 +21928,13 @@
           "type": {
             "type": "string",
             "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
           }
         },
         "type": "object",
@@ -19259,14 +21979,17 @@
         "properties": {
           "pending_amount": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Pending Amount"
           },
           "available_amount": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Available Amount"
           },
           "paid_amount": {
             "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Paid Amount"
           },
           "currency": {
