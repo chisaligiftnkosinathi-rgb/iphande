@@ -156,7 +156,7 @@ async def lifespan(app: FastAPI):
                 from src.database import SessionLocal
                 from src.models.merchant_account import MerchantAccount, MerchantVerificationStatus
                 from src.models.earning_ledger import EarningLedger, EarningLedgerStatus
-                from src.routes.continuity_capture_routes import emit_continuity_event
+                from src.services.continuity_event_service import emit_continuity_event
                 from datetime import datetime, timedelta
                 from decimal import Decimal
                 from sqlalchemy import func
