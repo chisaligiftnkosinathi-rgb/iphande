@@ -2,7 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from src.database import get_db
 from src.auth.supabase_auth import get_current_user
-from src.schemas.bootstrap_schema import BootstrapResponse, IdentitySchema, BusinessSchema, SystemSchema
+from src.schemas.bootstrap_schema import (
+    BootstrapResponse, IdentitySchema, BusinessSchema, SystemSchema,
+    ApplicationState, SetupState, SubscriptionState
+)
 from src.models.profile import Profile
 from src.services.dashboard_service import DashboardService
 import logging
@@ -29,14 +32,17 @@ def get_bootstrap(db: Session = Depends(get_db), current_user: dict = Depends(ge
 
     businesses = []
     selected_business_id = None
+    plan = getattr(profile, 'plan_code', None) or getattr(profile, 'plan', None) or "free"
+    is_active = getattr(profile, 'is_active', False)
+    role = getattr(profile, 'role', 'steward')
     if profile:
         businesses.append(BusinessSchema(
             id=str(profile.id),
             slug=profile.slug or "",
             displayName=profile.name or profile.slug or "",
             trust=100,
-            plan=profile.plan_code or "free",
-            status="active" if profile.is_active else "inactive",
+            plan=plan,
+            status="active" if is_active else "inactive",
             permissions=[],
             featureFlags=[]
         ))
@@ -59,14 +65,14 @@ def get_bootstrap(db: Session = Depends(get_db), current_user: dict = Depends(ge
             current_step=1,
             total_steps=5
         ),
-        subscription=SubscriptionState(status="active", plan=profile.plan_code if profile else "free"),
+        subscription=SubscriptionState(status="active", plan=plan),
         workspace=None, # For now, return None or mock to prevent crashing
         businesses=businesses,
         selectedBusinessId=selected_business_id,
         permissions=[],
         featureFlags=[],
         navigation=[],
-        platformRole=profile.role if profile and hasattr(profile, 'role') else "steward",
+        platformRole=role,
         dashboard=dashboard_res,
         policy={},
         system=system

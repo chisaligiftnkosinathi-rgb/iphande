@@ -53,7 +53,7 @@ class Profile(Base):
     trust_posture = Column(String, nullable=True)
 
     continuity_event_id = Column(String, nullable=True)
-    owner_id = Column(String, nullable=True)
+    owner_id = Column(String, unique=True, index=True, nullable=True)
 
     # V1 Onboarding & Setup Fee
     setup_fee_required = Column(Float, default=120.0, nullable=True)
