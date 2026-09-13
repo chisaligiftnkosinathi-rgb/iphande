@@ -19,7 +19,7 @@ Mutable fields (can be modified):
 
 from sqlalchemy.orm import object_session
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm.attributes import History
+from sqlalchemy.orm.attributes import History, get_history
 
 from src.models.fee_ledger import FeeLedger
 from src.models.treasury_ledger import TreasuryLedger
@@ -78,7 +78,7 @@ def protect_fee_ledger_immutability(mapper, connection, target):
 
     # Check if any immutable fields were changed
     for field_name in IMMUTABLE_FEE_LEDGER_FIELDS:
-        history = session.get_history(target, field_name)
+        history = get_history(target, field_name)
 
         # history is (added, unchanged, deleted)
         # If both added and deleted are non-empty, field was changed
@@ -111,7 +111,7 @@ def protect_treasury_ledger_immutability(mapper, connection, target):
         return
 
     for field_name in IMMUTABLE_TREASURY_LEDGER_FIELDS:
-        history = session.get_history(target, field_name)
+        history = get_history(target, field_name)
 
         if history.deleted and history.added:
             old_value = list(history.deleted)[0]
@@ -142,7 +142,7 @@ def protect_earning_ledger_immutability(mapper, connection, target):
         return
 
     for field_name in IMMUTABLE_EARNING_LEDGER_FIELDS:
-        history = session.get_history(target, field_name)
+        history = get_history(target, field_name)
 
         if history.deleted and history.added:
             old_value = list(history.deleted)[0]

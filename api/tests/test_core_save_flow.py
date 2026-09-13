@@ -11,6 +11,7 @@ from tests.test_quote_request_continuity import TestingSessionLocal, engine, Bas
 def setup_database():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
     yield
 
 def test_core_save_flow_profile_to_opportunity():

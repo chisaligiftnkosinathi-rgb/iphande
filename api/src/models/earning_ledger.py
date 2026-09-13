@@ -52,7 +52,7 @@ class EarningLedger(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
 
     # Identity: who earned this
-    user_id = Column(String, ForeignKey("profiles.user_id"), nullable=False, index=True)
+    user_id = Column(String, ForeignKey("profiles.owner_id"), nullable=False, index=True)
     merchant_account_id = Column(UUID(as_uuid=True),
                                 ForeignKey("merchant_accounts.id"),
                                 nullable=False,

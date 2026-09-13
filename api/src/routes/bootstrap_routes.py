@@ -55,6 +55,12 @@ def get_bootstrap(db: Session = Depends(get_db), current_user: dict = Depends(ge
     is_active = getattr(profile, 'is_active', False)
 
     if profile and role in ["merchant", "admin", "supaadmin"]:
+        from src.models.merchant_account import MerchantAccount
+        m_account = db.query(MerchantAccount).filter(MerchantAccount.user_id == uid).first()
+        v_status = m_account.verification_status.value if m_account and hasattr(m_account.verification_status, 'value') else (str(m_account.verification_status) if m_account else "unverified")
+        notes = m_account.kyc_review_notes if m_account else None
+        payout_on = m_account.payout_enabled if m_account else False
+
         businesses.append(BusinessSchema(
             id=str(profile.id),
             slug=profile.slug or "",
@@ -63,7 +69,10 @@ def get_bootstrap(db: Session = Depends(get_db), current_user: dict = Depends(ge
             plan=plan,
             status="active" if is_active else "inactive",
             permissions=[],
-            featureFlags=[]
+            featureFlags=[],
+            verification_status=v_status,
+            kyc_review_notes=notes,
+            payout_enabled=payout_on
         ))
         selected_business_id = str(profile.id)
 

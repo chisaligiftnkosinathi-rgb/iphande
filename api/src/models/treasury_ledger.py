@@ -78,5 +78,5 @@ class TreasuryLedger(Base):
 
     # Idempotency & Event Tracking (Ledger Safety Layer)
     # Prevents duplicate treasury entries from duplicate webhook processing
-    idempotency_key = Column(String, nullable=True, unique=True, index=True)
+    idempotency_key = Column(String, nullable=True, index=True)
     provider_event_id = Column(String, nullable=True, index=True)  # PayFast event reference

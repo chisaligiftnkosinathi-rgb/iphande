@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
+from enum import Enum
 
 from src.database import get_db, replay_transaction
 from src.models.profile import Profile

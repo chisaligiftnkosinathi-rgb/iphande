@@ -30,3 +30,9 @@ class RolePromoteRequest(BaseModel):
     user_id: str
     new_role: str  # merchant, admin, supaadmin
 
+class KYCSubmissionRequest(BaseModel):
+    id_document_url: str
+    proof_of_address_url: str
+    business_registration_number: Optional[str] = None
+    tax_number: Optional[str] = None
+

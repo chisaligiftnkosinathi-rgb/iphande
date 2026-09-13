@@ -1,7 +1,7 @@
 import enum
 import uuid
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Numeric, String
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Numeric, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
@@ -21,6 +21,10 @@ class PaymentIntentStatus(str, enum.Enum):
 
 class PaymentIntent(Base):
     __tablename__ = "payment_intents"
+    __table_args__ = (
+        UniqueConstraint("business_owner_id", "idempotency_key", name="uq_payment_intent_idempotency"),
+        UniqueConstraint("business_owner_id", "provider_event_id", name="uq_payment_intent_provider_event"),
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
     business_owner_id = Column(String, nullable=False, index=True)
@@ -41,7 +45,7 @@ class PaymentIntent(Base):
 
     # Idempotency & Event Tracking (Ledger Safety Layer)
     # Prevents duplicate webhook processing (critical for PayFast ITN safety)
-    idempotency_key = Column(String, nullable=True, unique=True, index=True)
+    idempotency_key = Column(String, nullable=True, index=True)
     provider_event_id = Column(String, nullable=True, index=True)  # PayFast event reference
     ledger_processed_at = Column(DateTime(timezone=True), nullable=True)  # When payment → ledger conversion happened
 

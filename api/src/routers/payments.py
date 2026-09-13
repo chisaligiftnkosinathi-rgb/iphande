@@ -25,7 +25,8 @@ from src.schemas.quote_to_cash_schema import (
 )
 from src.services.continuity_event_service import emit_continuity_event
 from src.services.transition_audit_service import audit_transition
-
+from src.services.verification_service import verify_tenant_access
+from src.auth.supabase_auth import get_current_user
 
 router = APIRouter(prefix="/api/v1/payments", tags=["payments"])
 
@@ -63,7 +64,8 @@ def evaluate_evidence(payment: PaymentIntent, proof: ProofOfPayment) -> tuple[Pr
 
 
 @router.get("/intents/business/{business_owner_id}", response_model=list[PaymentIntentReviewOut])
-def list_payment_intents_for_business(business_owner_id: str, db: Session = Depends(get_db)):
+def list_payment_intents_for_business(business_owner_id: str, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    verify_tenant_access(db, current_user, business_owner_id)
     payments = (
         db.query(PaymentIntent)
         .filter(PaymentIntent.business_owner_id == business_owner_id)
@@ -104,7 +106,7 @@ def list_payment_intents_for_business(business_owner_id: str, db: Session = Depe
 
 
 @router.post("/intents", response_model=PaymentIntentOut)
-def create_payment_intent(payload: PaymentIntentCreate, db: Session = Depends(get_db)):
+def create_payment_intent(payload: PaymentIntentCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     parent_event_id = None
     business_owner_id = None
     amount = None
@@ -135,6 +137,8 @@ def create_payment_intent(payload: PaymentIntentCreate, db: Session = Depends(ge
         quote_id = quote.id
     else:
         raise HTTPException(status_code=400, detail="Must provide either invoice_id or quote_id")
+
+    verify_tenant_access(db, current_user, business_owner_id)
 
     payment_id = uuid.uuid4()
     payment = PaymentIntent(
@@ -198,11 +202,13 @@ def create_payment_intent(payload: PaymentIntentCreate, db: Session = Depends(ge
 def upload_payment_receipt(
     payment_id: UUID,
     receipt_file: UploadFile = File(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     payment = db.query(PaymentIntent).filter(PaymentIntent.id == payment_id).first()
     if not payment:
         raise HTTPException(status_code=404, detail="Payment intent not found")
+    verify_tenant_access(db, current_user, payment.business_owner_id)
 
     # Create proof record but do not automatically evaluate or verify
     proof_id = uuid.uuid4()
@@ -253,10 +259,12 @@ def submit_proof_of_payment(
     payment_id: UUID,
     payload: ProofOfPaymentCreate,
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     payment = db.query(PaymentIntent).filter(PaymentIntent.id == payment_id).first()
     if not payment:
         raise HTTPException(status_code=404, detail="Payment intent not found")
+    verify_tenant_access(db, current_user, payment.business_owner_id)
     if payment.status not in {
         PaymentIntentStatus.evidence_awaiting,
         PaymentIntentStatus.evidence_submitted,
@@ -351,15 +359,23 @@ def submit_proof_of_payment(
 
 
 @router.post("/intents/{payment_id}/verify", response_model=PaymentIntentOut)
-def verify_payment_intent(payment_id: UUID, db: Session = Depends(get_db)):
+def verify_payment_intent(payment_id: UUID, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     payment = db.query(PaymentIntent).filter(PaymentIntent.id == payment_id).first()
     if not payment:
         raise HTTPException(status_code=404, detail="Payment intent not found")
+    verify_tenant_access(db, current_user, payment.business_owner_id)
     if payment.status != PaymentIntentStatus.under_review:
         raise HTTPException(status_code=409, detail="Only payments under review can be verified")
 
     with replay_transaction(db):
-        payment.status = PaymentIntentStatus.verified
+        rows_updated = db.query(PaymentIntent).filter(
+            PaymentIntent.id == payment_id,
+            PaymentIntent.status == PaymentIntentStatus.under_review
+        ).update({"status": PaymentIntentStatus.verified}, synchronize_session=False)
+
+        if rows_updated == 0:
+            raise HTTPException(status_code=409, detail="Payment modified concurrently")
+
         payment.confirmed_at = datetime.now(timezone.utc)
         event = emit_continuity_event(
             db,
@@ -389,15 +405,23 @@ def verify_payment_intent(payment_id: UUID, db: Session = Depends(get_db)):
 
 
 @router.post("/intents/{payment_id}/reject", response_model=PaymentIntentOut)
-def reject_payment_intent(payment_id: UUID, db: Session = Depends(get_db)):
+def reject_payment_intent(payment_id: UUID, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     payment = db.query(PaymentIntent).filter(PaymentIntent.id == payment_id).first()
     if not payment:
         raise HTTPException(status_code=404, detail="Payment intent not found")
+    verify_tenant_access(db, current_user, payment.business_owner_id)
     if payment.status != PaymentIntentStatus.under_review:
         raise HTTPException(status_code=409, detail="Only payments under review can be rejected")
 
     with replay_transaction(db):
-        payment.status = PaymentIntentStatus.rejected
+        rows_updated = db.query(PaymentIntent).filter(
+            PaymentIntent.id == payment_id,
+            PaymentIntent.status == PaymentIntentStatus.under_review
+        ).update({"status": PaymentIntentStatus.rejected}, synchronize_session=False)
+
+        if rows_updated == 0:
+            raise HTTPException(status_code=409, detail="Payment modified concurrently")
+
         event = emit_continuity_event(
             db,
             business_owner_id=payment.business_owner_id,
@@ -424,10 +448,11 @@ def reject_payment_intent(payment_id: UUID, db: Session = Depends(get_db)):
 
 
 @router.post("/intents/{payment_id}/receipt", response_model=PaymentIntentOut)
-def issue_receipt(payment_id: UUID, db: Session = Depends(get_db)):
+def issue_receipt(payment_id: UUID, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     payment = db.query(PaymentIntent).filter(PaymentIntent.id == payment_id).first()
     if not payment:
         raise HTTPException(status_code=404, detail="Payment intent not found")
+    verify_tenant_access(db, current_user, payment.business_owner_id)
     if payment.status != PaymentIntentStatus.verified:
         raise HTTPException(status_code=409, detail="Receipt requires verified payment")
     if payment.receipt_number:
@@ -463,7 +488,7 @@ def issue_receipt(payment_id: UUID, db: Session = Depends(get_db)):
 
 
 @router.post("/{payment_id}/confirm-demo", response_model=PaymentIntentOut)
-def confirm_demo_payment(payment_id: UUID, db: Session = Depends(get_db)):
+def confirm_demo_payment(payment_id: UUID, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     from src.config import ENVIRONMENT
 
     if ENVIRONMENT == "production":
@@ -472,11 +497,24 @@ def confirm_demo_payment(payment_id: UUID, db: Session = Depends(get_db)):
     payment = db.query(PaymentIntent).filter(PaymentIntent.id == payment_id).first()
     if not payment:
         raise HTTPException(status_code=404, detail="Payment intent not found")
+    verify_tenant_access(db, current_user, payment.business_owner_id)
 
     if payment.status == PaymentIntentStatus.confirmed:
         return payment
 
     with replay_transaction(db):
+        rows_updated = db.query(PaymentIntent).filter(
+            PaymentIntent.id == payment_id,
+            PaymentIntent.status != PaymentIntentStatus.confirmed
+        ).update({"status": PaymentIntentStatus.confirmed}, synchronize_session=False)
+
+        if rows_updated == 0:
+            db.rollback()
+            db.refresh(payment)
+            if payment.status == PaymentIntentStatus.confirmed:
+                return payment
+            raise HTTPException(status_code=409, detail="Payment already confirmed or modified concurrently")
+
         event = emit_continuity_event(
             db=db,
             business_owner_id=payment.business_owner_id,
@@ -541,7 +579,6 @@ def confirm_demo_payment(payment_id: UUID, db: Session = Depends(get_db)):
         db.add(financial_event)
         db.flush()
 
-        payment.status = PaymentIntentStatus.confirmed
         payment.confirmed_at = datetime.now(timezone.utc)
         payment.confirmed_continuity_event_id = event.id
         payment.financial_event_id = financial_event.id

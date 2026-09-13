@@ -33,6 +33,7 @@ def setup_database():
     app.dependency_overrides[get_db] = override_get_db
     yield
     Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
     app.dependency_overrides.clear()
 
 steward_id = "steward-123"

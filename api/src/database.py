@@ -36,17 +36,14 @@ def replay_transaction(db):
 def register_models():
     from src.models.continuity_capture import ContinuityCapture  # noqa: F401
     from src.models.quote_request_model import QuoteRequest  # noqa: F401
-    from src.models.giving_model import Giving  # noqa: F401
     from src.models.continuity_event_model import ContinuityEvent  # noqa: F401
     from src.models.profile import Profile  # noqa: F401
     from src.models.opportunity import Opportunity  # noqa: F401
     from src.models.timeline_event import TimelineEvent  # noqa: F401
     from src.models.followup import FollowUp  # noqa: F401
     from src.models.media import Media  # noqa: F401
-    from src.models.reflection import Reflection  # noqa: F401
     from src.models.campaign import Campaign  # noqa: F401
     from src.models.message_template import MessageTemplate  # noqa: F401
-    from src.models.scripture_reflection import ScriptureReflection  # noqa: F401
     from src.models.content_post import ContentPost  # noqa: F401
     from src.models.advertisement import Advertisement  # noqa: F401
     from src.models.financial_event import FinancialEvent  # noqa: F401

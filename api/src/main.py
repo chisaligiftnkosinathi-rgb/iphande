@@ -34,9 +34,9 @@ _app_state = {
 
 from src.routes import (
     health_routes, profile_routes, opportunity_routes, timeline_routes, followup_routes,
-    media_routes, reflection_routes, campaign_routes, message_template_routes, scripture_reflection_routes,
+    media_routes, campaign_routes, message_template_routes,
     content_post_routes, places_routes,
-    business_categories, business_content_rules, quote_request_routes, giving_routes,
+    business_categories, business_content_rules, quote_request_routes,
     steward_timeline_routes, steward_annotations, referral_routes, public_routes,
     advertisement_routes, expense_routes, share_routes, admin_routes, document_routes, steward_console_routes,
     public_profiles, feed_geo, geo_match, engagement_events, action_delivery, feedback,
@@ -252,9 +252,9 @@ async def lifespan(app: FastAPI):
 from src.core.rate_limit import setup_rate_limiting
 
 app = FastAPI(
-    title=settings.APP_NAME,
+    title="iPhande API",
     version=settings.API_VERSION,
-    description="Visibility, opportunity continuity, replay, and grace reflection platform.",
+    description="Township enterprise ERP, hyper-local marketplace, and merchant credibility infrastructure.",
     lifespan=lifespan,
 )
 
@@ -344,11 +344,8 @@ else:
     app.include_router(business_content_rules.router)
     app.include_router(media_routes.router, prefix="/api/v1")
     app.include_router(quote_request_routes.router)
-    app.include_router(giving_routes.router)
-    app.include_router(reflection_routes.router, prefix="/api/v1")
     app.include_router(campaign_routes.router, prefix="/api/v1")
     app.include_router(message_template_routes.router, prefix="/api/v1")
-    app.include_router(scripture_reflection_routes.router, prefix="/api/v1")
     app.include_router(content_post_routes.router, prefix="/api/v1")
     app.include_router(steward_timeline_routes.router)
     app.include_router(steward_annotations.router, prefix="/api/v1", tags=["steward-annotations"])

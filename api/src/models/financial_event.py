@@ -1,7 +1,7 @@
 import enum
 import uuid
 
-from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Numeric, String
+from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Numeric, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
@@ -37,6 +37,9 @@ class CashDirection(str, enum.Enum):
 
 class FinancialEvent(Base):
     __tablename__ = "financial_events"
+    __table_args__ = (
+        UniqueConstraint("business_owner_id", "idempotency_key", name="uq_financial_event_idempotency"),
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
     business_owner_id = Column(String, nullable=False, index=True)
@@ -51,4 +54,5 @@ class FinancialEvent(Base):
     counterparty = Column(String, nullable=True)
     creates_obligation = Column(Boolean, nullable=False, default=False)
     continuity_event_id = Column(UUID(as_uuid=True), ForeignKey("continuity_events.id"), nullable=False)
+    idempotency_key = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)

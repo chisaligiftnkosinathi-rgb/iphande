@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -7,10 +8,10 @@ from src.database import SessionLocal, replay_transaction, get_db
 from src.models.opportunity import Opportunity
 from src.schemas.opportunity_schema import OpportunityCreate, OpportunityOut, OpportunityUpdate
 from src.services.continuity_event_service import emit_continuity_event
-from src.services.verification_service import require_verified_steward_or_platform_admin
+from src.services.verification_service import require_verified_steward_or_platform_admin, verify_tenant_access
 from src.models.profile import Profile
 from src.models.media import Media
-import logging
+from src.auth.supabase_auth import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -28,9 +29,8 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
     return R * c
 
 @router.post("/opportunities", response_model=OpportunityOut)
-def create_opportunity(opportunity: OpportunityCreate, db: Session = Depends(get_db)):
-    profile = db.query(Profile).filter(Profile.id == opportunity.created_by_profile_id).first()
-    require_verified_steward_or_platform_admin(profile)
+def create_opportunity(opportunity: OpportunityCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    verify_tenant_access(db, current_user, opportunity.created_by_profile_id)
 
     with replay_transaction(db):
         db_opp = Opportunity(**opportunity.model_dump())
@@ -157,20 +157,19 @@ def list_nearby_opportunities(
     ]
 
 @router.get("/opportunities/{opportunity_id}", response_model=OpportunityOut)
-def get_opportunity(opportunity_id: str, db: Session = Depends(get_db)):
+def get_opportunity(opportunity_id: str, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     opp = db.query(Opportunity).filter(Opportunity.id == opportunity_id).first()
     if not opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
+    verify_tenant_access(db, current_user, opp.created_by_profile_id)
     return opp
 
 @router.patch("/opportunities/{opportunity_id}", response_model=OpportunityOut)
-def update_opportunity(opportunity_id: str, update: OpportunityUpdate, db: Session = Depends(get_db)):
+def update_opportunity(opportunity_id: str, update: OpportunityUpdate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     opp = db.query(Opportunity).filter(Opportunity.id == opportunity_id).first()
     if not opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
-
-    profile = db.query(Profile).filter(Profile.id == opp.created_by_profile_id).first()
-    require_verified_steward_or_platform_admin(profile)
+    verify_tenant_access(db, current_user, opp.created_by_profile_id)
 
     update_data = update.model_dump(exclude_unset=True)
     if not update_data:

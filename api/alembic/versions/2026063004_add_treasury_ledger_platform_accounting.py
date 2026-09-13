@@ -71,8 +71,6 @@ def upgrade():
     # Create indexes for treasury_ledgers
     op.create_index('ix_treasury_ledgers_payment_intent_id', 'treasury_ledgers', ['payment_intent_id'])
     op.create_index('ix_treasury_ledgers_fee_ledger_id', 'treasury_ledgers', ['fee_ledger_id'])
-    op.create_index('ix_treasury_ledgers_owner', 'treasury_ledgers', ['owner'])
-    op.create_index('ix_treasury_ledgers_idempotency_key', 'treasury_ledgers', ['idempotency_key'])
     op.create_index('ix_treasury_ledgers_provider_event_id', 'treasury_ledgers', ['provider_event_id'])
 
 

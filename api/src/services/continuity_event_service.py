@@ -59,6 +59,22 @@ def emit_continuity_event(
         source=source,
         payload_json=payload,
     )
+    
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(
+        f"Continuity event emitted: {event_type} for {related_entity_type} {related_entity_id}",
+        extra={
+            "event": "continuity_event_emitted",
+            "business_owner_id": business_owner_id,
+            "user_id": actor_id,
+            "resource_type": related_entity_type,
+            "resource_id": related_entity_id,
+            "payload": payload,
+            "allowed_payload_keys": ["before_state", "after_state", "trace_id", "from_state", "to_state", "reason", "amount", "currency", "accounting_category", "cash_direction", "counterparty", "creates_obligation"]
+        }
+    )
+
     db.add(event)
     if auto_commit:
         db.commit()

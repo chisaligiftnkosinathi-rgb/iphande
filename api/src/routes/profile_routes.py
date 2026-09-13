@@ -274,12 +274,16 @@ def bootstrap_profile(db: Session = Depends(get_db), current_user: dict = Depend
 def get_my_profile(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     uid = current_user.get("uid")
     email = current_user.get("email")
+    is_service = current_user.get("is_service")
 
-    # 1. Primary lookup: by current Supabase UID
-    profile = db.query(Profile).filter(Profile.owner_id == uid).first()
+    # 1. Primary lookup: by current Supabase UID or S2S Profile ID
+    if is_service:
+        profile = db.query(Profile).filter(Profile.id == uid).first()
+    else:
+        profile = db.query(Profile).filter(Profile.owner_id == uid).first()
 
     # 2. Self-heal: adopt orphaned profile by email and re-link
-    if not profile and email:
+    if not profile and email and not is_service:
         profile = db.query(Profile).filter(Profile.email == email).first()
         if profile:
             print(f"PROFILE/ME: Re-linking orphaned profile {profile.id} to uid={uid} (was owner_id={profile.owner_id})")
@@ -302,12 +306,16 @@ def get_my_profile(db: Session = Depends(get_db), current_user: dict = Depends(g
 def update_my_profile(data: ProfileUpdate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     uid = current_user.get("uid")
     email = current_user.get("email")
+    is_service = current_user.get("is_service")
 
-    # 1. Primary lookup: by current Supabase UID
-    profile = db.query(Profile).filter(Profile.owner_id == uid).first()
+    # 1. Primary lookup: by current Supabase UID or S2S Profile ID
+    if is_service:
+        profile = db.query(Profile).filter(Profile.id == uid).first()
+    else:
+        profile = db.query(Profile).filter(Profile.owner_id == uid).first()
 
     # 2. Self-heal: adopt orphaned profile by email and re-link
-    if not profile and email:
+    if not profile and email and not is_service:
         profile = db.query(Profile).filter(Profile.email == email).first()
         if profile:
             print(f"PROFILE/ME PATCH: Re-linking orphaned profile {profile.id} to uid={uid} (was owner_id={profile.owner_id})")

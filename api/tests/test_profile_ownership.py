@@ -33,6 +33,7 @@ def setup_database():
     register_models()
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
     yield
     app.dependency_overrides.clear()
 

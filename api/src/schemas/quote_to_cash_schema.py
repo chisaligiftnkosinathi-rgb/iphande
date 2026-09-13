@@ -127,7 +127,8 @@ class InvoiceOut(BaseModel):
 
 
 class PaymentIntentCreate(BaseModel):
-    invoice_id: UUID
+    invoice_id: UUID | None = None
+    quote_id: UUID | None = None
     provider_name: str = "demo"
     payer_reference: str | None = None
 

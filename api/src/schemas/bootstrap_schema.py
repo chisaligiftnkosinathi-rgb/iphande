@@ -16,6 +16,9 @@ class BusinessSchema(BaseModel):
     status: str
     permissions: List[str]
     featureFlags: List[str]
+    verification_status: Optional[str] = "unverified"
+    kyc_review_notes: Optional[str] = None
+    payout_enabled: Optional[bool] = False
 
 class SystemSchema(BaseModel):
     version: str

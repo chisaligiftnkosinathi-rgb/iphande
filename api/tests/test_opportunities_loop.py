@@ -39,6 +39,7 @@ def setup_database():
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
     app.dependency_overrides.clear()
 
 def test_opportunities_loop():

@@ -16,8 +16,12 @@ from decimal import Decimal
 from uuid import uuid4
 from datetime import datetime
 
+from src.database_immutability import register_immutability_guards
+register_immutability_guards()
+
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.sql import func
 
 from src.models.payment_intent import PaymentIntent, PaymentIntentStatus
 from src.models.fee_ledger import FeeLedger, FeeLedgerStatus
@@ -46,11 +50,11 @@ def db():
 def test_profile(db):
     """Create test user profile."""
     profile = Profile(
-        id=uuid4(),
-        user_id=str(uuid4()),
-        first_name="Test",
-        last_name="User",
-        email="test@example.com",
+        id=str(uuid4()),
+        owner_id=str(uuid4()),
+        name="Test User",
+        slug=f"test-user-{uuid4()}",
+        email=f"test-{uuid4()}@example.com",
     )
     db.add(profile)
     db.commit()
@@ -62,7 +66,7 @@ def test_merchant_account(db, test_profile):
     """Create test merchant account."""
     account = MerchantAccount(
         id=uuid4(),
-        user_id=test_profile.user_id,
+        user_id=test_profile.owner_id,
         bank_name="Test Bank",
         account_holder_name="Test Account",
         account_number="1234567890",
@@ -80,13 +84,14 @@ def test_payment(db, test_profile):
     """Create confirmed payment intent."""
     payment = PaymentIntent(
         id=uuid4(),
-        business_owner_id=test_profile.user_id,
+        business_owner_id=test_profile.owner_id,
         provider_name="payfast",
-        payment_reference="PF_TEST_123",
+        payment_reference=f"PF_TEST_{uuid4().hex[:6]}",
         payer_reference="payer_123",
         amount=Decimal("1000.00"),
         currency="ZAR",
         status=PaymentIntentStatus.confirmed,
+        continuity_event_id=uuid4(),
         confirmed_at=datetime.utcnow(),
     )
     db.add(payment)
@@ -110,7 +115,7 @@ def test_duplicate_webhook_idempotency_prevented(db, test_payment, test_profile,
     result1 = PaymentAllocationService.allocate_confirmed_payment(
         db=db,
         payment_intent_id=test_payment.id,
-        provider_user_id=test_profile.user_id,
+        provider_user_id=test_profile.owner_id,
         merchant_account_id=test_merchant_account.id,
         provider_event_id=provider_event_id,
     )
@@ -123,7 +128,7 @@ def test_duplicate_webhook_idempotency_prevented(db, test_payment, test_profile,
         PaymentAllocationService.allocate_confirmed_payment(
             db=db,
             payment_intent_id=test_payment.id,
-            provider_user_id=test_profile.user_id,
+            provider_user_id=test_profile.owner_id,
             merchant_account_id=test_merchant_account.id,
             provider_event_id=provider_event_id,
         )
@@ -158,7 +163,7 @@ def test_atomic_transaction_rollback_on_failure(db, test_payment, test_profile):
     # Create incomplete merchant account (missing verification)
     incomplete_account = MerchantAccount(
         id=uuid4(),
-        user_id=test_profile.user_id,
+        user_id=test_profile.owner_id,
         bank_name="Incomplete Bank",
         account_holder_name="Incomplete",
         account_number="9999999999",
@@ -176,7 +181,7 @@ def test_atomic_transaction_rollback_on_failure(db, test_payment, test_profile):
     result = PaymentAllocationService.allocate_confirmed_payment(
         db=db,
         payment_intent_id=test_payment.id,
-        provider_user_id=test_profile.user_id,
+        provider_user_id=test_profile.owner_id,
         merchant_account_id=incomplete_account.id,
     )
 
@@ -203,7 +208,7 @@ def test_fee_ledger_immutability_enforced(db, test_payment, test_profile, test_m
     PaymentAllocationService.allocate_confirmed_payment(
         db=db,
         payment_intent_id=test_payment.id,
-        provider_user_id=test_profile.user_id,
+        provider_user_id=test_profile.owner_id,
         merchant_account_id=test_merchant_account.id,
     )
 
@@ -238,7 +243,7 @@ def test_treasury_ledger_immutability_enforced(db, test_payment, test_profile, t
     PaymentAllocationService.allocate_confirmed_payment(
         db=db,
         payment_intent_id=test_payment.id,
-        provider_user_id=test_profile.user_id,
+        provider_user_id=test_profile.owner_id,
         merchant_account_id=test_merchant_account.id,
     )
 
@@ -273,7 +278,7 @@ def test_earning_ledger_immutability_enforced(db, test_payment, test_profile, te
     PaymentAllocationService.allocate_confirmed_payment(
         db=db,
         payment_intent_id=test_payment.id,
-        provider_user_id=test_profile.user_id,
+        provider_user_id=test_profile.owner_id,
         merchant_account_id=test_merchant_account.id,
     )
 
@@ -350,6 +355,7 @@ def test_config_cache_invalidation(db):
     PlatformConfigCache.invalidate("platform_fee_percent", "global_default")
 
     # Create new config
+    db.query(PlatformConfig).filter_by(key="platform_fee_percent").delete()
     config = PlatformConfig(
         id=uuid4(),
         key="platform_fee_percent",
@@ -383,7 +389,7 @@ def test_ledger_balance_integrity(db, test_payment, test_profile, test_merchant_
     result = PaymentAllocationService.allocate_confirmed_payment(
         db=db,
         payment_intent_id=test_payment.id,
-        provider_user_id=test_profile.user_id,
+        provider_user_id=test_profile.owner_id,
         merchant_account_id=test_merchant_account.id,
     )
 
@@ -428,13 +434,14 @@ def test_multiple_payments_balance_validation(db, test_profile, test_merchant_ac
     for i in range(3):
         payment = PaymentIntent(
             id=uuid4(),
-            business_owner_id=test_profile.user_id,
+            business_owner_id=test_profile.owner_id,
             provider_name="payfast",
-            payment_reference=f"PF_TEST_{i}",
+            payment_reference=f"PF_TEST_{uuid4().hex[:8]}_{i}",
             payer_reference=f"payer_{i}",
             amount=Decimal("1000.00"),
             currency="ZAR",
             status=PaymentIntentStatus.confirmed,
+            continuity_event_id=uuid4(),
             confirmed_at=datetime.utcnow(),
         )
         db.add(payment)
@@ -445,18 +452,18 @@ def test_multiple_payments_balance_validation(db, test_profile, test_merchant_ac
         PaymentAllocationService.allocate_confirmed_payment(
             db=db,
             payment_intent_id=payment.id,
-            provider_user_id=test_profile.user_id,
+            provider_user_id=test_profile.owner_id,
             merchant_account_id=test_merchant_account.id,
         )
 
     # Verify batch balance
     total_payments = db.query(PaymentIntent).filter(
-        PaymentIntent.business_owner_id == test_profile.user_id
-    ).with_entities(Decimal).all()
+        PaymentIntent.business_owner_id == test_profile.owner_id
+    ).with_entities(func.sum(PaymentIntent.amount)).scalar()
 
     total_treasury = db.query(TreasuryLedger).filter(
         TreasuryLedger.owner == "GLOBAL_IT_BUSINESS_SOLUTIONS"
-    ).with_entities(Decimal).all()
+    ).with_entities(func.sum(TreasuryLedger.amount)).scalar()
 
     # Total across all payments should be 3000.00
     # Platform fee (10%) = 300.00 across all

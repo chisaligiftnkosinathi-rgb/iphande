@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from src.database import get_db
 from src.models.user import User
-from src.schemas.user_schema import UserCreate, UserLogin, Token, MerchantUpgradeRequest, RolePromoteRequest
+from src.schemas.user_schema import UserCreate, UserLogin, Token, MerchantUpgradeRequest, RolePromoteRequest, KYCSubmissionRequest
 from src.core.security import create_access_token, get_password_hash, verify_password
 from src.services.continuity_event_service import emit_continuity_event
 from src.core.rate_limit import limiter
@@ -265,14 +265,6 @@ def promote_user_role(
 # ----------------------------------------------------------------------------
 # MERCHANT KYC SUBMISSION
 # ----------------------------------------------------------------------------
-from pydantic import BaseModel
-
-class KYCSubmissionRequest(BaseModel):
-    id_document_url: str
-    proof_of_address_url: str
-    business_registration_number: Optional[str] = None
-    tax_number: Optional[str] = None
-
 
 @router.post("/merchant/kyc")
 def submit_merchant_kyc(

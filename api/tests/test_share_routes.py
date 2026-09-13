@@ -49,6 +49,7 @@ def override_get_db():
 
 def teardown_db():
     Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
     app.dependency_overrides.clear()
     app.dependency_overrides.clear()
 

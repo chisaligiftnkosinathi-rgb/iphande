@@ -22,15 +22,11 @@ from .content_post import ContentPost
 from .expense import Expense
 from .feedback_event import FeedbackEvent
 from .financial_event import FinancialEvent
-from .giving_event import GivingEvent
-from .giving_model import Giving
 from .inventory import InventoryItem, InventoryMovement
 from .message_template import MessageTemplate
 from .place import Place
 from .quote_request_model import QuoteRequest
 from .referral import Referral
-from .reflection import Reflection
-from .scripture_reflection import ScriptureReflection
 from .steward_annotation import StewardAnnotation
 from .timeline_event import TimelineEvent
 from .trust_score import TrustScore

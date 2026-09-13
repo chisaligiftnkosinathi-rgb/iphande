@@ -1,7 +1,7 @@
 import enum
 import uuid
 
-from sqlalchemy import Column, DateTime, ForeignKey, Numeric, String, Text
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Numeric, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
@@ -43,6 +43,9 @@ class FeeLedger(Base):
     Each represents a different financial truth.
     """
     __tablename__ = "fee_ledgers"
+    __table_args__ = (
+        UniqueConstraint("provider_user_id", "idempotency_key", name="uq_fee_ledger_idempotency"),
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
 
@@ -70,9 +73,11 @@ class FeeLedger(Base):
                                   default="GLOBAL_IT_BUSINESS_SOLUTIONS",
                                   index=True)
 
-    # Idempotency & Event Tracking (Ledger Safety Layer)
-    # Prevents duplicate fee allocation from duplicate webhook processing
-    idempotency_key = Column(String, nullable=True, unique=True, index=True)
+    # Provider ID for scoping
+    provider_user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+
+    # Idempotency Tracking (Ledger Safety)
+    idempotency_key = Column(String, nullable=True, index=True)
     provider_event_id = Column(String, nullable=True, index=True)  # PayFast event reference
 
     # Lifecycle Status
